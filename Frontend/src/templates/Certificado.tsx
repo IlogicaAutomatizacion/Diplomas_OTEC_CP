@@ -1,0 +1,185 @@
+import gotTitleBlanco from '../assets/cr_fondo_blanco/title.png'
+import gotTitleNegro from '../assets/cr_fondo_negro/title.png'
+import dadosNegro from '../assets/cr_fondo_negro/dados.png'
+import dadosBlanco from '../assets/cr_fondo_blanco/dados.png'
+
+import firmaGf from '../assets/firmagf.png'
+import { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import { backend, frontend } from '../vars'
+
+function SetDarkModeB({ estado, fn }: {
+    estado: boolean
+    fn: React.Dispatch<React.SetStateAction<boolean>>
+}) {
+    return <button onClick={() => {
+        fn(last => !last)
+    }} className='bg-slate-800 text-white rounded-2xl print:hidden mt-5 max-w-30 p-2 mb-5 h-15'>
+        {estado ? 'Modo claro' : 'Modo oscuro'}
+    </button>
+}
+
+function BackCertificate({ datosAl }: { datosAl: Record<string, string>, dark: boolean }) {
+    return (
+        <div className={`lg:w-[297mm] print:w-[297mm] print:h-[209mm] bg-white dark:bg-black shadow-lg border border-gray-200 print:shadow-none print:border-0`}>
+
+            <div className='p-10'>
+                <div className="text-center mb-6 border bg-[#833C0B]">
+                    <h2 className="text-xl font-bold tracking-wide text-gray-50">TEMARIO:</h2>
+                    <h1 className="text-2xl font-extrabold mt-2 text-gray-100">Auditor Líder en Sistemas Integrados de Gestión</h1>
+                    <p className="text-lg font-semibold mt-1 text-gray-100">ISO 9001:2015 & ISO 14001:2015 & ISO 45001:2018 (40 horas)</p>
+                </div>
+
+                <div className="border  border-gray-400 p-6 auto-fit-parent leading-relaxed space-y-4">
+                    <div className='space-y-4 font-bold dark:text-white text-[clamp(0.3rem,20vw,0.5rem)] whitespace-pre-line' >
+                        {datosAl.temario_curso}
+                    </div>
+                </div>
+
+                <div className="mt-8 border border-gray-400 p-4">
+                    <p className="font-bold text-sm dark:text-gray-50">Relatores:</p>
+                </div>
+
+                <div className="mt-8 flex justify-between items-start">
+                    <div className="w-1/2"></div>
+
+                    <div className="w-1/2 text-right">
+                        <div className="flex flex-col justify-center items-center text-center">
+                            <img src={firmaGf} className='object-contain h-20' alt="" />
+                            <div className="h-2 max-w-80 border-b border-gray-500 mb-1"></div>
+                            <p className="text-sm font-semibold dark:text-gray-50">Gianfranco Gonzalez Chavez</p>
+                            <p className="text-xs text-gray-600 leading-tight dark:text-gray-50">
+                                Ingeniero Civil Industrial<br />
+                                Cédula de Identidad 13.890.212-9<br />
+                                Auditor Líder Sistemas Integrados desde 2008<br />
+                                Consultor e implementador de sistemas de gestión
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+    );
+}
+
+
+
+export default () => {
+    const { token } = useParams<{
+        token: string
+    }>()
+    const [darkMode, setDarkMode] = useState<boolean>(true)
+
+    const [datosCurso_almuno, setDatos] = useState<Record<string, string> | null>(null)
+    const [msg, setMsg] = useState<string | null>(null)
+
+    useEffect(() => {
+        const obtener = async () => {
+            try {
+                console.log(token)
+                const res = await fetch(`${backend}/usuario/${token}`)
+
+                const js = await res.json()
+
+                console.log(js)
+
+                if (!js || !js.hasOwnProperty('alumno') || !js.alumno[0]) { setMsg('No se encontró el certificado del alumno.'); return }
+
+                setDatos(js.alumno[0])
+
+            } catch (e) {
+                console.log(e)
+                setMsg('Hubo un problema al obtener el certificado del alumno.')
+            }
+        }
+
+        obtener()
+    }, [])
+
+    useEffect(() => {
+        console.log(datosCurso_almuno)
+    }, [datosCurso_almuno])
+
+    return datosCurso_almuno ? (
+        <div className={` border flex items-center print:h-auto justify-center bg-gray-100 flex-col print:flex-col ${darkMode ? 'dark' : null}`}>
+            <div className='flex flex-row gap-x-2'>
+                <SetDarkModeB estado={darkMode} fn={setDarkMode} />
+                <button className='bg-slate-800 text-white rounded-2xl print:hidden mt-5 max-w-30 p-2 mb-5 h-15' onClick={() => {
+                    print()
+                }}>
+                    Imprimir certificado
+                </button>
+            </div>
+
+            <div className="relative overflow-hidden h-auto lg:w-[297mm] lg:h-[210mm] print:w-[297mm] print:h-[210mm] flex flex-col  items-center justify-center bg-white dark:bg-black shadow-lg border border-gray-200 print:shadow-none print:border-0">
+
+                <div className="absolute left-0 top-0 h-full opacity-60 w-72 dark:bg-linear-to-b bg-amber-700 dark:from-[#CE631B] dark:to-[#ba5714] transform -skew-x-29 -translate-y-35 -translate-x-75 lg:-translate-x-45"></div>
+                <div className="absolute left-0 top-0 h-full opacity-100 w-50 lg:w-90 bg-linear-to-b from-[#5E2700] to-[#873801] dark:from-[#c56220] dark:to-[#ac5317] transform skew-x-10 lg:skew-x-24 -translate-x-28 lg:-translate-x-46"></div>
+                <img src={darkMode ? dadosNegro : dadosBlanco} alt="logo" className={`absolute object-contain top-270 hidden lg:block  ${darkMode ? 'lg:top-145' : 'lg:top-132'} lg:-left-43 h-35 ${darkMode ? 'lg:h-55' : 'lg:h-75'} w-150 `} />
+
+                <div className="relative ">
+                    <div className="relative px-12 py-10 flex justify-center flex-col items-center w-full">
+
+                        <div className="lg:absolute -top-10  text-center lg:text-start lg:-left-52 w-full z-45 text-xs text-black dark:text-white opacity-100 ">: A+Lider-2025- &nbsp; 25/06/2025</div>
+
+                        <img src={darkMode ? gotTitleNegro : gotTitleBlanco} alt="logo" className={`lg:absolute object-contain  ${darkMode ? '-top-30' : '-top-47'} ${darkMode ? 'lg:h-55' : 'lg:h-90'}  ${darkMode ? 'w-150' : 'w-160'}`} />
+
+                        <h1 className="text-4xl font-extrabold text-center tracking-tight mb-2 mt-5 dark:text-white">Certificado de Curso</h1>
+                        <p className="text-center text-sm text-gray-600 dark:text-gray-300 mb-6">Organismo técnico de capacitación., RUT 77.457.296-1, certifica que:</p>
+
+                        <div className="text-center">
+                            <p className="text-3xl font-bold text-gray-800 dark:text-gray-50">{datosCurso_almuno.nombre_alumno}</p>
+                            <p className="text-xs text-gray-700 mt-1 dark:text-gray-200">{datosCurso_almuno.rut_alumno}</p>
+                        </div>
+
+                        <div className="mt-6 text-center">
+                            <p className="text-sm font-semibold dark:text-gray-100">Participó y aprobó el curso::</p>
+                        </div>
+
+                        <div className="mt-4 text-center max-w-130">
+                            <p className="text-xl font-semibold dark:text-gray-50">{datosCurso_almuno.nombre_curso}</p>
+                            <p className="text-xs text-gray-800 mt-2 dark:text-gray-200">Realizado los días: 02-06-25 AL 09-06-25</p>
+                        </div>
+
+                        <div className="justify-items-center items-center mt-8 md:grid-cols-2 gap-6  flex flex-col lg:flex-row">
+                            <div>
+                                <h3 className="font-semibold dark:text-gray-200">Temario cursado: {datosCurso_almuno.duracion_curso} hora(s)</h3>
+                                <ul className="mt-2 text-sm list-disc list-inside text-black space-y-1 whitespace-pre-line dark:text-gray-50">
+                                    {datosCurso_almuno.resumen_temario}
+                                </ul>
+                            </div>
+                            <img className='size-40 bg-red border' src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`${frontend}/Diplomas_OTEC_VF/certificados/${datosCurso_almuno.token_alumno}/${token}`)}`} alt="" />
+                        </div>
+
+                        <p className='text-xs text-start w-full text-gray-700 dark:text-gray-100'>Grado de aprobación del curso: {datosCurso_almuno.calificacion}</p>
+
+                        <div className="flex-col lg:flex-row relative mt-10 flex items-center justify-center">
+                            <div className="text-center w-full">
+                                <p className="text-xs text-gray-700 dark:text-gray-300">Este Certificado es entregado al interesado para fines y trámites que se estimen conveniente.</p>
+                            </div>
+
+                            <div className=" lg:absolute text-right w-full lg:left-25">
+                                <div className=" text-center flex justify-center items-center flex-col mt-10">
+                                    <img src={firmaGf} className='object-contain h-20 ' alt="" />
+
+                                    <div className="h-1 w-50 border-b border-gray-400 mb-1"></div>
+                                    <p className="text-sm font-semibold dark:text-gray-50">Gianfranco Gonzalez Chavez</p>
+                                    <p className="text-xs text-gray-200">REP LEGAL GAME OF TRAINING OTEC</p>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+
+            </div>
+
+
+            <BackCertificate datosAl={datosCurso_almuno} dark={darkMode} />
+
+        </div>
+    ) : msg ? <p>{msg}</p> : <p id='loading'>Cargando certificado...</p>
+}
