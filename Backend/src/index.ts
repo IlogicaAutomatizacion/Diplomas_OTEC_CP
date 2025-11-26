@@ -49,8 +49,6 @@ export async function generarCertificadoPDF(url: string) {
         printBackground: true
     });
 
-    fs.writeFileSync("debug.pdf", pdfBuffer);
-
     await browser.close();
     return pdfBuffer;
 }
