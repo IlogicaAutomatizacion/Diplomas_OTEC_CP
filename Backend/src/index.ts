@@ -70,8 +70,14 @@ async function generarCertificadoPDF(url: string) {
     return pdfBuffer;
 }
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://ilogicaautomatizacion.github.io",
+  "https://ilogicaautomatizacion.github.io/Diplomas_OTEC_CP"
+];
+
 app.use(cors({
-    origin: '*',
+    origin: allowedOrigins,
     methods: ["GET", "POST", 'DELETE'],
 }))
 
@@ -520,10 +526,12 @@ const io = new Server(app.listen(PORT, () => {
     console.log(`Servidor corriendo en PORT ${PORT}`);
 }), {
     cors: {
-        origin: '*',
+        origin: allowedOrigins,
         methods: ["GET", "POST"],
     },
 });
+
+
 
 const sockets_cursos = {}
 const cursos: Record<string, {
