@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "nodemon --watch src/**/*.ts --exec npx ts-node src/index.ts",
     "build": "npm install && tsc",
+    "postinstall": "puppeteer browsers install chrome",
     "start": "node dist/index.js"
   },
   "keywords": [],
