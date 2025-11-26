@@ -16,11 +16,13 @@ async function generarCertificadoPDF(url: string) {
     console.log("Cargando URL:", url);
 
     const browser = await puppeteer.launch({
-        headless: true,
+        headless: true,   // más estable en servidores
+        executablePath: puppeteer.executablePath(), // usa Chromium portable
         args: [
             "--no-sandbox",
             "--disable-setuid-sandbox",
-            "--disable-web-security",
+            "--disable-dev-shm-usage",
+            "--disable-gpu",
         ]
     });
 
@@ -71,9 +73,9 @@ async function generarCertificadoPDF(url: string) {
 }
 
 const allowedOrigins = [
-  "http://localhost:5173",
-  "https://ilogicaautomatizacion.github.io",
-  "https://ilogicaautomatizacion.github.io/Diplomas_OTEC_CP"
+    "http://localhost:5173",
+    "https://ilogicaautomatizacion.github.io",
+    "https://ilogicaautomatizacion.github.io/Diplomas_OTEC_CP"
 ];
 
 app.use(cors({
