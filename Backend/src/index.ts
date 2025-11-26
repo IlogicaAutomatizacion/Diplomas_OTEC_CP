@@ -8,56 +8,40 @@ import { randomUUID } from 'crypto';
 import { Server, Socket } from 'socket.io';
 import fs from "fs";
 
-import puppeteer from "puppeteer";
+import chromium from "@sparticuz/chromium";
+import puppeteer from "puppeteer-core";
 
 const app = express()
 
-async function generarCertificadoPDF(url: string) {
+export async function generarCertificadoPDF(url: string) {
     console.log("Cargando URL:", url);
 
+    const executablePath = await chromium.executablePath();
+
     const browser = await puppeteer.launch({
-         headless: true, 
-    args: [
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-web-security",
-    ]
+        executablePath,
+        args: chromium.args,
+        headless: true, // <-- esto va aquí, NO en chromium
+        defaultViewport: { width: 1920, height: 1080 },
     });
 
     const page = await browser.newPage();
 
-    await page.setExtraHTTPHeaders({
-        "ngrok-skip-browser-warning": "true"
-    });
-
     await page.setUserAgent("Puppeteer-CertBot/1.0");
 
-    await page.goto(url, { waitUntil: "domcontentloaded" });
+    await page.goto(url, { waitUntil: "networkidle0" });
 
-    // Esperar un ciclo de render
+    // Esperar 1 frame
     await page.evaluate(() => new Promise(requestAnimationFrame));
 
+    // Esperar loader
     await page.waitForFunction(() => {
         const el = document.querySelector("#loading") as HTMLDivElement;
-        return !el || el!.style.display === "none" || el.textContent.trim() !== "Cargando certificado...";
+        return !el || el.style.display === "none";
     }, { timeout: 15000 });
 
-    await page.waitForFunction(async () => {
-        const imgs = Array.from(document.images);
-        if (imgs.length === 0) return true;
-
-        const checks = await Promise.all(
-            imgs.map(img => {
-                if (img.complete && img.naturalWidth > 0) return true;
-                return new Promise(resolve => {
-                    img.onload = () => resolve(true);
-                    img.onerror = () => resolve(true);
-                });
-            })
-        );
-
-        return checks.every(v => v);
-    }, { timeout: 15000 });
+    // Esperar imágenes
+    await page.waitForNetworkIdle({ idleTime: 1000, timeout: 15000 });
 
     const pdfBuffer = await page.pdf({
         format: "A4",
@@ -66,14 +50,15 @@ async function generarCertificadoPDF(url: string) {
     });
 
     fs.writeFileSync("debug.pdf", pdfBuffer);
+
     await browser.close();
     return pdfBuffer;
 }
 
 const allowedOrigins = [
-  "http://localhost:5173",
-  "https://ilogicaautomatizacion.github.io",
-  "https://ilogicaautomatizacion.github.io/Diplomas_OTEC_CP"
+    "http://localhost:5173",
+    "https://ilogicaautomatizacion.github.io",
+    "https://ilogicaautomatizacion.github.io/Diplomas_OTEC_CP"
 ];
 
 app.use(cors({
