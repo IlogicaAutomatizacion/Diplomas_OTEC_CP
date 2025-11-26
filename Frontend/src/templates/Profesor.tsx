@@ -27,7 +27,7 @@ export default () => {
         token_profesor: string
     }[] | null>(null)
     const [msg, setMsg] = useState<string | null>(null)
-
+    
     const socket = useRef<Socket | null>(null)
 
     const [socket_cursos, setSocket_cursos] = useState<Record<string, { asistenciasHabilitadas?: boolean, listoParaFinalizar?: boolean, finalizado?: boolean }>>({})
