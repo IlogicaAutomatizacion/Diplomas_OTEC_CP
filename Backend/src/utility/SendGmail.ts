@@ -1,9 +1,4 @@
-
 import { client_id, client_secret, refresh_token } from "../vars";
-import fs from 'fs'
-import path from "path";
-
-import nodemailer from "nodemailer";
 
 async function obtenerAccessToken() {
     const res = await fetch("https://oauth2.googleapis.com/token", {
@@ -16,45 +11,71 @@ async function obtenerAccessToken() {
             grant_type: "refresh_token",
         }),
     });
-    const data: any = await res.json();
+
+    const data = await res.json();
     return data.access_token;
 }
 
-// pdfBuffer: Buffer | undefined
-export default async (msgHtml: string, para: string, subject: string, pdfBuffer?: Buffer, nombre?: string) => {
-    const accessToken = await obtenerAccessToken();
+// Gmail exige MIME perfecto
+function encodeBase64Url(str: string) {
+    return Buffer.from(str)
+        .toString("base64")
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=+$/, "");
+}
 
-    // Transport con OAuth2 usando accessToken (Nodemailer maneja refresh si pones refresh_token también)
-    const transporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-            type: "OAuth2",
-            user: "automatizacion@ilogica-soluciones.cl", // tu cuenta remitente
-            clientId: client_id,
-            clientSecret: client_secret,
-            refreshToken: refresh_token,
-            accessToken: accessToken
-        },
-    });
+export default async function enviarCorreo(
+    html: string,
+    para: string,
+    subject: string,
+    pdfBuffer?: Buffer,
+    nombre = "archivo"
+) {
+    let boundary = "----=_Part_123456_7890123456789";
 
-    const mailOptions: nodemailer.SendMailOptions = {
-        from: `"Automatizacion ConeXion Process" <automatizacion@ilogica-soluciones.cl>`,
-        to: para,
-        subject,
-        html: msgHtml,
-        attachments: []
-    };
+    let mime = "";
 
+    mime += `To: ${para}\r\n`;
+    mime += `Subject: ${subject}\r\n`;
+    mime += `MIME-Version: 1.0\r\n`;
+    mime += `Content-Type: multipart/mixed; boundary="${boundary}"\r\n`;
+    mime += `\r\n`;
+
+    // Parte HTML
+    mime += `--${boundary}\r\n`;
+    mime += `Content-Type: text/html; charset="UTF-8"\r\n`;
+    mime += `Content-Transfer-Encoding: 7bit\r\n\r\n`;
+    mime += `${html}\r\n\r\n`;
+
+    // Parte PDF (si existe)
     if (pdfBuffer) {
-        mailOptions.attachments!.push({
-            filename: `${nombre}.pdf`,
-            content: pdfBuffer,
-            contentType: "application/pdf"
-        });
+        const pdfB64 = pdfBuffer
+            .toString("base64")
+            .match(/.{1,76}/g) // ← NECESARIO
+            ?.join("\r\n");   // ← NECESARIO
+
+        mime += `--${boundary}\r\n`;
+        mime += `Content-Type: application/pdf; name="${nombre}.pdf"\r\n`;
+        mime += `Content-Disposition: attachment; filename="${nombre}.pdf"\r\n`;
+        mime += `Content-Transfer-Encoding: base64\r\n\r\n`;
+        mime += `${pdfB64}\r\n\r\n`;
     }
 
-    // enviar
-    const info = await transporter.sendMail(mailOptions);
-    // opcional: console.log("Sent:", info);
-    return info;
-};
+    mime += `--${boundary}--`;
+
+    const raw = encodeBase64Url(mime);
+    const accessToken = await obtenerAccessToken();
+
+    const resp = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/messages/send", {
+        method: "POST",
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ raw }),
+    });
+
+    const data = await resp.json();
+    return data;
+}
