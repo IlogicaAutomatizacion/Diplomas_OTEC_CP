@@ -9,7 +9,7 @@ export default ({ mode }: { mode: string }) => {
   return defineConfig({
     
     plugins: [react(), tailwindcss()],
-    base: '/Diplomas_OTEC_VF/',
+    base: '/Diplomas_OTEC_CP/',
     server: {
       host: "0.0.0.0",
       port: 5173,

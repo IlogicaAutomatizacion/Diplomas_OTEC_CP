@@ -208,9 +208,9 @@ app.post('/inscribir', async (req, res) => {
 
 
 const mandarCertificadoPorGmail = async (token_alumno, nombre_alumno, nombre_curso, correo_alumno, rut_alumno, token_curso) => {
-    const urlCertificado = `${FRONT}/Diplomas_OTEC_VF/certificados/${token_alumno}/${token_curso}`;
+    const urlCertificado = `${FRONT}/Diplomas_OTEC_CP/certificados/${token_alumno}/${token_curso}`;
 
-    const qr = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`${FRONT}/Diplomas_OTEC_VF/certificados/${token_alumno}/${token_curso}`)}`
+    const qr = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`${FRONT}/Diplomas_OTEC_CP/certificados/${token_alumno}/${token_curso}`)}`
 
     const pdfPath = await generarCertificadoPDF(urlCertificado);
 
@@ -343,14 +343,14 @@ app.post('/armarCurso', async (req, res) => {
 
             for (const al of alumnos.rows) {
                 const qr = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
-                    `${FRONT}/Diplomas_OTEC_VF/${al.token_alumno}`
+                    `${FRONT}/Diplomas_OTEC_CP/${al.token_alumno}`
                 )}`;
 
                 const mensaje = `
                 <p>Buen día ${al.nombre_alumno}, ha sido inscrito al curso ${al.nombre_curso}.</p>
                 <p>Duración: ${al.duracion_curso} horas.</p>
 
-                <a href="${FRONT}/Diplomas_OTEC_VF/${al.token_alumno}"><p>Presione aquí para acceder a su panel</p></a>
+                <a href="${FRONT}/Diplomas_OTEC_CP/${al.token_alumno}"><p>Presione aquí para acceder a su panel</p></a>
 
                 <p>QR para ingresar a su panel:</p>
                 <img src="${qr}" width="200" height="200" />
@@ -361,13 +361,13 @@ app.post('/armarCurso', async (req, res) => {
 
             for (const prof of profesores.rows) {
                 const qr = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
-                    `${FRONT}/Diplomas_OTEC_VF/profesor/${prof.token_profesor}`
+                    `${FRONT}/Diplomas_OTEC_CP/profesor/${prof.token_profesor}`
                 )}`;
 
                 const mensajeProfesor = `
                 <p>Buen día ${prof.relator_profesor}, el curso ${prof.nombre_curso} ha sido programado.</p>
 
-                <a href="${FRONT}/Diplomas_OTEC_VF/profesor/${prof.token_profesor}"><p>Presione aquí para acceder a su panel</p></a>
+                <a href="${FRONT}/Diplomas_OTEC_CP/profesor/${prof.token_profesor}"><p>Presione aquí para acceder a su panel</p></a>
 
                 <p>Código QR para acceder a su panel:</p>
                 <img src="${qr}" width="200" height="200" />

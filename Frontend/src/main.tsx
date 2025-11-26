@@ -27,7 +27,7 @@ const router = createBrowserRouter([
   },
   
 ], {
-  basename: '/Diplomas_OTEC_VF'
+  basename: '/Diplomas_OTEC_CP'
 })
 
 createRoot(document.getElementById('root')!).render(
