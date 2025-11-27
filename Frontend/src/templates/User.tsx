@@ -4,7 +4,7 @@ import Foter from "../Diseño/Foter"
 
 import Logo from "../Diseño/CxLogo"
 import { io, Socket } from "socket.io-client"
-import { backend } from "../vars"
+import { backend, frontend } from "../vars"
 
 export default () => {
     const { usuario } = useParams<{
@@ -72,17 +72,19 @@ export default () => {
         })
 
         alumno.forEach(curso => {
+            console.log(curso);
+            if (curso.finalizado) {
+                setSocket_cursos(last => ({
+                    ...last,
+                    [curso.token_curso]: {
+                        finalizado: true
+                    }
+                }));
+                return
+            }
+
+
             socket.current?.emit('unirse_curso', curso.token_curso, (info: any | null) => {
-                console.log(info);
-                if (curso.finalizado) {
-                    setSocket_cursos(last => ({
-                        ...last,
-                        [curso.token_curso]: {
-                            finalizado: true
-                        }
-                    }));
-                    return
-                }
 
                 setSocket_cursos(last => ({
                     ...last,
@@ -117,7 +119,6 @@ export default () => {
 
                     <div className={`mt-5 grid grid-cols-1 gap-y-5 md:grid-cols-3 w-full gap-x-2`}>
                         {alumno.map(curso => {
-                            console.log(socket_cursos)
 
                             return <div className="border-2 p-4 text-center">
                                 <h2 className="text-2xl text-white">{curso.nombre_curso}</h2>
@@ -129,7 +130,7 @@ export default () => {
 
                                     <p className="mt-7 wrap-break-word h-80 border overflow-y-scroll p-3 scheme-dark whitespace-pre-line">{curso.temario_curso}</p>
 
-                                    <button onClick={() => {
+                                    {!socket_cursos[curso.token_curso]?.finalizado ? <button onClick={() => {
                                         if (socket_cursos.hasOwnProperty(curso.token_curso) && !socket_cursos[curso.token_curso]?.finalizado && socket_cursos[curso.token_curso].asistenciasHabilitadas && !socket_cursos[curso.token_curso]?.alumno?.asistenciaHabilitada) {
                                             socket.current?.emit('marcarAsistencia', {
                                                 token: curso.token_curso,
@@ -138,7 +139,15 @@ export default () => {
                                         }
                                     }} className={`mt-5 w-full h-15 transition border-2 ${socket_cursos.hasOwnProperty(curso.token_curso) && !socket_cursos[curso.token_curso]?.finalizado && socket_cursos[curso.token_curso].asistenciasHabilitadas && !socket_cursos?.[curso.token_curso]?.alumno?.asistenciaHabilitada ? 'opacity-100' : 'opacity-50'}`}>
                                         Marcar asistencia
-                                    </button>
+                                    </button> : Number(curso.calificacion) >= 75 ? <button onClick={() => {
+                                        window.open(`${frontend}/Diplomas_OTEC_CP/certificados/${usuario}/${curso.token_curso}`,"_blank")
+                                    }} className="cursor-pointer mt-5 w-full h-15 transition border-2 opacity-100">
+
+                                        Ver certificado
+
+                                    </button> : <button className="mt-5 w-full h-15 transition border-2 opacity-50">
+                                        Curso finalizado
+                                    </button>}
                                 </div>
                             </div>
                         })}

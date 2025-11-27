@@ -1,4 +1,4 @@
-import {  useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useParams } from "react-router-dom"
 import Foter from "../Diseño/Foter"
 
@@ -27,7 +27,7 @@ export default () => {
         token_profesor: string
     }[] | null>(null)
     const [msg, setMsg] = useState<string | null>(null)
-    
+
     const socket = useRef<Socket | null>(null)
 
     const [socket_cursos, setSocket_cursos] = useState<Record<string, { asistenciasHabilitadas?: boolean, listoParaFinalizar?: boolean, finalizado?: boolean }>>({})
@@ -154,7 +154,11 @@ export default () => {
                                                 return vals.map((sub, indx) => {
                                                     return sub == "calificacion" ?
                                                         <textarea
+                                                            disabled = {curso.finalizado || socket_cursos[curso.token_curso]?.finalizado}
+
                                                             onBlur={(e) => {
+                                                                console.log(curso)
+
                                                                 const val = e.target.value.replace(/\D/g, "")
                                                                 e.target.value = val.trim()
 
@@ -182,7 +186,7 @@ export default () => {
 
                                     <button className={`mt-5 w-full h-15 border-2 ${socket_cursos[curso.token_curso]?.finalizado ? 'opacity-50' : 'opacity-100'} `} onClick={
                                         () => {
-                                            if (socket_cursos[curso.token_curso]?.finalizado) { return }
+                                            if (socket_cursos[curso.token_curso]?.finalizado ) { return }
 
                                             const nuevoValor = !socket_cursos[curso.token_curso].asistenciasHabilitadas
 

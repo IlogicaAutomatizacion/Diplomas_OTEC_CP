@@ -201,7 +201,7 @@ const mandarCertificadoPorGmail = async (token_alumno, nombre_alumno, nombre_cur
 
     const qr = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`${FRONT}/Diplomas_OTEC_CP/certificados/${token_alumno}/${token_curso}`)}`
 
-    const pdfPath = await generarCertificadoPDF(urlCertificado);
+   // const pdfPath = await generarCertificadoPDF(urlCertificado);
 
     await SendGmail(`
                     <p>Buen dia ${nombre_alumno} ha acreditado el curso ${nombre_curso}</p
@@ -215,7 +215,8 @@ const mandarCertificadoPorGmail = async (token_alumno, nombre_alumno, nombre_cur
                     <img src=${qr}" width="200" height="200" alt="QR" style="display:block; margin-top:10px;"/>
 
                     <p>También puede verlo accediendo a este <a href="${urlCertificado}">link</a></p>
-                    `, correo_alumno, `Acreditacion del curso ${nombre_curso}`, pdfPath as Buffer, `Certificado_${rut_alumno}`)
+                    `, correo_alumno, `Acreditacion del curso ${nombre_curso}`
+                )
 
     console.log("Certificado editado correctamente:");
 }
@@ -394,6 +395,7 @@ const obtenerUsuario = async (req: Request<{
                                         c.temario_curso,
                                         c.resumen_temario,
                                         x.token_curso,
+                                        x.finalizado,
                                         p.relator_profesor
                                        FROM inscripciones i
                                         JOIN alumnos a ON a.id_alumno = i.id_alumno

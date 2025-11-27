@@ -150,7 +150,7 @@ export default () => {
                                     {datosCurso_almuno.resumen_temario}
                                 </ul>
                             </div>
-                            <img className='size-40 bg-red border' src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`${frontend}/Diplomas_OTEC_CP/certificados/${datosCurso_almuno.token_alumno}/${token}`)}`} alt="" />
+                            <img className='size-40 bg-red border' src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`${frontend}/Diplomas_OTEC_CP/certificados/${datosCurso_almuno.token_alumno}/${datosCurso_almuno.token_curso}`)}`} alt="" />
                         </div>
 
                         <p className='text-xs text-start w-full text-gray-700 dark:text-gray-100'>Grado de aprobación del curso: {datosCurso_almuno.calificacion}</p>
