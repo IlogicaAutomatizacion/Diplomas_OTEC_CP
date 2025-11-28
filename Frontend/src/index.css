@@ -13,26 +13,3 @@
 }
 
 
-/* ===== IMPRESIÓN SIN MÁRGENES + COLOR REAL + LANDSCAPE ===== */
-@media print {
-
-  /* Fuerza orientación horizontal */
-  @page {
-    size: A4 landscape;
-    margin: 0 !important;     /* SIN MÁRGENES REALES */
-  }
-
-  /* Obliga al navegador a imprimir fondos EXACTOS */
-  * {
-    -webkit-print-color-adjust: exact !important; /* Chrome/Safari */
-    print-color-adjust: exact !important;         /* Estándar */
-    color-adjust: exact !important;               /* Firefox */
-  }
-
-  html, body {
-    margin: 0 !important;
-    padding: 0 !important;
-    background: transparent !important;
-
-  }
-}

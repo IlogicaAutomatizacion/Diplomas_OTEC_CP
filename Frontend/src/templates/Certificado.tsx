@@ -3,6 +3,8 @@ import gotTitleNegro from '../assets/cr_fondo_negro/title.png'
 import dadosNegro from '../assets/cr_fondo_negro/dados.png'
 import dadosBlanco from '../assets/cr_fondo_blanco/dados.png'
 
+import html2canvas from "html2canvas";
+
 import firmaGf from '../assets/firmagf.png'
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
@@ -115,14 +117,33 @@ export default () => {
         <div className={`certificado-page border flex items-center print:h-auto justify-center bg-gray-100 flex-col print:flex-col ${darkMode ? 'dark' : null}`}>
             <div className='flex flex-row gap-x-2'>
                 <SetDarkModeB estado={darkMode} fn={setDarkMode} />
-                <button className='bg-slate-800 text-white rounded-2xl print:hidden mt-5 max-w-30 p-2 mb-5 h-15' onClick={() => {
-                    print()
+                <button className='cursor-pointer bg-slate-800 text-white rounded-2xl print:hidden mt-5 max-w-30 p-2 mb-5 h-15' onClick={async () => {
+                    const elem = document.getElementById("cert");
+                    if (!elem) return;
+
+                    const canvas = await html2canvas(elem, {
+                        scale: 3,               // Alta resolución
+                        useCORS: true,          // Permite imágenes externas
+                        logging: false
+                    });
+
+                    const img = canvas.toDataURL("image/png");
+
+                    const win = window.open("");
+                    if (win) {
+                        win.document.write(`<img src="${img}" style="width:100%">`);
+                        win.document.close();
+                        win.focus();
+                        
+                        win.print();
+                        win.close();
+                    }
                 }}>
                     Imprimir certificado
                 </button>
             </div>
 
-            <div className="relative overflow-hidden h-auto lg:w-[297mm] lg:h-[210mm] print:w-[297mm] print:h-[210mm] flex flex-col  items-center justify-center bg-white dark:bg-black shadow-lg border border-gray-200 print:shadow-none print:border-0">
+            <div id='cert' className="relative overflow-hidden h-auto lg:w-[297mm] lg:h-[210mm] print:w-[297mm] print:h-[210mm] flex flex-col  items-center justify-center bg-white dark:bg-black shadow-lg border border-gray-200 print:shadow-none print:border-0">
 
                 <div className="absolute left-0 top-0 h-full opacity-60 w-72 dark:bg-linear-to-b bg-amber-700 dark:from-[#CE631B] dark:to-[#ba5714] transform -skew-x-29 -translate-y-35 -translate-x-75 lg:-translate-x-45"></div>
                 <div className="absolute left-0 top-0 h-full opacity-100 w-50 lg:w-90 bg-linear-to-b from-[#5E2700] to-[#873801] dark:from-[#c56220] dark:to-[#ac5317] transform skew-x-10 lg:skew-x-24 -translate-x-28 lg:-translate-x-46"></div>
