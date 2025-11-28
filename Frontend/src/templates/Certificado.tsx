@@ -3,7 +3,6 @@ import gotTitleNegro from '../assets/cr_fondo_negro/title.png'
 import dadosNegro from '../assets/cr_fondo_negro/dados.png'
 import dadosBlanco from '../assets/cr_fondo_blanco/dados.png'
 
-import html2canvas from "html2canvas";
 
 import firmaGf from '../assets/firmagf.png'
 import { useEffect, useState } from 'react';
