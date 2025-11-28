@@ -8,50 +8,31 @@ import { randomUUID } from 'crypto';
 import { Server, Socket } from 'socket.io';
 import fs from "fs";
 
-import chromium from "@sparticuz/chromium";
-import puppeteer from "puppeteer-core";
-
 const app = express()
 
+import puppeteer from "puppeteer";
+
 export async function generarCertificadoPDF(url: string) {
-    console.log("Cargando URL:", url);
-
-    const executablePath = await chromium.executablePath();
-
     const browser = await puppeteer.launch({
-        executablePath,
-        args: chromium.args,
-        headless: true, // <-- esto va aquí, NO en chromium
-        defaultViewport: { width: 1920, height: 1080 },
+        headless: true,
+        defaultViewport: { width: 1920, height: 1080 }
     });
 
     const page = await browser.newPage();
-
-    await page.setUserAgent("Puppeteer-CertBot/1.0");
-
     await page.goto(url, { waitUntil: "networkidle0" });
-
-    // Esperar 1 frame
-    await page.evaluate(() => new Promise(requestAnimationFrame));
-
-    // Esperar loader
-    await page.waitForFunction(() => {
-        const el = document.querySelector("#loading") as HTMLDivElement;
-        return !el || el.style.display === "none";
-    }, { timeout: 15000 });
-
-    // Esperar imágenes
-    await page.waitForNetworkIdle({ idleTime: 1000, timeout: 15000 });
 
     const pdfBuffer = await page.pdf({
         format: "A4",
         landscape: true,
-        printBackground: true
+        printBackground: true,
+        scale: 1,
+        preferCSSPageSize: true
     });
 
     await browser.close();
     return pdfBuffer;
 }
+
 
 const allowedOrigins = [
     "http://localhost:5173",
@@ -510,6 +491,30 @@ app.get('/profesor/:token', async (req: Request<{
 
 })
 
+app.get('/certificado/:alumno/:curso', async (req: Request<{
+    alumno: string,
+    curso: string
+}>, res) => {
+    try {
+        const { alumno, curso } = req.params;
+
+        const urlCertificado = `${FRONT}/Diplomas_OTEC_CP/certificados/${alumno}/${curso}`;
+
+        const pdfBuffer = await generarCertificadoPDF(urlCertificado);
+
+        res.set({
+            "Content-Type": "application/pdf",
+            "Content-Disposition": `attachment; filename=certificado_${alumno}.pdf`,
+            "Content-Length": pdfBuffer.length,
+        });
+
+        res.send(pdfBuffer);
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: "No se pudo generar el PDF" });
+    }
+})
+
 const io = new Server(app.listen(PORT, () => {
     console.log(`Servidor corriendo en PORT ${PORT}`);
 }), {
@@ -518,8 +523,6 @@ const io = new Server(app.listen(PORT, () => {
         methods: ["GET", "POST"],
     },
 });
-
-
 
 const sockets_cursos = {}
 const cursos: Record<string, {
