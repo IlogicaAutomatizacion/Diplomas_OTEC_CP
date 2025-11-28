@@ -1,2 +1,29 @@
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
+
+.ADP {
+
+    overflow: hidden;
+    /* Evita scroll */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: left;
+    line-height: 1.2;
+}
+
+
+/* === CONFIGURACIÓN UNIVERSAL DE IMPRESIÓN === */
+@media print {
+  /* La propiedad más importante */
+  * {
+    -webkit-print-color-adjust: exact !important; /* Chrome, Edge, Safari */
+    print-color-adjust: exact !important;         /* Estándar */
+    color-adjust: exact !important;               /* Firefox */
+  }
+
+  /* Para evitar que el navegador reemplace fondos por blanco */
+  html, body {
+    background: transparent !important;
+  }
+}

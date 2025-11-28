@@ -179,12 +179,15 @@ app.post('/inscribir', async (req, res) => {
 
         usuarios.forEach(arrProfesores => {
             console.log(arrProfesores)
-            rows.push(`(${arrProfesores.id_inscripcion},${arrProfesores.id_alumno},${arrProfesores.id_curso_armado})`)
+            const asistencias = Number(arrProfesores.asistencias)
+            const calificacion = Number(arrProfesores.calificacion)
+
+            rows.push(`(${arrProfesores.id_inscripcion},${arrProfesores.id_alumno},${arrProfesores.id_curso_armado},${isNaN(asistencias) ? null : asistencias},${isNaN(calificacion) ? null : calificacion}   )`)
         })
 
         console.log(rows.join(','))
 
-        const resP = await DB.query(`INSERT INTO inscripciones (id_inscripcion,id_alumno,id_curso_armado) VALUES ${rows.join(',')}
+        const resP = await DB.query(`INSERT INTO inscripciones (id_inscripcion,id_alumno,id_curso_armado,asistencias,calificacion) VALUES ${rows.join(',')}
                         ON CONFLICT (id_inscripcion) DO NOTHING`)
 
         res.status(200).json(`Se incribieron correctamente a los usuarios no inscritos.`)
@@ -201,7 +204,7 @@ const mandarCertificadoPorGmail = async (token_alumno, nombre_alumno, nombre_cur
 
     const qr = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`${FRONT}/Diplomas_OTEC_CP/certificados/${token_alumno}/${token_curso}`)}`
 
-   // const pdfPath = await generarCertificadoPDF(urlCertificado);
+    // const pdfPath = await generarCertificadoPDF(urlCertificado);
 
     await SendGmail(`
                     <p>Buen dia ${nombre_alumno} ha acreditado el curso ${nombre_curso}</p
@@ -216,7 +219,7 @@ const mandarCertificadoPorGmail = async (token_alumno, nombre_alumno, nombre_cur
 
                     <p>También puede verlo accediendo a este <a href="${urlCertificado}">link</a></p>
                     `, correo_alumno, `Acreditacion del curso ${nombre_curso}`
-                )
+    )
 
     console.log("Certificado editado correctamente:");
 }
@@ -300,7 +303,7 @@ app.post('/armarCurso', async (req, res) => {
             DO UPDATE SET
                 programado = EXCLUDED.programado
             WHERE cursos_armados.programado = FALSE
-              AND cursos_armados.finalizado = FALSE  -- si finalizado existe, se ignora programado
+              AND cursos_armados.finalizado = FALSE  
             RETURNING id_curso_armado
         `);
         }
@@ -402,7 +405,7 @@ const obtenerUsuario = async (req: Request<{
                                         JOIN cursos_armados x ON x.id_curso_armado = i.id_curso_armado
                                         JOIN cursos c ON c.id_curso = x.id_curso
                                         JOIN profesores p ON p.id_profesor = x.id_profesor 
-                                       WHERE a.token_alumno = $1 and x.programado = TRUE AND ($2::uuid IS NULL OR x.token_curso = $2::uuid)`, [token, token_curso && token_curso.trim() !== "" ? token_curso : null])
+                                       WHERE a.token_alumno = $1 and (x.programado = TRUE OR (x.finalizado = TRUE AND i.calificacion >= 75)) AND ($2::uuid IS NULL OR x.token_curso = $2::uuid)`, [token, token_curso && token_curso.trim() !== "" ? token_curso : null])
 
         const alumno = re.rows
 
@@ -482,7 +485,7 @@ app.get('/profesor/:token', async (req: Request<{
 
                                     FROM cursos_armados ca
                                     JOIN cursos c2 ON c2.id_curso = ca.id_curso
-                                    WHERE ca.programado = TRUE
+                                    WHERE ca.programado = TRUE OR ca.finalizado = TRUE
 
                                 ) sub ON sub.id_profesor = p.id_profesor
 
