@@ -118,26 +118,7 @@ export default () => {
             <div className='flex flex-row gap-x-2'>
                 <SetDarkModeB estado={darkMode} fn={setDarkMode} />
                 <button className='cursor-pointer bg-slate-800 text-white rounded-2xl print:hidden mt-5 max-w-30 p-2 mb-5 h-15' onClick={async () => {
-                    const elem = document.getElementById("cert");
-                    if (!elem) return;
-
-                    const canvas = await html2canvas(elem, {
-                        scale: 3,               // Alta resolución
-                        useCORS: true,          // Permite imágenes externas
-                        logging: false
-                    });
-
-                    const img = canvas.toDataURL("image/png");
-
-                    const win = window.open("");
-                    if (win) {
-                        win.document.write(`<img src="${img}" style="width:100%">`);
-                        win.document.close();
-                        win.focus();
-                        
-                        win.print();
-                        win.close();
-                    }
+                   print()
                 }}>
                     Imprimir certificado
                 </button>
