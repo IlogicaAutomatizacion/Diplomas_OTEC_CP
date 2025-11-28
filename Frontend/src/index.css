@@ -13,17 +13,27 @@
 }
 
 
-/* === CONFIGURACIÓN UNIVERSAL DE IMPRESIÓN === */
+/* ===== IMPRESIÓN SIN MÁRGENES + COLOR REAL + LANDSCAPE ===== */
 @media print {
-  /* La propiedad más importante */
+
+  /* Fuerza orientación horizontal */
+  @page {
+    size: A4 landscape;
+    margin: 0 !important;     /* SIN MÁRGENES REALES */
+  }
+
+  /* Obliga al navegador a imprimir fondos EXACTOS */
   * {
-    -webkit-print-color-adjust: exact !important; /* Chrome, Edge, Safari */
+    -webkit-print-color-adjust: exact !important; /* Chrome/Safari */
     print-color-adjust: exact !important;         /* Estándar */
     color-adjust: exact !important;               /* Firefox */
   }
 
-  /* Para evitar que el navegador reemplace fondos por blanco */
   html, body {
+    margin: 0 !important;
+    padding: 0 !important;
     background: transparent !important;
+    width: 100% !important;
+    height: auto !important;
   }
 }
