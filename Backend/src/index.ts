@@ -39,7 +39,7 @@ export async function generarCertificadoPDF(url: string) {
 
     await page.waitForFunction(() => {
         const el = document.querySelector("#loading") as HTMLDivElement;
-        return !el || el!.style.display === "none" || el.textContent.trim() !== "Cargando certificado...";
+        return !el || el!.style.display === "none" || el.textContent.trim() === "";
     }, { timeout: 15000 });
 
     await page.waitForFunction(async () => {
