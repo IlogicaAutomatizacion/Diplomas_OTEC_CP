@@ -127,7 +127,7 @@ export default () => {
 
                     URL.revokeObjectURL(link.href);
                 }}>
-                    Imprimir certificado
+                    Descargar certificado
                 </button>
             </div>
 
@@ -168,7 +168,7 @@ export default () => {
                                     {datosCurso_almuno.resumen_temario}
                                 </ul>
                             </div>
-                            <img className='size-40 bg-red border' src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`${frontend}/Diplomas_OTEC_CP/certificados/${datosCurso_almuno.token_alumno}/${datosCurso_almuno.token_curso}`)}`} alt="" />
+                            <img className='size-40 bg-red border' src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`${frontend}/certificados/${datosCurso_almuno.token_alumno}/${datosCurso_almuno.token_curso}`)}`} alt="" />
                         </div>
 
 
