@@ -117,7 +117,7 @@ export default () => {
             <div className='flex flex-row gap-x-2'>
                 <SetDarkModeB estado={darkMode} fn={setDarkMode} />
                 <button className='cursor-pointer bg-slate-800 text-white rounded-2xl print:hidden mt-5 max-w-30 p-2 mb-5 h-15' onClick={async () => {
-                    const res = await fetch(`${backend}/certificado/${datosCurso_almuno.token_alumno}/${datosCurso_almuno.token_curso}`)
+                    const res = await fetch(`${frontend}/certificado/${datosCurso_almuno.token_alumno}/${datosCurso_almuno.token_curso}`)
                     const blob = await res.blob()
 
                     const link = document.createElement("a");
