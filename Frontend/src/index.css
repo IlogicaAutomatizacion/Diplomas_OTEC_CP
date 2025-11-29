@@ -11,20 +11,3 @@
     text-align: left;
     line-height: 1.2;
 }
-
-
-@page {
-    size: A4 landscape;
-    margin: 0;
-}
-
-@media print {
-    body {
-        margin: 0;
-        padding: 0;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-    }
-
-
-}

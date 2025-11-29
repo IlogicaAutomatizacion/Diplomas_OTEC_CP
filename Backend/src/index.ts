@@ -13,22 +13,59 @@ const app = express()
 import puppeteer from "puppeteer";
 
 export async function generarCertificadoPDF(url: string) {
+    console.log("Cargando URL:", url);
+
     const browser = await puppeteer.launch({
         headless: true,
-        defaultViewport: { width: 1920, height: 1080 }
+        args: [
+            "--no-sandbox",
+            "--disable-setuid-sandbox",
+            "--disable-web-security",
+        ]
     });
 
     const page = await browser.newPage();
-    await page.goto(url, { waitUntil: "networkidle0" });
+
+    await page.setExtraHTTPHeaders({
+        "ngrok-skip-browser-warning": "true"
+    });
+
+    await page.setUserAgent("Puppeteer-CertBot/1.0");
+
+    await page.goto(url, { waitUntil: "domcontentloaded" });
+
+    // Esperar un ciclo de render
+    await page.evaluate(() => new Promise(requestAnimationFrame));
+
+    await page.waitForFunction(() => {
+        const el = document.querySelector("#loading") as HTMLDivElement;
+        return !el || el!.style.display === "none" || el.textContent.trim() !== "Cargando certificado...";
+    }, { timeout: 15000 });
+
+    await page.waitForFunction(async () => {
+        const imgs = Array.from(document.images);
+        if (imgs.length === 0) return true;
+
+        const checks = await Promise.all(
+            imgs.map(img => {
+                if (img.complete && img.naturalWidth > 0) return true;
+                return new Promise(resolve => {
+                    img.onload = () => resolve(true);
+                    img.onerror = () => resolve(true);
+                });
+            })
+        );
+
+        return checks.every(v => v);
+    }, { timeout: 15000 });
 
     const pdfBuffer = await page.pdf({
         format: "A4",
         landscape: true,
-        printBackground: true,
-        scale: 1,
-        preferCSSPageSize: true
+        printBackground: true
     });
 
+    fs.writeFileSync("debug.pdf", pdfBuffer);
     await browser.close();
     return pdfBuffer;
 }
