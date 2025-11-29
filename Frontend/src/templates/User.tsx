@@ -140,7 +140,7 @@ export default () => {
                                     }} className={`mt-5 w-full h-15 transition border-2 ${socket_cursos.hasOwnProperty(curso.token_curso) && !socket_cursos[curso.token_curso]?.finalizado && socket_cursos[curso.token_curso].asistenciasHabilitadas && !socket_cursos?.[curso.token_curso]?.alumno?.asistenciaHabilitada ? 'opacity-100' : 'opacity-50'}`}>
                                         Marcar asistencia
                                     </button> : Number(curso.calificacion) >= 75 ? <button onClick={() => {
-                                        window.open(`${frontend}/Diplomas_OTEC_CP/certificados/${usuario}/${curso.token_curso}`,"_blank")
+                                        window.open(`${frontend}/certificados/${usuario}/${curso.token_curso}`,"_blank")
                                     }} className="cursor-pointer mt-5 w-full h-15 transition border-2 opacity-100">
 
                                         Ver certificado
