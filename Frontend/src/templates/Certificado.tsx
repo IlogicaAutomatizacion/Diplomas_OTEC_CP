@@ -82,7 +82,6 @@ export default () => {
     const [datosCurso_almuno, setDatos] = useState<Record<string, string> | null>(null)
     const [msg, setMsg] = useState<string | null>(null)
 
-    const [preparandoCertificado, setCertificado] = useState<boolean>(false)
 
     useAutoFitText('.ADP')
 
