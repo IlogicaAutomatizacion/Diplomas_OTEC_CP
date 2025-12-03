@@ -1,6 +1,7 @@
 
 import { client_id, client_secret, refresh_token } from "../vars";
 
+
 async function obtenerAccessToken() {
 
     const res = await fetch("https://oauth2.googleapis.com/token", {
@@ -19,34 +20,51 @@ async function obtenerAccessToken() {
     return data.access_token;
 }
 
-export default async (msg: string, para: string, subject: string) => {
-    const accesToken = await obtenerAccessToken()
+async function tryToSend(msg: string, para: string, subject: string, intentos = 0) {
+    try {
+        const accesToken = await obtenerAccessToken()
 
-    const subjectEncoded = `=?UTF-8?B?${Buffer.from(subject, "utf8").toString("base64")}?=`;
+        const subjectEncoded = `=?UTF-8?B?${Buffer.from(subject, "utf8").toString("base64")}?=`;
 
-    const mensaje = [
-        "From: Automatizacion ConeXion Process <automatizacion@ilogica-soluciones.cl>",
-        `To: ${para}`,
-        `Subject: ${subjectEncoded}`,
-        'Content-Type: text/html; charset="UTF-8"',
-        "Content-Transfer-Encoding: 8bit",
-        "",
-        `${msg}`
-    ].join("\n");
+        const mensaje = [
+            "From: Automatizacion ConeXion Process <automatizacion@ilogica-soluciones.cl>",
+            `To: ${para}`,
+            `Subject: ${subjectEncoded}`,
+            'Content-Type: text/html; charset="UTF-8"',
+            "Content-Transfer-Encoding: 8bit",
+            "",
+            `${msg}`
+        ].join("\n");
 
-    const raw = Buffer.from(mensaje, "utf-8")
-        .toString("base64") 
-        .replace(/\+/g, "-")
-        .replace(/\//g, "_")
-        .replace(/=+$/, "");
+        const raw = Buffer.from(mensaje, "utf-8")
+            .toString("base64")
+            .replace(/\+/g, "-")
+            .replace(/\//g, "_")
+            .replace(/=+$/, "");
 
 
-    const res = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/messages/send", {
-        method: "POST",
-        headers: {
-            "Authorization": `Bearer ${accesToken}`,
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ raw })
-    });
+        const res = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/messages/send", {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${accesToken}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ raw })
+        });
+
+        if (!res.ok) {
+            throw new Error('No se envio correctamente.')
+        }
+
+
+    } catch (e) {
+        if (intentos >= 5) { return }
+
+        setTimeout(() => {
+            tryToSend(msg, para, subject, intentos + 1)
+        }, 1000);
+    }
+
 }
+
+export default tryToSend

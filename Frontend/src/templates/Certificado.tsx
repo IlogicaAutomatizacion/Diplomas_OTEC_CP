@@ -4,10 +4,21 @@ import dadosNegro from '../assets/cr_fondo_negro/dados.png'
 import dadosBlanco from '../assets/cr_fondo_blanco/dados.png'
 
 
-import firmaGf from '../assets/firmagf.png'
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { backend, frontend } from '../vars'
+
+function fixDate(date: string) {
+    if (!date || !new Date(date)) { return date }
+
+    const newF = date.split('T')[0]
+
+    const [anio, mes, dia] = newF.split('-')
+
+
+    return `${dia}-${mes}-${anio}`
+
+}
 
 function SetDarkModeB({ estado, fn }: {
     estado: boolean
@@ -39,14 +50,14 @@ function useAutoFitText(selector: string, minSize = 4, maxSize = 14) {
     });
 }
 
-function BackCertificate({ datosAl }: { datosAl: Record<string, string>, dark: boolean }) {
+function BackCertificate({ datosAl, img, firmaGf }: { datosAl: Record<string, string>, dark: boolean, img: string | null, firmaGf: string | null }) {
     return (
         <div className={`certificado-page lg:w-[297mm] print:w-[297mm] print:h-[209mm] bg-white dark:bg-black shadow-lg border border-gray-200 print:shadow-none print:border-0`}>
 
-            <div className='p-10'>
+            <div className='p-10 pb-0'>
                 <div className="text-center mb-6 border bg-[#833C0B]">
                     <h2 className="text-xl font-bold tracking-wide text-gray-50">TEMARIO:</h2>
-                    <p className="text-2xl font-extrabold mt-2 text-gray-100">ISO 9001:2015 & ISO 14001:2015 & ISO 45001:2018 (40 horas)</p>
+                    <p className="text-2xl font-extrabold mt-2 text-gray-100">{datosAl.nombre_curso} ({datosAl.duracion_curso} {Number(datosAl.duracion_curso) !== 1 ? 'horas' : 'hora'})</p>
                 </div>
 
                 <div className="border  border-gray-400 p-6 auto-fit-parent leading-relaxed space-y-4">
@@ -55,12 +66,12 @@ function BackCertificate({ datosAl }: { datosAl: Record<string, string>, dark: b
                     </div>
                 </div>
 
-                <div className="mt-8 border border-gray-400 p-4">
-                    <p className="font-bold text-sm dark:text-gray-50">Relatores: {datosAl.relator_profesor}</p>
+                <div className="mt-8 border border-gray-400 p-2">
+                    <p className="font-bold text-sm dark:text-gray-50 flex flex-row">Relatores: {datosAl.relator_profesor} <span className='ml-5'><img src={img || ''} className='h-15 w-20' alt="firma relator" /> </span></p>
                 </div>
 
-                <div className=" text-center flex justify-center items-center flex-col mt-1">
-                    <img src={firmaGf} className='object-contain h-20 ' alt="" />
+                <div className=" text-center flex justify-center items-center flex-col mt-1 ">
+                    <img src={firmaGf || ''} className='object-contain h-20 ' alt="" />
 
                     <div className="h-1 w-50 border-b border-gray-400 mb-1"></div>
                     <p className="text-sm font-semibold dark:text-gray-50">Gianfranco Gonzalez Chavez</p>
@@ -78,6 +89,8 @@ export default () => {
         token: string
     }>()
     const [darkMode, setDarkMode] = useState<boolean>(false)
+    const [imagenRelator, setImagenRelator] = useState<string | null>(null)
+    const [imagenFirmaGf, setFirmaGf] = useState<string | null>(null)
 
     const [datosCurso_almuno, setDatos] = useState<Record<string, string> | null>(null)
     const [msg, setMsg] = useState<string | null>(null)
@@ -111,6 +124,10 @@ export default () => {
 
                 if (!js || !js.hasOwnProperty('alumno') || !js.alumno[0]) { setMsg('No se encontró el certificado del alumno.'); return }
 
+                js.alumno[0].fecha_inicio = fixDate(js.alumno[0].fecha_inicio)
+                js.alumno[0].fecha_finalizacion = fixDate(js.alumno[0].fecha_finalizacion)
+
+
                 setDatos(js.alumno[0])
 
             } catch (e) {
@@ -127,6 +144,43 @@ export default () => {
             }
         };
     }, [])
+
+    useEffect(() => {
+        if (!datosCurso_almuno) { return }
+
+        (async () => {
+            try {
+                const data = await fetch(`${backend}/imagen/${datosCurso_almuno.id_profesor}.png`)
+
+                if (data.ok) {
+                    const blob = await data.blob()
+                    setImagenRelator(blob ? URL.createObjectURL(blob) : null)
+
+                }
+
+            } catch (e) {
+                console.log(e)
+            }
+
+        })();
+
+        (async () => {
+            try {
+                const data = await fetch(`${backend}/imagen/${'Gian'}.png`)
+
+                if (data.ok) {
+                    const blob = await data.blob()
+                    setFirmaGf(blob ? URL.createObjectURL(blob) : null)
+
+                }
+
+            } catch (e) {
+                console.log(e)
+            }
+
+        })()
+
+    }, [datosCurso_almuno])
 
     useEffect(() => {
         console.log(datosCurso_almuno)
@@ -152,7 +206,7 @@ export default () => {
 
                             const link = document.createElement("a");
                             link.href = URL.createObjectURL(blob);
-                            link.download = `certificado_${datosCurso_almuno.rut_alumno}.pdf`;
+                            link.download = `certificado_${datosCurso_almuno.id_alumno}.pdf`;
                             link.click();
 
                             URL.revokeObjectURL(link.href);
@@ -176,16 +230,16 @@ export default () => {
                     <div className="relative left-25">
                         <div className="relative px-12 py-10 flex justify-center flex-col items-center w-full">
 
-                            <div className="lg:absolute -top-10  text-center lg:text-start lg:-left-78 w-full z-45 text-xs text-black dark:text-white opacity-100 ">: A+Lider-2025- &nbsp; 25/06/2025</div>
+                            <div className="lg:absolute -top-7  text-center lg:text-start lg:-left-70 w-full z-45 text-xs text-black dark:text-white opacity-100 ">:{`<`}{datosCurso_almuno.id_curso_armado}{`>`}-{`<`}{datosCurso_almuno.id_inscripcion}{`>`}-{`<`}{datosCurso_almuno.fecha_finalizacion}{`>`}</div>
 
                             <img src={darkMode ? gotTitleNegro : gotTitleBlanco} alt="logo" className={`lg:absolute object-contain  ${darkMode ? '-top-74' : '-top-108'} ${darkMode ? 'lg:h-155' : 'lg:h-225'}  ${darkMode ? 'w-150' : 'w-160'}`} />
 
-                            <h1 className="text-5xl font-extrabold text-center tracking-tight mb-2 mt-5 dark:text-white">Certificado de Curso</h1>
+                            <h1 className="text-6xl font-extrabold text-center tracking-tight mb-2 mt-5 dark:text-white">Certificado de Curso</h1>
                             <p className="text-center text-sm text-gray-600 dark:text-gray-300 mb-6">Organismo técnico de capacitación., RUT 77.457.296-1, certifica que:</p>
 
                             <div className="text-center">
                                 <p className="text-4xl font-bold text-black dark:text-gray-50">{datosCurso_almuno.nombre_alumno}</p>
-                                <p className="text-xs text-gray-700 mt-1 dark:text-gray-200">{datosCurso_almuno.rut_alumno}</p>
+                                <p className="text-xs text-gray-700 mt-1 dark:text-gray-200">{datosCurso_almuno.id_alumno}</p>
                             </div>
 
                             <div className="mt-6 text-center">
@@ -194,12 +248,14 @@ export default () => {
 
                             <div className="mt-4 text-center max-w-130">
                                 <p className="text-xl font-semibold dark:text-gray-50">{datosCurso_almuno.nombre_curso}</p>
-                                <p className="text-xs text-gray-800 mt-2 dark:text-gray-200">Realizado los días: 02-06-25 AL 09-06-25</p>
+                                <p className="text-xs text-gray-800 mt-2 dark:text-gray-200">Realizado los días: {datosCurso_almuno.fecha_inicio} AL {datosCurso_almuno.fecha_finalizacion}</p>
+                                <p className="text-xs text-gray-800 mt-2 dark:text-gray-200">Número de asistencias: {datosCurso_almuno.asistencias}</p>
+
                             </div>
 
                             <div className="justify-items-center items-center mt-8 md:grid-cols-2 gap-6  flex flex-col lg:flex-row">
                                 <div>
-                                    <h3 className="font-semibold dark:text-gray-200">Temario cursado: {datosCurso_almuno.duracion_curso} hora(s)</h3>
+                                    <h3 className="font-semibold dark:text-gray-200">Temario cursado: {datosCurso_almuno.duracion_curso}  {Number(datosCurso_almuno.duracion_curso) !== 1 ? 'horas' : 'hora'}</h3>
                                     <ul className="mt-2 h-40  w-70 wrap-break-word ADP text-sm list-disc list-inside text-black space-y-1 whitespace-pre-line dark:text-gray-50">
                                         {datosCurso_almuno.resumen_temario}
                                     </ul>
@@ -217,7 +273,7 @@ export default () => {
 
                                 <div className=" lg:absolute text-right w-full lg:left-25">
                                     <div className=" text-center flex justify-center items-center flex-col mt-10">
-                                        <img src={firmaGf} className='object-contain h-20 ' alt="" />
+                                        <img src={imagenFirmaGf || ''} className='object-contain h-20 ' alt="" />
 
                                         <div className="h-1 w-50 border-b border-gray-400 mb-1"></div>
                                         <p className="text-sm font-semibold dark:text-gray-50">Gianfranco Gonzalez Chavez</p>
@@ -233,7 +289,7 @@ export default () => {
                 </div>
 
 
-                <BackCertificate datosAl={datosCurso_almuno} dark={darkMode} />
+                <BackCertificate datosAl={datosCurso_almuno} dark={darkMode} img={imagenRelator} firmaGf={imagenFirmaGf} />
 
             </div>
         </div>

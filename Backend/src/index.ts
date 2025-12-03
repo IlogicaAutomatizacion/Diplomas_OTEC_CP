@@ -11,17 +11,13 @@ import fs from "fs";
 const app = express()
 
 import puppeteer from "puppeteer";
-
+import driveHelper from './utility/ObtenerArchivodeDrive';
 export async function generarCertificadoPDF(url: string) {
     console.log("Cargando URL:", url);
 
     const browser = await puppeteer.launch({
         headless: true,
-        args: [
-            "--no-sandbox",
-            "--disable-setuid-sandbox",
-            "--disable-web-security",
-        ]
+        args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-web-security"]
     });
 
     const page = await browser.newPage();
@@ -32,32 +28,16 @@ export async function generarCertificadoPDF(url: string) {
 
     await page.setUserAgent("Puppeteer-CertBot/1.0");
 
-    await page.goto(url, { waitUntil: "domcontentloaded" });
+    await page.goto(url, { waitUntil: "networkidle0" });
 
-    // Esperar un ciclo de render
+    // esperar que todo se haya pintado
     await page.evaluate(() => new Promise(requestAnimationFrame));
 
+    // esperar imágenes cargadas
     await page.waitForFunction(() => {
-        const el = document.querySelector("#loading") as HTMLDivElement;
-        return !el || el!.style.display === "none" || el.textContent.trim() === "";
-    }, { timeout: 15000 });
-
-    await page.waitForFunction(async () => {
-        const imgs = Array.from(document.images);
-        if (imgs.length === 0) return true;
-
-        const checks = await Promise.all(
-            imgs.map(img => {
-                if (img.complete && img.naturalWidth > 0) return true;
-                return new Promise(resolve => {
-                    img.onload = () => resolve(true);
-                    img.onerror = () => resolve(true);
-                });
-            })
-        );
-
-        return checks.every(v => v);
-    }, { timeout: 15000 });
+        return Array.from(document.images)
+            .every(img => img.complete && img.naturalWidth > 0);
+    }, { timeout: 20000 });
 
     const pdfBuffer = await page.pdf({
         format: "A4",
@@ -94,16 +74,15 @@ app.post('/insertarUsuarios', async (req, res) => {
         const rows = []
 
         usuarios.forEach(arrUsuario => {
-            rows.push(`(${arrUsuario.id_alumno},'${arrUsuario.rut_alumno}','${arrUsuario['Nombre completo (nombres y apellidos)']}','${arrUsuario.cargo_alumno}','${arrUsuario['E-mail']}',${arrUsuario.telefono_alumno},'${randomUUID()}')`)
+            rows.push(`(${arrUsuario.id_alumno},'${arrUsuario['Nombre completo (nombres y apellidos)']}','${arrUsuario.cargo_alumno}','${arrUsuario['E-mail']}',${arrUsuario.telefono_alumno},'${randomUUID()}')`)
         })
 
         console.log(rows.join(','))
 
-        await DB.query(`INSERT INTO Alumnos (id_alumno,rut_alumno,nombre_alumno,cargo_alumno,correo_alumno,telefono_alumno,token_alumno)
+        await DB.query(`INSERT INTO Alumnos (id_alumno,nombre_alumno,cargo_alumno,correo_alumno,telefono_alumno,token_alumno)
                              VALUES ${rows.join(',')} 
                              ON CONFLICT (id_alumno)
                              DO UPDATE SET
-                             rut_alumno = EXCLUDED.rut_alumno,
                              nombre_alumno = EXCLUDED.nombre_alumno,
                              cargo_alumno = EXCLUDED.cargo_alumno,
                              correo_alumno = EXCLUDED.correo_alumno,
@@ -162,16 +141,15 @@ app.post('/insertarProfesores', async (req, res) => {
 
         usuarios.forEach(arrProfesores => {
             console.log(arrProfesores)
-            rows.push(`(${arrProfesores.id_profesor},'${arrProfesores.relator}','${arrProfesores.rut_profesor}',${arrProfesores['fono/fax_profesor']},'${arrProfesores['e-mail_actualizado_profesor']}','${arrProfesores.direccion_profesor}','${arrProfesores.especialidad_profesor}','${randomUUID()}')`)
+            rows.push(`(${arrProfesores.id_profesor},'${arrProfesores.relator}',${arrProfesores['fono/fax_profesor']},'${arrProfesores['e-mail_actualizado_profesor']}','${arrProfesores.direccion_profesor}','${arrProfesores.especialidad_profesor}','${randomUUID()}')`)
         })
 
         console.log(rows.join(','))
 
-        await DB.query(`INSERT INTO Profesores (id_profesor,relator_profesor,rut_profesor,fono_fax_profesor,correo_profesor,direccion_profesor,especialidad_profesor,token_profesor) VALUES ${rows.join(',')}
+        await DB.query(`INSERT INTO Profesores (id_profesor,relator_profesor,fono_fax_profesor,correo_profesor,direccion_profesor,especialidad_profesor,token_profesor) VALUES ${rows.join(',')}
                         ON CONFLICT (id_profesor)
                         DO UPDATE SET
                             relator_profesor = EXCLUDED.relator_profesor,
-                            rut_profesor = EXCLUDED.rut_profesor,
                             fono_fax_profesor = EXCLUDED.fono_fax_profesor,
                             correo_profesor = EXCLUDED.correo_profesor,
                             direccion_profesor = EXCLUDED.direccion_profesor,
@@ -197,15 +175,17 @@ app.post('/inscribir', async (req, res) => {
 
         usuarios.forEach(arrProfesores => {
             console.log(arrProfesores)
-            const asistencias = Number(arrProfesores.asistencias)
-            const calificacion = Number(arrProfesores.calificacion)
+            const asistencias = isNaN(Number(arrProfesores.asistencias)) ? null : Number(arrProfesores.asistencias) //isNaN(asistencias) ? null : asistencias
+            const calificacion = isNaN(Number(arrProfesores.calificacion)) ? null : Number(arrProfesores.calificacion) //isNaN(calificacion) ? null : calificacion
+            const fecha_inicio = String(arrProfesores.fecha_inicio).trim() == "" ? null : arrProfesores.fecha_inicio
+            const fecha_finalizacion = String(arrProfesores.fecha_finalizacion).trim() == "" ? null : arrProfesores.fecha_finalizacion
 
-            rows.push(`(${arrProfesores.id_inscripcion},${arrProfesores.id_alumno},${arrProfesores.id_curso_armado},${isNaN(asistencias) ? null : asistencias},${isNaN(calificacion) ? null : calificacion}   )`)
+            rows.push(`(${arrProfesores.id_inscripcion},${arrProfesores.id_alumno},${arrProfesores.id_curso_armado},${asistencias},${calificacion},'${fecha_inicio}','${fecha_finalizacion}')`)
         })
 
         console.log(rows.join(','))
 
-        const resP = await DB.query(`INSERT INTO inscripciones (id_inscripcion,id_alumno,id_curso_armado,asistencias,calificacion) VALUES ${rows.join(',')}
+        const resP = await DB.query(`INSERT INTO inscripciones (id_inscripcion,id_alumno,id_curso_armado,asistencias,calificacion,fecha_inicio,fecha_finalizacion) VALUES ${rows.join(',')}
                         ON CONFLICT (id_inscripcion) DO NOTHING`)
 
         res.status(200).json(`Se incribieron correctamente a los usuarios no inscritos.`)
@@ -217,7 +197,7 @@ app.post('/inscribir', async (req, res) => {
 })
 
 
-const mandarCertificadoPorGmail = async (token_alumno, nombre_alumno, nombre_curso, correo_alumno, rut_alumno, token_curso) => {
+const mandarCertificadoPorGmail = async (token_alumno, nombre_alumno, nombre_curso, correo_alumno, id_alumno, token_curso) => {
     const urlCertificado = `${FRONT}/Diplomas_OTEC_CP/certificados/${token_alumno}/${token_curso}`;
 
     const qr = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`${FRONT}/Diplomas_OTEC_CP/certificados/${token_alumno}/${token_curso}`)}`
@@ -281,7 +261,7 @@ app.post('/armarCurso', async (req, res) => {
         if (finalizados.rows.length > 0) {
             const alumnosFinalizados = await DB.query(`
             SELECT i.id_inscripcion, a.nombre_alumno, a.correo_alumno, a.token_alumno,
-                   a.rut_alumno, c.nombre_curso, x.token_curso
+                   a.id_alumno, c.nombre_curso, x.token_curso
             FROM inscripciones i
             JOIN alumnos a ON a.id_alumno = i.id_alumno
             JOIN cursos_armados x ON x.id_curso_armado = i.id_curso_armado
@@ -296,7 +276,7 @@ app.post('/armarCurso', async (req, res) => {
                     al.nombre_alumno,
                     al.nombre_curso,
                     al.correo_alumno,
-                    al.rut_alumno,
+                    al.id_alumno,
                     al.token_curso
                 );
             }
@@ -408,16 +388,21 @@ const obtenerUsuario = async (req: Request<{
         const re = await DB.query(`SELECT 
                                         i.id_inscripcion,
                                         i.calificacion,
+                                        i.asistencias,
+                                        i.fecha_inicio,
+                                        i.fecha_finalizacion,
                                         a.nombre_alumno,
                                         a.token_alumno,
-                                        a.rut_alumno,
+                                        a.id_alumno,
                                         c.nombre_curso,
                                         c.duracion_curso,
                                         c.temario_curso,
                                         c.resumen_temario,
                                         x.token_curso,
                                         x.finalizado,
-                                        p.relator_profesor
+                                        x.id_curso_armado,
+                                        p.relator_profesor,
+                                        p.id_profesor
                                        FROM inscripciones i
                                         JOIN alumnos a ON a.id_alumno = i.id_alumno
                                         JOIN cursos_armados x ON x.id_curso_armado = i.id_curso_armado
@@ -806,7 +791,6 @@ io.on('connection', (socket: AuthSocket) => {
 
             curso.listoParaFinalizar = statusRes.rows[0].todos_calificados
 
-            console.log(curso, 'CURSOOOOOOOOOOOOOOOOOOOOOOOOOOO')
 
             io.to(token).emit('asistenciasHabilitadas', {
                 token,
@@ -872,7 +856,6 @@ io.on('connection', (socket: AuthSocket) => {
                                                 SELECT json_agg(
                                                     DISTINCT jsonb_build_object(
                                                         'id_alumno', a.id_alumno,
-                                                        'rut_alumno',a.rut_alumno,
                                                         'nombre_alumno', a.nombre_alumno,
                                                         'correo_alumno', a.correo_alumno,
                                                         'token_alumno', a.token_alumno,
@@ -896,8 +879,8 @@ io.on('connection', (socket: AuthSocket) => {
 
                 if (exist.rows[0].curso.finalizado) { callback(null); return }
 
-                for (const { nombre_alumno, rut_alumno, correo_alumno, token_alumno } of exist.rows[0].curso.alumnos) {
-                    mandarCertificadoPorGmail(token_alumno, nombre_alumno, exist.rows[0].curso.nombre_curso, correo_alumno, rut_alumno, exist.rows[0].curso.token_curso)
+                for (const { nombre_alumno, id_alumno, correo_alumno, token_alumno } of exist.rows[0].curso.alumnos) {
+                    mandarCertificadoPorGmail(token_alumno, nombre_alumno, exist.rows[0].curso.nombre_curso, correo_alumno, id_alumno, exist.rows[0].curso.token_curso)
                 }
 
                 await DB.query(`
@@ -917,6 +900,28 @@ io.on('connection', (socket: AuthSocket) => {
             console.log("Error generando certificado:", e);
         }
     })
+})
+
+app.get('/imagen/:imagen', async (req, res) => {
+    try {
+        const nombre = req.params.imagen
+
+        const [file, drive] = await driveHelper(nombre, '1hucjE1KdNZuK5znrKJmDivujdBVNl_Wh')
+
+        if (!file) return res.status(404).send('Archivo no encontrado')
+
+        const response = await drive.files.get(
+            { fileId: file.id, alt: "media" },
+            { responseType: "stream" }
+        )
+
+        res.setHeader("Content-Type", file.mimeType)
+        response.data.pipe(res)
+    } catch (err) {
+        console.log(err)
+        res.status(500).send('Error al intentar obtener imagen de drive')
+    }
+
 })
 
 app.listen(PORT, async () => {
