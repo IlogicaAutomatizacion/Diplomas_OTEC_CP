@@ -12,7 +12,9 @@ const app = express()
 
 import puppeteer from "puppeteer";
 import driveHelper from './utility/ObtenerArchivodeDrive';
+
 export async function generarCertificadoPDF(url: string) {
+
     console.log("Cargando URL:", url);
 
     const browser = await puppeteer.launch({
@@ -40,6 +42,7 @@ export async function generarCertificadoPDF(url: string) {
     }, { timeout: 20000 });
 
     const pdfBuffer = await page.pdf({
+        scale:1,
         format: "A4",
         landscape: true,
         printBackground: true
