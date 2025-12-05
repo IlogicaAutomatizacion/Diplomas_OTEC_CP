@@ -67,11 +67,11 @@ function BackCertificate({ datosAl, img, firmaGf }: { datosAl: Record<string, st
                 </div>
 
                 <div className="mt-8 border border-gray-400 p-2">
-                    <p className="font-bold text-sm dark:text-gray-50 flex flex-row">Relatores: {datosAl.relator_profesor} <span className='ml-5'><img src={img || ''} className='h-15 w-20' alt="firma relator" /> </span></p>
+                    <p className="font-bold text-sm dark:text-gray-50 flex flex-row">Relatores: {datosAl.relator_profesor} <span className='ml-5'><img src={img || undefined} className='h-15 w-20' alt="firma relator" /> </span></p>
                 </div>
 
                 <div className=" text-center flex justify-center items-center flex-col mt-1 ">
-                    <img src={firmaGf || ''} className='object-contain h-20 ' alt="" />
+                    <img src={firmaGf || undefined} className='object-contain h-20 ' alt="" />
 
                     <div className="h-1 w-50 border-b border-gray-400 mb-1"></div>
                     <p className="text-sm font-semibold dark:text-gray-50">Gianfranco Gonzalez Chavez</p>
@@ -273,7 +273,7 @@ export default () => {
 
                                 <div className=" lg:absolute text-right w-full lg:left-25">
                                     <div className=" text-center flex justify-center items-center flex-col mt-10">
-                                        <img src={imagenFirmaGf || ''} className='object-contain h-20 ' alt="" />
+                                        <img src={imagenFirmaGf || undefined} className='object-contain h-20 ' alt="" />
 
                                         <div className="h-1 w-50 border-b border-gray-400 mb-1"></div>
                                         <p className="text-sm font-semibold dark:text-gray-50">Gianfranco Gonzalez Chavez</p>

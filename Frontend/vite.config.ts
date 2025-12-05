@@ -15,6 +15,7 @@ export default ({ mode }: { mode: string }) => {
       port: 5173,
       allowedHosts: true
     },
+    
     build: {
       sourcemap: false,
       manifest: true
