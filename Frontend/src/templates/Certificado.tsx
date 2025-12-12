@@ -67,7 +67,7 @@ function BackCertificate({ datosAl, img, firmaGf }: { datosAl: Record<string, st
                 </div>
 
                 <div className="mt-8 border border-gray-400 p-2">
-                    <p className="font-bold text-sm dark:text-gray-50 flex flex-row">Relatores: {datosAl.relator_profesor} <span className='ml-5'><img src={img || undefined} className='h-15 w-20' alt="firma relator" /> </span></p>
+                    <p className="font-bold text-sm dark:text-gray-50 flex flex-row">Relatores: {datosAl.relator_profesor} <span className='ml-5'><img src={img || undefined} className='h-15 w-20' alt="firma relator" /> </span> <span className='text-xs ml-5 whitespace-pre-line'>{datosAl.especialidad_profesor}</span> </p>
                 </div>
 
                 <div className=" text-center flex justify-center items-center flex-col mt-1 ">

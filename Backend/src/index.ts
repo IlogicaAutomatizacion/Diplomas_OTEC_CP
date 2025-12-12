@@ -42,7 +42,7 @@ export async function generarCertificadoPDF(url: string) {
     }, { timeout: 20000 });
 
     const pdfBuffer = await page.pdf({
-        scale:1,
+        scale: 1,
         format: "A4",
         landscape: true,
         printBackground: true
@@ -77,7 +77,7 @@ app.post('/insertarUsuarios', async (req, res) => {
         const rows = []
 
         usuarios.forEach(arrUsuario => {
-            rows.push(`(${arrUsuario.id_alumno},'${arrUsuario['Nombre completo (nombres y apellidos)']}','${arrUsuario.cargo_alumno}','${arrUsuario['E-mail']}',${arrUsuario.telefono_alumno},'${randomUUID()}')`)
+            rows.push(`('${arrUsuario.id_alumno}','${arrUsuario['Nombre completo (nombres y apellidos)']}','${arrUsuario.cargo_alumno}','${arrUsuario['E-mail']}',${arrUsuario.telefono_alumno},'${randomUUID()}')`)
         })
 
         console.log(rows.join(','))
@@ -144,7 +144,7 @@ app.post('/insertarProfesores', async (req, res) => {
 
         usuarios.forEach(arrProfesores => {
             console.log(arrProfesores)
-            rows.push(`(${arrProfesores.id_profesor},'${arrProfesores.relator}',${arrProfesores['fono/fax_profesor']},'${arrProfesores['e-mail_actualizado_profesor']}','${arrProfesores.direccion_profesor}','${arrProfesores.especialidad_profesor}','${randomUUID()}')`)
+            rows.push(`('${arrProfesores.id_profesor}','${arrProfesores.relator}',${arrProfesores['fono/fax_profesor']},'${arrProfesores['e-mail_actualizado_profesor']}','${arrProfesores.direccion_profesor}','${arrProfesores.especialidad_profesor}','${randomUUID()}')`)
         })
 
         console.log(rows.join(','))
@@ -157,7 +157,6 @@ app.post('/insertarProfesores', async (req, res) => {
                             correo_profesor = EXCLUDED.correo_profesor,
                             direccion_profesor = EXCLUDED.direccion_profesor,
                             especialidad_profesor = EXCLUDED.especialidad_profesor
-
         `)
 
         res.status(200).json(`Se insertaron correctamente los cursos en la base de datos.`)
@@ -180,16 +179,20 @@ app.post('/inscribir', async (req, res) => {
             console.log(arrProfesores)
             const asistencias = isNaN(Number(arrProfesores.asistencias)) ? null : Number(arrProfesores.asistencias) //isNaN(asistencias) ? null : asistencias
             const calificacion = isNaN(Number(arrProfesores.calificacion)) ? null : Number(arrProfesores.calificacion) //isNaN(calificacion) ? null : calificacion
-            const fecha_inicio = String(arrProfesores.fecha_inicio).trim() == "" ? null : arrProfesores.fecha_inicio
-            const fecha_finalizacion = String(arrProfesores.fecha_finalizacion).trim() == "" ? null : arrProfesores.fecha_finalizacion
 
-            rows.push(`(${arrProfesores.id_inscripcion},${arrProfesores.id_alumno},${arrProfesores.id_curso_armado},${asistencias},${calificacion},'${fecha_inicio}','${fecha_finalizacion}')`)
+            rows.push(`(${arrProfesores.id_inscripcion},'${arrProfesores.id_alumno}',${arrProfesores.id_curso_armado},${asistencias},${calificacion})`)
         })
 
         console.log(rows.join(','))
 
-        const resP = await DB.query(`INSERT INTO inscripciones (id_inscripcion,id_alumno,id_curso_armado,asistencias,calificacion,fecha_inicio,fecha_finalizacion) VALUES ${rows.join(',')}
-                        ON CONFLICT (id_inscripcion) DO NOTHING`)
+        const resP = await DB.query(`INSERT INTO inscripciones (id_inscripcion,id_alumno,id_curso_armado,asistencias,calificacion) VALUES ${rows.join(',')}
+                        ON CONFLICT (id_inscripcion) 
+                        DO UPDATE SET
+                            id_alumno = EXCLUDED.id_alumno,
+                            id_curso_armado = EXCLUDED.id_curso_armado,
+                            asistencias = EXCLUDED.asistencias,
+                            calificacion = EXCLUDED.calificacion
+                            `)
 
         res.status(200).json(`Se incribieron correctamente a los usuarios no inscritos.`)
 
@@ -246,16 +249,19 @@ app.post('/armarCurso', async (req, res) => {
         let finalizados = { rows: [] };
 
         if (toFinalize.length > 0) {
+
             const rows = toFinalize
-                .map(u => `(${u.id_curso_armado},${u.id_curso},${u.id_profesor},TRUE)`)
+                .map(u => `(${u.id_curso_armado},${u.id_curso},'${u.id_profesor}',TRUE,'${String(u.fecha_inicio).trim() == "" ? null : u.fecha_inicio}','${String(u.fecha_finalizacion).trim() == "" ? null : u.fecha_finalizacion}')`)
                 .join(',');
 
             finalizados = await DB.query(`
-            INSERT INTO cursos_armados (id_curso_armado, id_curso, id_profesor, finalizado)
+            INSERT INTO cursos_armados (id_curso_armado, id_curso, id_profesor, finalizado,fecha_inicio,fecha_finalizacion)
             VALUES ${rows}
             ON CONFLICT (id_curso_armado)
             DO UPDATE SET
-                finalizado = EXCLUDED.finalizado
+                finalizado = EXCLUDED.finalizado,
+                fecha_inicio = EXCLUDED.fecha_inicio,
+                fecha_finalizacion = EXCLUDED.fecha_finalizacion
             WHERE cursos_armados.finalizado = FALSE 
             RETURNING id_curso_armado
         `);
@@ -285,7 +291,6 @@ app.post('/armarCurso', async (req, res) => {
             }
         }
 
-
         const toProgramFiltered = toProgram.filter(u =>
             !toFinalize.some(f => f.id_curso_armado === u.id_curso_armado)
         );
@@ -294,15 +299,17 @@ app.post('/armarCurso', async (req, res) => {
 
         if (toProgramFiltered.length > 0) {
             const rows = toProgramFiltered
-                .map(u => `(${u.id_curso_armado},${u.id_curso},${u.id_profesor},TRUE)`)
+                .map(u => `(${u.id_curso_armado},${u.id_curso},'${u.id_profesor}',TRUE,'${String(u.fecha_inicio).trim() == "" ? null : u.fecha_inicio}','${String(u.fecha_finalizacion).trim() == "" ? null : u.fecha_finalizacion}')`)
                 .join(',');
 
             programados = await DB.query(`
-            INSERT INTO cursos_armados (id_curso_armado, id_curso, id_profesor, programado)
+            INSERT INTO cursos_armados (id_curso_armado, id_curso, id_profesor,programado,fecha_inicio,fecha_finalizacion)
             VALUES ${rows}
             ON CONFLICT (id_curso_armado)
             DO UPDATE SET
-                programado = EXCLUDED.programado
+                programado = EXCLUDED.programado,
+                fecha_inicio = EXCLUDED.fecha_inicio,
+                fecha_finalizacion = EXCLUDED.fecha_finalizacion
             WHERE cursos_armados.programado = FALSE
               AND cursos_armados.finalizado = FALSE  
             RETURNING id_curso_armado
@@ -392,8 +399,6 @@ const obtenerUsuario = async (req: Request<{
                                         i.id_inscripcion,
                                         i.calificacion,
                                         i.asistencias,
-                                        i.fecha_inicio,
-                                        i.fecha_finalizacion,
                                         a.nombre_alumno,
                                         a.token_alumno,
                                         a.id_alumno,
@@ -402,10 +407,13 @@ const obtenerUsuario = async (req: Request<{
                                         c.temario_curso,
                                         c.resumen_temario,
                                         x.token_curso,
+                                        x.fecha_inicio,
+                                        x.fecha_finalizacion,
                                         x.finalizado,
                                         x.id_curso_armado,
                                         p.relator_profesor,
-                                        p.id_profesor
+                                        p.id_profesor,
+                                        p.especialidad_profesor
                                        FROM inscripciones i
                                         JOIN alumnos a ON a.id_alumno = i.id_alumno
                                         JOIN cursos_armados x ON x.id_curso_armado = i.id_curso_armado
