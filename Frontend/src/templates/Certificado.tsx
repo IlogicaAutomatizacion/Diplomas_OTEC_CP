@@ -85,8 +85,9 @@ function BackCertificate({ datosAl, img, firmaGf }: { datosAl: Record<string, st
 }
 
 export default () => {
-    const { token } = useParams<{
+    const { token, token_curso } = useParams<{
         token: string
+        token_curso: string
     }>()
     const [darkMode, setDarkMode] = useState<boolean>(false)
     const [imagenRelator, setImagenRelator] = useState<string | null>(null)
@@ -116,7 +117,7 @@ export default () => {
             try {
                 setMsg('Obteniendo datos del usuario...')
                 console.log(token)
-                const res = await fetch(`${backend}/usuario/${token}`)
+                const res = await fetch(`${backend}/usuario/${token}/${token_curso}`)
 
                 const js = await res.json()
 
