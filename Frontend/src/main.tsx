@@ -7,6 +7,7 @@ import Error from './Error/Error'
 import User from './templates/User'
 import Profesor from './templates/Profesor'
 import Certificado from './templates/Certificado'
+import PanelAdministrador from './templates/PanelAdministrador'
 
 const router = createBrowserRouter([
   {
@@ -25,6 +26,10 @@ const router = createBrowserRouter([
     path: '/certificados/:token/:token_curso',
     element: <Certificado />
   },
+  {
+    path: '/panelAdm',
+    element: <PanelAdministrador />
+  }
   
 ], {
   basename: '/Diplomas_OTEC_CP'
