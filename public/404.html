@@ -5,8 +5,19 @@
     <title>Redirect</title>
     <script>
       const base = '/Diplomas_OTEC_CP'
-      const path = location.pathname.replace(base, '')
-      sessionStorage.redirect = path + location.search + location.hash
+      let path = location.pathname
+
+      if (path.startsWith(base)) {
+        path = path.slice(base.length)
+      }
+
+      if (!path.startsWith('/')) {
+        path = '/' + path
+      }
+
+      sessionStorage.redirect =
+        path + location.search + location.hash
+
       location.replace(base + '/')
     </script>
   </head>

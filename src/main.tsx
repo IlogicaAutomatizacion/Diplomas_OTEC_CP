@@ -22,7 +22,6 @@ import NotFoundPage from './templates/NotFound/NotFound'
 import ErrorPage from './Error/Error'
 import { emitError, ErrorProvider } from './Error/ErrorContext'
 
-
 const originalFetch = window.fetch;
 
 window.fetch = async (
