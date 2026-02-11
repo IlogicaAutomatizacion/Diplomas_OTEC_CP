@@ -2,23 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
+    <meta http-equiv="refresh" content="0; url=./index.html" />
     <title>Redirect</title>
-    <script>
-      const base = '/Diplomas_OTEC_CP'
-      let path = location.pathname
-
-      if (path.startsWith(base)) {
-        path = path.slice(base.length)
-      }
-
-      if (!path.startsWith('/')) {
-        path = '/' + path
-      }
-
-      sessionStorage.redirect =
-        path + location.search + location.hash
-
-      location.replace(base + '/')
-    </script>
   </head>
 </html>

@@ -15,7 +15,6 @@ import PanelCertificados from './templates/ListaCertificados/PanelCertificados'
 import LoginPage from './templates/Login/Login'
 import ActivarCuentaPage from './templates/Login/Validate'
 import ConfirmarActivacionPage from './templates/Login/Confirm'
-import { frontend } from './vars'
 import MisEmpresas from './templates/CursosEmpresa/Selector'
 import MisSuscripciones from './templates/PanelAdministrador/Selector'
 import NotFoundPage from './templates/NotFound/NotFound'
@@ -58,12 +57,6 @@ window.fetch = async (
 
   return res;
 };
-
-const redirect = sessionStorage.redirect
-if (redirect) {
-  sessionStorage.removeItem('redirect')
-  window.history.replaceState(null, '', redirect)
-}
 
 const router = createBrowserRouter([
 
