@@ -12,6 +12,12 @@ export default function LoginPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log(import.meta.env.MODE)
+    console.log("backend:", backend)
+    console.log(import.meta.env)
+  }, [])
+
+  useEffect(() => {
     if (!mensaje) { return }
 
     setTimeout(() => {
