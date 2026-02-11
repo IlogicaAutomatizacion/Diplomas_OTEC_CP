@@ -156,7 +156,9 @@ export default ({ id_suscriptor }: { id_suscriptor: number }) => {
                 <button
                     className='cursor-pointer bg-sky-800 text-white rounded-2xl print:hidden mt-5 max-w-30 p-2 mb-5 h-15'
                     onClick={() => {
-                        navigate(view === "diploma" ? urlCertificado : urlDiploma);
+                        const newView = view === "diploma" ? "certificado" : "diploma";
+
+                        navigate(`?view=${newView}`, { replace: false });
                     }}>
                     {view === "diploma" ? "Ver certificado" : "Ver diploma"}
                 </button>
