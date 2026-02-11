@@ -4,7 +4,6 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
 export default ({ mode }: { mode: string }) => {
-  const env = loadEnv(mode, process.cwd(), '')
 
   return defineConfig({
 
