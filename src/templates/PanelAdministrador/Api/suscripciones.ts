@@ -48,7 +48,7 @@ export async function obtenerIdDeSuscripcionPorTokenDeCursoArmadoAsync(token: st
     }
 
     const res = await id.json()
-    
+
     console.log(res)
 
     return res
@@ -64,7 +64,7 @@ export async function obtenerDatosDeCertificadoConTokenDeCursoArmadoAsync(suscri
     const datos = await fetch(`${backend}/certificados?${params}`)
     if (!datos.ok) {
         console.log(await datos.json())
-        
+
         throw new Error('Hubo un problema al obtener los datos del certificado.')
     }
 
@@ -72,6 +72,25 @@ export async function obtenerDatosDeCertificadoConTokenDeCursoArmadoAsync(suscri
 
     return res
 }
+
+export async function obtenerPdfDeCertificado(suscriptor: number, certificado_url: string) {
+    const params = new URLSearchParams({
+        suscriptor: String(suscriptor),
+        certificado_url
+    })
+
+    const datos = await fetch(`${backend}/certificados/pdf?${params}`)
+    if (!datos.ok) {
+        console.log(await datos.json())
+
+        throw new Error('Hubo un problema al obtener el pdf del certificado')
+    }
+
+    const res = await datos.json()
+
+    return res
+}
+
 
 
 

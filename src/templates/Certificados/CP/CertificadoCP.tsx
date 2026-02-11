@@ -108,7 +108,7 @@ export default ({ id_suscriptor }: { id_suscriptor: number }) => {
         // Reemplazar SOLO para esta página
         const meta = document.querySelector("meta[name='viewport']");
         if (meta) {
-            meta.setAttribute("content", "width=1920, initial-scale=0.36, maximum-scale=0.36");
+            meta.setAttribute("content", "width=1920, initial-scale=0.36");
         }
 
         // Restaurar al salir de esta página (opcional pero recomendado)

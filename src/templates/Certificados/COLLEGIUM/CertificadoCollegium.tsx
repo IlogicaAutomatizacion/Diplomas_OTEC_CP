@@ -5,7 +5,7 @@ import estellaLogo from '../../../assets/Formarte/EstrellaLogo.png'
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 //import { backend, frontend } from '../../../vars'
-import { obtenerDatosDeCertificadoConTokenDeCursoArmadoAsync } from '../../PanelAdministrador/Api/suscripciones';
+import { obtenerDatosDeCertificadoConTokenDeCursoArmadoAsync, obtenerPdfDeCertificado } from '../../PanelAdministrador/Api/suscripciones';
 import type { CursoConAlumno } from '../../PanelAdministrador/Api/cursos-armados';
 import CertificadoMini from './CertificadoMini';
 import { frontend } from '../../../vars';
@@ -120,6 +120,7 @@ export default ({ id_suscriptor }: { id_suscriptor: number }) => {
             ?.getAttribute("content");
 
         const meta = document.querySelector("meta[name='viewport']");
+
         if (meta) {
             meta.setAttribute("content", "width=1920, initial-scale=0.36");
             //    meta.setAttribute("content", "width=1920, initial-scale=0.36, maximum-scale=0.36");
@@ -162,10 +163,26 @@ export default ({ id_suscriptor }: { id_suscriptor: number }) => {
         <div className='flex flex-row justify-center items-center gap-x-2 bg-gray-100 '>
             <button className='cursor-pointer bg-slate-800 text-white rounded-2xl print:hidden mt-5 max-w-30 p-2 mb-5 h-15' onClick={async () => {
                 try {
-                    print()
-                } catch (e) {
-                    setMsg('Hubo un problema al intentar descargar el certificado; vuelve a intentarlo.')
+                    const response = await obtenerPdfDeCertificado(id_suscriptor, window.location.href)
 
+                    if (!response.ok) {
+                        throw new Error("Error al generar el PDF del certificado.");
+                    }
+
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = "certificado.pdf";
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    window.URL.revokeObjectURL(url);
+
+                } catch (e) {
+                    console.log(e)
+                    setMsg('Hubo un problema al intentar descargar el certificado; vuelve a intentarlo.')
                 }
             }}>
                 {mostrarDiploma ? 'Descargar diploma' : 'Descargar certificado'}
