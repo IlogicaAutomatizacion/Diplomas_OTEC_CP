@@ -1,0 +1,49 @@
+{
+  "name": "front",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "homepage": "https://ilogicaautomatizacion.github.io/Diplomas_OTEC_CP/",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "predeploy": "npm run build",
+    "postbuild": "copy dist\\index.html dist\\404.html",
+    "deploy": "vite build && gh-pages -d dist",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "test": ""
+  },
+  "dependencies": {
+    "@headlessui/react": "^2.2.9",
+    "@heroicons/react": "^2.2.0",
+    "@tailwindcss/vite": "^4.1.17",
+    "fitty": "^2.4.2",
+    "gh-pages": "^6.3.0",
+    "html2canvas": "^1.4.1",
+    "react": "^19.2.0",
+    "react-awesome-shapes": "^0.1.6",
+    "react-dom": "^19.2.0",
+    "react-router-dom": "^6.30.3",
+    "react-use-measure": "^2.1.7",
+    "socket.io-client": "^4.8.3",
+    "tailwindcss": "^4.1.17",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@types/node": "^24.10.0",
+    "@types/react": "^19.2.13",
+    "@types/react-dom": "^19.2.3",
+    "@types/react-router-dom": "^5.3.3",
+    "@vitejs/plugin-react": "^5.1.0",
+    "baseline-browser-mapping": "^2.9.14",
+    "eslint": "^9.39.1",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "globals": "^16.5.0",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.46.3",
+    "vite": "^7.2.2"
+  }
+}

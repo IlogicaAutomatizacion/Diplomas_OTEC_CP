@@ -1,0 +1,20 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap");
+
+
+html {
+    font-family: 'Inter', sans-serif !important;
+}
+
+.ADP {
+
+    overflow: hidden;
+    /* Evita scroll */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: left;
+    line-height: 1.2;
+}
