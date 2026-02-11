@@ -91,6 +91,17 @@ export default ({ id_suscriptor }: { id_suscriptor: number }) => {
     useAutoFitText('.ADP');
 
     useEffect(() => {
+        const original = document
+            .querySelector("meta[name='viewport']")
+            ?.getAttribute("content");
+
+        // Reemplazar SOLO para esta página
+        const meta = document.querySelector("meta[name='viewport']");
+        if (meta) {
+            meta.setAttribute("content", "width=1920, initial-scale=0.36");
+        }
+
+
         const obtener = async () => {
             if (!token_curso || !token) { return }
 
@@ -104,6 +115,12 @@ export default ({ id_suscriptor }: { id_suscriptor: number }) => {
         };
 
         obtener();
+
+        return () => {
+            if (meta && original) {
+                meta.setAttribute("content", original);
+            }
+        };
     }, []);
 
     if (msg) return (
