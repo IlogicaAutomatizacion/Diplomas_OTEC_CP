@@ -1,7 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { createBrowserRouter, createHashRouter, RouterProvider } from 'react-router-dom'
 
 //import Certificado from './templates/Certificados/CP/Certificado'
 import PanelAdministrador from './templates/PanelAdministrador/PanelAdministrador'
@@ -62,7 +62,7 @@ window.fetch = async (
   return res;
 };
 
-const router = createBrowserRouter([
+const router = createHashRouter([
 
   {
     errorElement: <ErrorPage />,
