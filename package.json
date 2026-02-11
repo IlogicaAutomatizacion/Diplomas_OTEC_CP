@@ -8,9 +8,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "predeploy": "npm run build",
-    "postbuild": "copy dist\\index.html dist\\404.html",
-    "deploy": "vite build && gh-pages -d dist",
-    "lint": "eslint .",
+    "deploy": "gh-pages -d dist"
+  },
+ "eslint .":{
     "preview": "vite preview",
     "test": ""
   },
@@ -24,8 +24,8 @@
     "react": "^19.2.0",
     "react-awesome-shapes": "^0.1.6",
     "react-dom": "^19.2.0",
-    "react-router-dom": "^6.30.3",
-    "react-use-measure": "^2.1.7",
+     "react-router-dom": "^7.9.5",
+   "react-use-measure": "^2.1.7",
     "socket.io-client": "^4.8.3",
     "tailwindcss": "^4.1.17",
     "xlsx": "^0.18.5"
@@ -33,9 +33,9 @@
   "devDependencies": {
     "@eslint/js": "^9.39.1",
     "@types/node": "^24.10.0",
-    "@types/react": "^19.2.13",
-    "@types/react-dom": "^19.2.3",
-    "@types/react-router-dom": "^5.3.3",
+     "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+   "@types/react-router-dom": "^5.3.3",
     "@vitejs/plugin-react": "^5.1.0",
     "baseline-browser-mapping": "^2.9.14",
     "eslint": "^9.39.1",
