@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Redirect</title>
+    <script>
+      const base = '/Diplomas_OTEC_CP'
+      const path = location.pathname.replace(base, '')
+      sessionStorage.redirect = path + location.search + location.hash
+      location.replace(base + '/')
+    </script>
+  </head>
+</html>
