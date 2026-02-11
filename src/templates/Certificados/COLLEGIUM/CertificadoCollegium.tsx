@@ -163,17 +163,9 @@ export default ({ id_suscriptor }: { id_suscriptor: number }) => {
         <div className='flex flex-row justify-center items-center gap-x-2 bg-gray-100 '>
             <button className='cursor-pointer bg-slate-800 text-white rounded-2xl print:hidden mt-5 max-w-30 p-2 mb-5 h-15' onClick={async () => {
                 try {
-                    const response = await obtenerPdfDeCertificado(id_suscriptor, window.location.href)
-                    
-                    console.log(response)
+                    const blob = await obtenerPdfDeCertificado(id_suscriptor, window.location.href);
 
-                    if (!response.ok) {
-                        throw new Error("Error al generar el PDF del certificado.");
-                    }
-
-                    const blob = await response.blob();
                     const url = window.URL.createObjectURL(blob);
-
                     const a = document.createElement("a");
                     a.href = url;
                     a.download = "certificado.pdf";
@@ -183,8 +175,8 @@ export default ({ id_suscriptor }: { id_suscriptor: number }) => {
                     window.URL.revokeObjectURL(url);
 
                 } catch (e) {
-                    console.log(e)
-                    setMsg('Hubo un problema al intentar descargar el certificado; vuelve a intentarlo.')
+                    console.log(e);
+                    setMsg("Hubo un problema al intentar descargar el certificado; vuelve a intentarlo.");
                 }
             }}>
                 {mostrarDiploma ? 'Descargar diploma' : 'Descargar certificado'}

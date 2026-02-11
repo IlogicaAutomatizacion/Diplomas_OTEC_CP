@@ -77,27 +77,22 @@ export async function obtenerPdfDeCertificado(suscriptor: number, certificado_ur
     const params = new URLSearchParams({
         suscriptor: String(suscriptor),
         certificado_url
-    })
+    });
 
     const datos = await fetch(`${backend}/certificados/pdf?${params}`, {
         method: "GET",
         headers: {
             "Accept": "application/pdf"
         }
-    })
-    console.log(datos)
-    
-    if (!datos.ok) {
-        console.log(await datos.json())
+    });
 
-        throw new Error('Hubo un problema al obtener el pdf del certificado')
+    if (!datos.ok) {
+        const errorText = await datos.text();
+        console.log("Error del servidor:", errorText);
+        throw new Error("Hubo un problema al obtener el PDF del certificado");
     }
 
-    const res = await datos.json()
-    
-    console.log(res)
-
-    return res
+    return await datos.blob(); 
 }
 
 
