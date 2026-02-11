@@ -40,10 +40,14 @@ window.fetch = async (
     headers,
   });
 
-  if (res.status === 401) {
+  if (res.status === 401 && token) {
     localStorage.removeItem('token');
-    window.location.href = `${import.meta.env.BASE_URL}login`;
+
+    if (!window.location.pathname.includes('/login')) {
+      window.location.href = `${import.meta.env.BASE_URL}login`;
+    }
   }
+
 
   if (!res.ok) {
     try {
