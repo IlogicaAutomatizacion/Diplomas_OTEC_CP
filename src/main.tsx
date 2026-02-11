@@ -60,8 +60,11 @@ window.fetch = async (
   return res;
 };
 
-
-
+const redirect = sessionStorage.redirect
+if (redirect) {
+  sessionStorage.removeItem('redirect')
+  window.history.replaceState(null, '', redirect)
+}
 
 const router = createBrowserRouter([
 
