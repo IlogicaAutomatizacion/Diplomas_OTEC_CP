@@ -79,7 +79,14 @@ export async function obtenerPdfDeCertificado(suscriptor: number, certificado_ur
         certificado_url
     })
 
-    const datos = await fetch(`${backend}/certificados/pdf?${params}`)
+    const datos = await fetch(`${backend}/certificados/pdf?${params}`, {
+        method: "GET",
+        headers: {
+            "Accept": "application/pdf"
+        }
+    })
+    console.log(datos)
+    
     if (!datos.ok) {
         console.log(await datos.json())
 
@@ -87,6 +94,8 @@ export async function obtenerPdfDeCertificado(suscriptor: number, certificado_ur
     }
 
     const res = await datos.json()
+    
+    console.log(res)
 
     return res
 }

@@ -164,6 +164,8 @@ export default ({ id_suscriptor }: { id_suscriptor: number }) => {
             <button className='cursor-pointer bg-slate-800 text-white rounded-2xl print:hidden mt-5 max-w-30 p-2 mb-5 h-15' onClick={async () => {
                 try {
                     const response = await obtenerPdfDeCertificado(id_suscriptor, window.location.href)
+                    
+                    console.log(response)
 
                     if (!response.ok) {
                         throw new Error("Error al generar el PDF del certificado.");
