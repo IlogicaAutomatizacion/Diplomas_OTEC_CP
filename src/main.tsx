@@ -43,7 +43,7 @@ window.fetch = async (
 
   if (res.status === 401) {
     localStorage.removeItem('token');
-    window.location.href = `${frontend}/login`;
+    window.location.href = `${import.meta.env.BASE_URL}login`;
   }
 
   if (!res.ok) {
