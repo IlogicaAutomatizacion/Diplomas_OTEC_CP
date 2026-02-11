@@ -19,9 +19,6 @@ export default ({ mode }: { mode: string }) => {
     build: {
       sourcemap: false,
       manifest: true
-    },
-    define: {
-      __API_URL__: JSON.stringify(env.VITE_API_URL)
     }
   })
 
