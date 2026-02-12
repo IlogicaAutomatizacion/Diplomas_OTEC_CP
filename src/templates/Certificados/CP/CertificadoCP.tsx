@@ -9,6 +9,7 @@ import { useParams } from 'react-router-dom';
 //import { backend, frontend } from '../../../vars'
 import { obtenerDatosDeCertificadoConTokenDeCursoArmadoAsync, obtenerPdfDeCertificado } from '../../PanelAdministrador/Api/suscripciones';
 import type { CursoConAlumno } from '../../PanelAdministrador/Api/cursos-armados';
+import { frontend } from '../../../vars';
 
 // function fixDate(date: string) {
 //     if (!date || !new Date(date)) { return date }
@@ -253,7 +254,7 @@ export default ({ id_suscriptor }: { id_suscriptor: number }) => {
                                         {datosCurso_almuno.curso.resumen}
                                     </ul>
                                 </div>
-                                <img className='size-40 bg-red border' src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`${'http//localhost:3000'}/certificados/${datosCurso_almuno.inscripcion.usuario.token}/${datosCurso_almuno.token_curso}`)}`} alt="" />
+                                <img className='size-40 bg-red border' src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`${frontend}/certificados/${datosCurso_almuno.inscripcion.usuario.token}/${datosCurso_almuno.token_curso}`)}`} alt="" />
                             </div>
 
 
