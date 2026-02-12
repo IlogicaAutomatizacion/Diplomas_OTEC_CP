@@ -7,7 +7,7 @@ import dadosBlanco from '../../../assets/CP/cr_fondo_blanco/dados.png'
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 //import { backend, frontend } from '../../../vars'
-import { obtenerDatosDeCertificadoConTokenDeCursoArmadoAsync } from '../../PanelAdministrador/Api/suscripciones';
+import { obtenerDatosDeCertificadoConTokenDeCursoArmadoAsync, obtenerPdfDeCertificado } from '../../PanelAdministrador/Api/suscripciones';
 import type { CursoConAlumno } from '../../PanelAdministrador/Api/cursos-armados';
 
 // function fixDate(date: string) {
@@ -52,7 +52,7 @@ function useAutoFitText(selector: string, minSize = 4, maxSize = 14) {
     });
 }
 
-function BackCertificate({ datosAl}: { datosAl: CursoConAlumno, dark: boolean}) {
+function BackCertificate({ datosAl }: { datosAl: CursoConAlumno, dark: boolean }) {
     return (
         <div className={`certificado-page lg:w-[297mm] print:w-[297mm] print:h-[209mm] bg-white dark:bg-black shadow-lg border border-gray-200 print:shadow-none print:border-0`}>
 
@@ -100,7 +100,7 @@ export default ({ id_suscriptor }: { id_suscriptor: number }) => {
     useAutoFitText('.ADP')
 
     useEffect(() => {
-    
+
         const original = document
             .querySelector("meta[name='viewport']")
             ?.getAttribute("content");
@@ -191,22 +191,23 @@ export default ({ id_suscriptor }: { id_suscriptor: number }) => {
                     <SetDarkModeB estado={darkMode} fn={setDarkMode} />
                     <button className='cursor-pointer bg-slate-800 text-white rounded-2xl print:hidden mt-5 max-w-30 p-2 mb-5 h-15' onClick={async () => {
                         try {
-                            // setMsg('Preparando certificado...')
+                            const blob = await obtenerPdfDeCertificado(
+                                id_suscriptor,
+                                window.location.href
+                            );
 
-                            // const res = await fetch(`${backend}/certificado/${datosCurso_almuno.token_alumno}/${datosCurso_almuno.token_curso}`)
-                            // const blob = await res.blob()
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement("a");
+                            a.href = url;
+                            a.download = "certificado.pdf";
+                            document.body.appendChild(a);
+                            a.click();
+                            a.remove();
+                            window.URL.revokeObjectURL(url);
 
-                            // const link = document.createElement("a");
-                            // link.href = URL.createObjectURL(blob);
-                            // link.download = `certificado_${datosCurso_almuno.id_alumno}.pdf`;
-                            // link.click();
-
-                            // URL.revokeObjectURL(link.href);
-
-                            // setMsg(null)
                         } catch (e) {
-                            setMsg('Hubo un problema al intentar descargar el certificado; vuelve a intentarlo.')
-
+                            console.log(e);
+                            setMsg("Hubo un problema al intentar descargar el certificado; vuelve a intentarlo.");
                         }
                     }}>
                         Descargar certificado
