@@ -9,7 +9,7 @@ import { useParams } from 'react-router-dom';
 //import { backend, frontend } from '../../../vars'
 import { obtenerDatosDeCertificadoConTokenDeCursoArmadoAsync, obtenerPdfDeCertificado } from '../../PanelAdministrador/Api/suscripciones';
 import type { CursoConAlumno } from '../../PanelAdministrador/Api/cursos-armados';
-import { frontend } from '../../../vars';
+import { b2Url, b2UsuarioBucket, frontend } from '../../../vars';
 
 // function fixDate(date: string) {
 //     if (!date || !new Date(date)) { return date }
@@ -70,11 +70,11 @@ function BackCertificate({ datosAl }: { datosAl: CursoConAlumno, dark: boolean }
                 </div>
 
                 <div className="mt-8 border border-gray-400 p-2">
-                    {/* <p className="font-bold text-sm dark:text-gray-50 flex flex-row">Relatores: {datosAl.profesor.nombre} <span className='ml-5'><img src={img || undefined} className='h-15 w-20' alt="firma relator" /> </span> <span className='text-xs ml-5 whitespace-pre-line'>{datosAl.profesor.especialidad}</span> </p> */}
+                    <p className="font-bold text-sm dark:text-gray-50 flex flex-row">Relatores: {datosAl.profesor.nombre} <span className='ml-5'><img src={`https://${b2UsuarioBucket}.${b2Url}/${datosAl.inscripcion.usuario.firma}` || undefined} className='h-15 w-20' alt="firma relator" /> </span> <span className='text-xs ml-5 whitespace-pre-line'>{datosAl.profesor.especialidad}</span> </p>
                 </div>
 
                 <div className=" text-center flex justify-center items-center flex-col mt-1 ">
-                    {/* <img src={firmaGf || undefined} className='object-contain h-20 ' alt="" /> */}
+                    {/* <img src={datosAl.profesor} className='object-contain h-20 ' alt="" /> */}
 
                     <div className="h-1 w-50 border-b border-gray-400 mb-1"></div>
                     <p className="text-sm font-semibold dark:text-gray-50">Gianfranco Gonzalez Chavez</p>
@@ -106,14 +106,10 @@ export default ({ id_suscriptor }: { id_suscriptor: number }) => {
             .querySelector("meta[name='viewport']")
             ?.getAttribute("content");
 
-        // Reemplazar SOLO para esta página
         const meta = document.querySelector("meta[name='viewport']");
         if (meta) {
             meta.setAttribute("content", "width=1920, initial-scale=0.36");
         }
-
-        // Restaurar al salir de esta página (opcional pero recomendado)
-
 
         const obtener = async () => {
             if (!token_curso || !token) { return }
@@ -138,43 +134,6 @@ export default ({ id_suscriptor }: { id_suscriptor: number }) => {
             }
         };
     }, [])
-
-    // useEffect(() => {
-    //     if (!datosCurso_almuno) { return }
-
-    //     (async () => {
-    //         try {
-    //             const data = await fetch(`${backend}/imagen/${datosCurso_almuno.id_profesor}.png`)
-
-    //             if (data.ok) {
-    //                 const blob = await data.blob()
-    //                 setImagenRelator(blob ? URL.createObjectURL(blob) : null)
-
-    //             }
-
-    //         } catch (e) {
-    //             console.log(e)
-    //         }
-
-    //     })();
-
-    //     (async () => {
-    //         try {
-    //             const data = await fetch(`${backend}/imagen/${'Gian'}.png`)
-
-    //             if (data.ok) {
-    //                 const blob = await data.blob()
-    //                 setFirmaGf(blob ? URL.createObjectURL(blob) : null)
-
-    //             }
-
-    //         } catch (e) {
-    //             console.log(e)
-    //         }
-
-    //     })()
-
-    // }, [datosCurso_almuno])
 
     useEffect(() => {
         if (datosCurso_almuno) {
@@ -233,7 +192,7 @@ export default ({ id_suscriptor }: { id_suscriptor: number }) => {
 
                             <div className="text-center">
                                 <p className="text-4xl font-bold text-black dark:text-gray-50">{datosCurso_almuno.inscripcion.usuario.nombre}</p>
-                                <p className="text-xs text-gray-700 mt-1 dark:text-gray-200">{datosCurso_almuno.inscripcion.usuario.id}</p>
+                                <p className="text-xs text-gray-700 mt-1 dark:text-gray-200">{datosCurso_almuno.inscripcion.usuario.rut}</p>
                             </div>
 
                             <div className="mt-6 text-center">
@@ -267,7 +226,7 @@ export default ({ id_suscriptor }: { id_suscriptor: number }) => {
 
                                 <div className=" lg:absolute text-right w-full lg:left-25">
                                     <div className=" text-center flex justify-center items-center flex-col mt-10">
-                                        {/* <img src={imagenFirmaGf || undefined} className='object-contain h-20 ' alt="" /> */}
+                                        <img src={datosCurso_almuno.profesor.firma || ''} className='object-contain h-20 ' alt="" />
 
                                         <div className="h-1 w-50 border-b border-gray-400 mb-1"></div>
                                         <p className="text-sm font-semibold dark:text-gray-50">Gianfranco Gonzalez Chavez</p>

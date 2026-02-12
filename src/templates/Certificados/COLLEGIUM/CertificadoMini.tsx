@@ -43,13 +43,14 @@ export default ({ datosCurso_almuno }: { datosCurso_almuno: CursoConAlumno }) =>
                             <br />
                             <br />
                             <div className='flex flex-row'><p className='text-gray-800 font-semibold w-33 '>CARGO:</p> <span className='text-[#102d4b] font-bold'>{datosCurso_almuno.inscripcion.usuario.especialidad}</span></div>
-                            <div className='flex flex-row'><p className='text-gray-800 font-semibold w-33 '>COMPETENCIA:</p> <span className='text-[#102d4b] font-bold'></span></div>
+                            <div className='flex flex-row'><p className='text-gray-800 font-semibold w-33 '>COMPETENCIA:</p> <span className='text-[#102d4b] font-bold'>{datosCurso_almuno.curso.nombre}</span></div>
                             <div className='flex flex-row'><p className='text-gray-800 font-semibold w-33 '>VALIDEZ:</p> <span className='text-[#102d4b] font-bold'>{datosCurso_almuno.fecha_finalizacion}</span></div>
 
                         </div>
 
                     </div>
-                        <img className='size-20 bg-red ml-25 mt-14' src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`${frontend}/certificados/${datosCurso_almuno.inscripcion.usuario.token}/${datosCurso_almuno.token_curso}`)}`} alt="" />
+
+                    <img className='absolute size-20 bg-red ml-110 mt-14' src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`${frontend}/certificados/${datosCurso_almuno.inscripcion.usuario.token}/${datosCurso_almuno.token_curso}`)}`} alt="" />
 
                 </div>
 

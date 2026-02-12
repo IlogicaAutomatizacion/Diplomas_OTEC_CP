@@ -38,8 +38,8 @@ const CursoArmadoCard = ({ cursoArmado }: { cursoArmado: cursoArmado }) => {
             <div className="bg-black/20 rounded-xl p-3 text-sm space-y-2 max-h-60 overflow-y-auto">
                 <h3 className="text-blue-400 font-semibold text-base">Contenido del curso</h3>
                 <p><span className="text-white/60">Duración:</span> {cursoArmado.curso?.duracion} hrs</p>
-                <p><span className="text-white/60 whitespace-pre-line">Resumen:</span> {cursoArmado.curso?.resumen}</p>
-                <p><span className="text-white/60 whitespace-pre-line">Temario:</span> {cursoArmado.curso?.temario}</p>
+                <p className="whitespace-pre-line"><span className="text-white/60 ">Resumen:</span> {cursoArmado.curso?.resumen}</p>
+                <p className="whitespace-pre-line"><span className="text-white/60">Temario:</span> {cursoArmado.curso?.temario}</p>
             </div>
 
             {/* Alumnos */}

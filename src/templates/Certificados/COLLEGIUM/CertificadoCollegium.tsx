@@ -7,7 +7,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { obtenerDatosDeCertificadoConTokenDeCursoArmadoAsync, obtenerPdfDeCertificado } from '../../PanelAdministrador/Api/suscripciones';
 import type { CursoConAlumno } from '../../PanelAdministrador/Api/cursos-armados';
 import CertificadoMini from './CertificadoMini';
-import { frontend } from '../../../vars';
+import { b2Url, b2UsuarioBucket, frontend } from '../../../vars';
 
 function useAutoFitText(selector: string, minSize = 4, maxSize = 14) {
     useEffect(() => {
@@ -48,6 +48,39 @@ function BackCertificate({ datosCurso_almuno }: { datosCurso_almuno: CursoConAlu
                     <p className='text-[36px] text-[#199CD8] absolute ml-55 mt-17 font-semibold'>FORMARTE </p>
                     <p className='absolute max-auto text-[20px] ml-56 mt-35 font-semibold w-full'>{datosCurso_almuno.fecha_finalizacion}</p>
                 </div>
+
+
+                <div className={`certificado-page mt-185 z-10 lg:w-[297mm] print:w-[297mm] print:h-[209mm] border-gray-200 `}>
+
+                    <div className='p-10 pb-0'>
+                        <div className="text-center mb-6 ">
+                            <h2 className="text-xl font-bold tracking-wide text-gray-950/90">TEMARIO:</h2>
+                            <p className="text-2xl font-extrabold mt-2 text-black">{datosCurso_almuno.curso.nombre} ({datosCurso_almuno.curso.duracion} {Number(datosCurso_almuno.curso.duracion) !== 1 ? 'horas' : 'hora'})</p>
+                        </div>
+
+                        <div className="border  border-gray-400 p-6 auto-fit-parent leading-relaxed space-y-4">
+                            <div className='space-y-4 font-bold h-80 ADP dark:text-white text-[clamp(0.3rem,20vw,0.5rem)] whitespace-pre-line' >
+                                {datosCurso_almuno.curso.temario}
+                            </div>
+                        </div>
+
+                        <div className="mt-8 border border-gray-400 p-2">
+                            <p className="font-bold text-sm dark:text-gray-50 flex flex-row">Relatores: {datosCurso_almuno.profesor.nombre} <span className='ml-5'><img src={`https://${b2UsuarioBucket}.${b2Url}/${datosCurso_almuno.inscripcion.usuario.firma}` || undefined} className='h-15 w-20' alt="firma relator" /> </span> <span className='text-xs ml-5 whitespace-pre-line'>{datosCurso_almuno.profesor.especialidad}</span> </p>
+                        </div>
+
+                        <div className=" text-center flex justify-center items-center flex-col mt-1 ">
+                            {/* <img src={back} className='object-contain h-20 ' alt="" /> */}
+
+                            {/* <div className="h-1 w-50 border-b border-gray-400 mb-1"></div>
+                            <p className="text-sm font-semibold dark:text-gray-50">Gianfranco Gonzalez Chavez</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-100">REP LEGAL GAME OF TRAINING OTEC</p> */}
+                        </div>
+                    </div>
+
+
+                </div >
+
+
 
                 <div className="relative flex justify-center items-center flex-col ">
                     <div className="relative mb-35 px-12 flex justify-center flex-col items-center w-full" />
@@ -188,7 +221,7 @@ export default ({ id_suscriptor }: { id_suscriptor: number }) => {
                         <div className={`certificado-page  flex items-center print:h-auto justify-center bg-gray-100 flex-col print:flex-col `}>
 
 
-                            <div id='cert' className="relative overflow-hidden h-auto lg:w-[297mm] lg:h-[210mm] print:w-[297mm] print:h-[210mm] flex flex-col  items-center justify-center bg-white dark:bg-black shadow-lg border border-gray-200 print:shadow-none print:border-0">
+                            <div id='cert' className="relative overflow-hidden h-auto lg:w-[297mm] lg:h-[210mm] print:w-[297mm] print:h-[210mm] flex flex-col  items-center justify-center bg-white print:border-0">
 
                                 {/* <img src={darkMode ? dadosNegro : dadosBlanco} alt="logo" className={`absolute object-contain top-270 hidden lg:block  ${darkMode ? 'lg:top-145' : 'lg:top-132'} lg:-left-43  ${darkMode ? 'lg:h-55' : 'lg:h-75'} w-150 `} /> */}
 
@@ -217,7 +250,7 @@ export default ({ id_suscriptor }: { id_suscriptor: number }) => {
 
 
                                         <h1 className="text-4xl font-semibold text-center  mb-2 mt-55 dark:text-white">{'D  I  P  L  O  M  A'.split('').join('  ')}</h1>
-                                        <p className="text-center text-[32px] text-semibold mt-6">{'Sr. Yoel Jose Idrobo Urbina'}</p>
+                                        <p className="text-center text-[32px] text-semibold mt-6">{datosCurso_almuno.inscripcion.usuario.nombre}</p>
 
                                         <div className="text-center">
                                             <p className="text-sm font-bold text-black dark:text-gray-50">Rut: {datosCurso_almuno.inscripcion.usuario.rut}</p>
@@ -242,7 +275,7 @@ export default ({ id_suscriptor }: { id_suscriptor: number }) => {
                                                 </p>
 
                                                 <div className='absolute z-30 mt-10 ml-90 w-70'>
-                                                    <p className='text-semibold'>
+                                                    <p className='text-semibold border-t-2'>
                                                         Franklin Ramírez Lambreht <br />
                                                         Director Ejecutivo
 

@@ -13,7 +13,7 @@ export const CertificadoCard = ({ token_curso, token_usuario, nombre_curso }: Li
     const urlCertificado = `${frontend}/certificados/${token_usuario}/${token_curso}`;
 
     return (
-        <div className="w-full max-w-sm bg-[#1c1f21] rounded-2xl shadow-lg border border-white/10 p-5 flex items-center justify-between gap-4 hover:scale-[1.02] transition">
+        <div className="w-full max-w-sm bg-[#1c1f21]  rounded-2xl shadow-lg border border-white/10 p-5 flex items-center justify-between gap-4 hover:scale-[1.02] transition">
 
             {/* Info */}
             <div className="flex flex-col">
