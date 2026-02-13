@@ -2,6 +2,7 @@ import gotTitleBlanco from '../../../assets/CP/cr_fondo_blanco/title.png'
 import gotTitleNegro from '../../../assets/CP/cr_fondo_negro/title.png'
 import dadosNegro from '../../../assets/CP/cr_fondo_negro/dados.png'
 import dadosBlanco from '../../../assets/CP/cr_fondo_blanco/dados.png'
+import firmaGn from '../../../assets/CP/firma_Gn.png'
 
 
 import { useEffect, useState } from 'react';
@@ -70,10 +71,12 @@ function BackCertificate({ datosAl }: { datosAl: CursoConAlumno, dark: boolean }
                 </div>
 
                 <div className="mt-8 border border-gray-400 p-2">
-                    <p className="font-bold text-sm dark:text-gray-50 flex flex-row">Relatores: {datosAl.profesor.nombre} <span className='ml-5'><img src={`https://${b2UsuarioBucket}.${b2Url}/${datosAl.inscripcion.usuario.firma}` || undefined} className='h-15 w-20' alt="firma relator" /> </span> <span className='text-xs ml-5 whitespace-pre-line'>{datosAl.profesor.especialidad}</span> </p>
+                    <p className="font-bold text-sm dark:text-gray-50 flex flex-row">Relatores: {datosAl.profesor.nombre} <span className='ml-5'><img src={`https://${b2UsuarioBucket}.${b2Url}/${datosAl.profesor.firma}` || undefined} className='h-15 w-20' alt="firma relator" /> </span> <span className='text-xs ml-5 whitespace-pre-line'>{datosAl.profesor.especialidad}</span> </p>
                 </div>
 
                 <div className=" text-center flex justify-center items-center flex-col mt-1 ">
+                    <img src={firmaGn || ''} className='object-contain h-20 ' alt="" />
+
                     {/* <img src={datosAl.profesor} className='object-contain h-20 ' alt="" /> */}
 
                     <div className="h-1 w-50 border-b border-gray-400 mb-1"></div>
@@ -226,7 +229,7 @@ export default ({ id_suscriptor }: { id_suscriptor: number }) => {
 
                                 <div className=" lg:absolute text-right w-full lg:left-25">
                                     <div className=" text-center flex justify-center items-center flex-col mt-10">
-                                        <img src={datosCurso_almuno.profesor.firma || ''} className='object-contain h-20 ' alt="" />
+                                        <img src={firmaGn || ''} className='object-contain h-20 ' alt="" />
 
                                         <div className="h-1 w-50 border-b border-gray-400 mb-1"></div>
                                         <p className="text-sm font-semibold dark:text-gray-50">Gianfranco Gonzalez Chavez</p>

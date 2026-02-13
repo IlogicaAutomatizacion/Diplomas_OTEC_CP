@@ -160,9 +160,13 @@ export default ({ cursos, idSuscriptor, setCursos }: {
 
     const [mensajeBoton, setMensajeBoton] = useState<string | null>()
 
+    const [busqueda, setBusqueda] = useState('');
+
+    
+
     const {
         datosImportados,
-       // mapeo,
+        // mapeo,
         setMapeo,
         cargarArchivo,
         construirResultado
@@ -206,6 +210,8 @@ export default ({ cursos, idSuscriptor, setCursos }: {
         }
     }
 
+
+
     return <>
         {/* Header */}
         <div className="w-full">
@@ -217,16 +223,16 @@ export default ({ cursos, idSuscriptor, setCursos }: {
                 <button
                     onClick={handleAddButton}
                     className="
-          bg-green-600
-          hover:bg-green-700
-          text-white
-          px-4
-          py-2
-          rounded
-          transition
-          w-full
-          sm:w-auto
-        "
+                    bg-green-600
+                    hover:bg-green-700
+                    text-white
+                    px-4
+                    py-2
+                    rounded
+                    transition
+                    w-full
+                    sm:w-auto
+                "
                 >
                     {mensajeBoton ?? 'Agregar'}
                 </button>
@@ -244,6 +250,7 @@ export default ({ cursos, idSuscriptor, setCursos }: {
                 </h2>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+
                     <div className="flex flex-col gap-1 items-center">
                         <span>Nombre</span>
                         <Example
@@ -307,14 +314,14 @@ export default ({ cursos, idSuscriptor, setCursos }: {
                         }));
                     }}
                     className="
-          bg-slate-700
-          hover:bg-slate-600
-          px-6
-          py-2
-          rounded
-          border
-          transition
-        "
+                    bg-slate-700
+                    hover:bg-slate-600
+                    px-6
+                    py-2
+                    rounded
+                    border
+                    transition
+                "
                 >
                     Crear cursos
                 </button>
@@ -329,42 +336,82 @@ export default ({ cursos, idSuscriptor, setCursos }: {
                         if (file) cargarArchivo(file);
                     }}
                     className="
-          w-full
-          sm:w-auto
-          p-2
-          bg-slate-700
-          border
-          rounded
-          cursor-pointer
-        "
+                    w-full
+                    sm:w-auto
+                    p-2
+                    bg-slate-700
+                    border
+                    rounded
+                    cursor-pointer
+                "
                 />
             </div>
         )}
 
-        {/* Tabla cursos */}
-        <div
-            id="tabla-cursos"
-            className="
-      mt-6
-      w-full
-      grid
-      grid-cols-1
-      sm:grid-cols-2
-      lg:grid-cols-3
-      gap-4
-      max-h-[60vh]
-      overflow-y-auto
-      p-2
-    "
-        >
-            {cursos.map((curso) => (
-                <CursoCard
-                    key={curso.curso_id}
-                    curso={curso}
-                    setCursosState={setCursos}
-                />
-            ))}
+        {/* 🔍 BUSCADOR */}
+        <div className="mt-6 w-full flex justify-center">
+            <input
+                type="text"
+                placeholder="Buscar curso por nombre, duración, resumen, temario..."
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+                className="
+                w-full
+                sm:w-1/2
+                p-2
+                bg-slate-800
+                border border-slate-700
+                rounded
+                text-white
+                focus:outline-none
+                focus:ring-2
+                focus:ring-blue-600
+            "
+            />
         </div>
+
+        {/* 🔎 LÓGICA DEL FILTRO */}
+        {(() => {
+            const q = busqueda.toLowerCase();
+
+            const cursosFiltrados = cursos.filter(c =>
+                (c.nombre ?? '').toLowerCase().includes(q) ||
+                (c.resumen ?? '').toLowerCase().includes(q) ||
+                (c.temario ?? '').toLowerCase().includes(q) ||
+                String(c.duracion ?? '').toLowerCase().includes(q)
+            );
+
+            return (
+                <div
+                    id="tabla-cursos"
+                    className="
+                    mt-6
+                    w-full
+                    grid
+                    grid-cols-1
+                    sm:grid-cols-2
+                    lg:grid-cols-3
+                    gap-4
+                    overflow-y-auto
+                    p-2
+                "
+                >
+                    {cursosFiltrados.map((curso) => (
+                        <CursoCard
+                            key={curso.curso_id}
+                            curso={curso}
+                            setCursosState={setCursos}
+                        />
+                    ))}
+
+                    {cursosFiltrados.length === 0 && (
+                        <p className="text-center col-span-full opacity-70 mt-4">
+                            No se encontraron cursos.
+                        </p>
+                    )}
+                </div>
+            );
+        })()}
     </>
 
 }

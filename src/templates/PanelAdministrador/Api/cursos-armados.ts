@@ -23,6 +23,7 @@ export interface cursoArmado {
     empresa?: empresa,
     en_clase?: boolean
     calificacion_aprobatoria?: number,
+    teorica?: number,
     inscripciones: inscripcion[]
     token_curso: string
 }
@@ -46,8 +47,8 @@ export async function borrarCursoArmadoAsync(id: number) {
 }
 
 export async function obtenerCursosArmadosAsync() {
-    const cursos = await fetch(`${backend}/curso-armado`,{
-        headers:{
+    const cursos = await fetch(`${backend}/curso-armado`, {
+        headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
     })

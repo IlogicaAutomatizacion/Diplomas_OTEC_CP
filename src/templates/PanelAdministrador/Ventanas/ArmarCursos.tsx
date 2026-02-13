@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react"
+import React, { useContext, useEffect, useState } from "react"
 import { Example } from "../Componentes/DropdownMenu"
 import type { usuario } from "../Api/usuarios"
 import type { empresa } from "../Api/empresas"
@@ -246,9 +246,24 @@ const CursoArmadoCard = ({
                     </label>
                 </div>
 
+
+                <label className="flex flex-col gap-1">
+                    <span className="text-cyan-200">Nota aprobatoria 1 (teorica)</span>
+                    <input
+                        type="number"
+                        defaultValue={cursoArmadoLocal.teorica ?? ''}
+                        onBlur={(e) => {
+                            const v = parseFloat(e.target.value)
+                            if (!isNaN(v)) guardarParametro('teorica', v)
+                        }}
+                        className="border bg-transparent p-1 rounded"
+                    />
+                </label>
+
+
                 {/* Calificación */}
                 <label className="flex flex-col gap-1">
-                    <span className="text-cyan-200">Calificación aprobatoria</span>
+                    <span className="text-cyan-200">Nota aprobatoria 2 (practica)</span>
                     <input
                         type="number"
                         defaultValue={cursoArmadoLocal.calificacion_aprobatoria ?? ''}
@@ -295,15 +310,15 @@ const CursoArmadoCard = ({
 
                     {usuariosAbiertos && (
                         <div className="mt-3 overflow-x-auto">
-                            <div className="grid grid-cols-5 gap-2 text-center text-sm min-w-[500px]">
-                                {['Nombre', 'Asist.', 'Nota', 'Notif.', ''].map(h => (
+                            <div className="grid grid-cols-6 gap-2 text-center text-sm min-w-[500px]">
+                                {['Nombre', 'Asist.', 'Nota práctica', 'Nota teórica', 'Notif.', ''].map(h => (
                                     <div key={h} className="bg-neutral-700 p-1 border">
                                         {h}
                                     </div>
                                 ))}
 
                                 {cursoArmadoLocal.inscripciones.map(i => (
-                                    <>
+                                    <React.Fragment key={i.id_inscripcion}>
                                         <div className="border p-1">{i.usuario.nombre}</div>
 
                                         <input
@@ -325,6 +340,15 @@ const CursoArmadoCard = ({
                                         />
 
                                         <input
+                                            type="number"
+                                            defaultValue={i.teorica}
+                                            onBlur={e =>
+                                                actualizarInscripcion(i.id_inscripcion, 'teorica', Number(e.target.value))
+                                            }
+                                            className="border p-1"
+                                        />
+
+                                        <input
                                             type="checkbox"
                                             defaultChecked={i.notificar}
                                             onChange={e =>
@@ -338,7 +362,7 @@ const CursoArmadoCard = ({
                                         >
                                             X
                                         </button>
-                                    </>
+                                    </React.Fragment>
                                 ))}
                             </div>
                         </div>
@@ -381,16 +405,7 @@ export default ({ usuarios, empresas, cursos, idSuscriptor, cursosArmados, setCu
 
     const { setError } = useContext(ErrorContext)!
 
-    // const {
-    //     datosImportados,
-    //     mapeo,
-    //     setMapeo,
-    //     cargarArchivo,
-    //     construirResultado
-    // } = useExcelMapper<cursoArmado>(async (cursosExcel) => {
-    //     const res = await crearCursosDeSuscriptorAsync(idSuscriptor, cursosExcel);
-    //     setCursos(res);
-    // });
+    const [busqueda, setBusqueda] = useState('');
 
     useEffect(() => {
 
@@ -402,7 +417,7 @@ export default ({ usuarios, empresas, cursos, idSuscriptor, cursosArmados, setCu
             } catch (e: any) {
                 //   setError(e?.message ?? `Hubo un error al obtener los cursos.`);
 
-              //  setMensajeCursos(`Hubo un error al obtener los cursos: ${String(e)}`)
+                //  setMensajeCursos(`Hubo un error al obtener los cursos: ${String(e)}`)
             }
         })()
     }, [empresas, cursos, usuarios])
@@ -431,11 +446,24 @@ export default ({ usuarios, empresas, cursos, idSuscriptor, cursosArmados, setCu
         }
     }
 
+    const cursosFiltrados = cursosArmados.filter(ca => {
+        if (!busqueda.trim()) return true
+        const texto = busqueda.toLowerCase()
+        return (
+            ca.curso?.nombre?.toLowerCase().includes(texto) ||
+            ca.empresa?.nombre?.toLowerCase().includes(texto)
+        )
+    })
+
     return <div className="w-full">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <h2 className="text-2xl sm:text-3xl font-semibold">
                 Armar cursos <span className="opacity-70">({cursosArmados.length})</span>
             </h2>
+
+            {/* INPUT DE BÚSQUEDA */}
+
+
 
             <button
                 onClick={handleAddButton}
@@ -455,6 +483,27 @@ export default ({ usuarios, empresas, cursos, idSuscriptor, cursosArmados, setCu
             </button>
         </div>
 
+        <div className="mt-6 w-full flex justify-center">
+            <input
+                type="text"
+                placeholder="Buscar usuario por nombre, rut, correo, especialidad..."
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+                className="
+                w-full
+                sm:w-1/2
+                p-2
+                bg-slate-800
+                border border-slate-700
+                rounded
+                text-white
+                focus:outline-none
+                focus:ring-2
+                focus:ring-blue-600
+            "
+            />
+        </div>
+
         <div
             id="tabla-cursos-armados"
             className="
@@ -465,12 +514,11 @@ export default ({ usuarios, empresas, cursos, idSuscriptor, cursosArmados, setCu
       sm:grid-cols-2
       lg:grid-cols-3
       gap-4
-      max-h-[60vh]
       overflow-y-auto
       p-2
     "
         >
-            {cursosArmados.map(cursoArmado => (
+            {cursosFiltrados.map(cursoArmado => (
                 <CursoArmadoCard
                     key={cursoArmado.curso_armado_id}
                     empresas={empresas}

@@ -159,6 +159,7 @@ export default ({ empresas, idSuscriptor, setEmpresas }: {
 
     // const [mensajeEmpresas, setMensajeEmpresas] = useState<string | null>()
     const [mensajeBoton, setMensajeBoton] = useState<string | null>()
+    const [busqueda, setBusqueda] = useState("");
 
     const {
         datosImportados,
@@ -217,16 +218,16 @@ export default ({ empresas, idSuscriptor, setEmpresas }: {
                 <button
                     onClick={handleAddButton}
                     className="
-          bg-green-600
-          hover:bg-green-700
-          text-white
-          px-4
-          py-2
-          rounded
-          transition
-          w-full
-          sm:w-auto
-        "
+                    bg-green-600
+                    hover:bg-green-700
+                    text-white
+                    px-4
+                    py-2
+                    rounded
+                    transition
+                    w-full
+                    sm:w-auto
+                "
                 >
                     {mensajeBoton ?? 'Agregar'}
                 </button>
@@ -324,14 +325,14 @@ export default ({ empresas, idSuscriptor, setEmpresas }: {
                         }));
                     }}
                     className="
-          bg-slate-700
-          hover:bg-slate-600
-          px-6
-          py-2
-          rounded
-          border
-          transition
-        "
+                    bg-slate-700
+                    hover:bg-slate-600
+                    px-6
+                    py-2
+                    rounded
+                    border
+                    transition
+                "
                 >
                     Crear empresas
                 </button>
@@ -346,42 +347,84 @@ export default ({ empresas, idSuscriptor, setEmpresas }: {
                         if (file) cargarArchivo(file);
                     }}
                     className="
-          w-full
-          sm:w-auto
-          p-2
-          bg-slate-700
-          border
-          rounded
-          cursor-pointer
-        "
+                    w-full
+                    sm:w-auto
+                    p-2
+                    bg-slate-700
+                    border
+                    rounded
+                    cursor-pointer
+                "
                 />
             </div>
         )}
 
-        {/* Tabla empresas */}
-        <div
-            id="tabla-empresas"
-            className="
-      mt-6
-      w-full
-      grid
-      grid-cols-1
-      sm:grid-cols-2
-      lg:grid-cols-4
-      gap-4
-      max-h-[60vh]
-      overflow-y-auto
-      p-2
-    "
-        >
-            {empresas.map((empresa) => (
-                <EmpresaCard
-                    key={empresa.id_empresa}
-                    empresa={empresa}
-                    setEmpresaState={setEmpresas}
-                />
-            ))}
+        {/* 🔍 BUSCADOR EMPRESAS */}
+        <div className="mt-6 w-full flex justify-center">
+            <input
+                type="text"
+                placeholder="Buscar empresa por nombre, RUT, contacto, email..."
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+                className="
+                w-full
+                sm:w-1/2
+                p-2
+                bg-slate-800
+                border border-slate-700
+                rounded
+                text-white
+                focus:outline-none
+                focus:ring-2
+                focus:ring-blue-600
+            "
+            />
         </div>
+
+        {/* 🔎 LÓGICA DEL FILTRO */}
+        {(() => {
+            const q = busqueda.toLowerCase();
+
+            const empresasFiltradas = empresas.filter(e =>
+                (e.nombre ?? '').toLowerCase().includes(q) ||
+                (e.rut ?? '').toLowerCase().includes(q) ||
+                (e.contacto ?? '').toLowerCase().includes(q) ||
+                (e.telefono ?? '').toLowerCase().includes(q) ||
+                (e.email ?? '').toLowerCase().includes(q)
+            );
+
+            return (
+                <div
+                    id="tabla-empresas"
+                    className="
+                    mt-6
+                    w-full
+                    grid
+                    grid-cols-1
+                    sm:grid-cols-2
+                    lg:grid-cols-4
+                    gap-4
+                    overflow-y-auto
+                    p-2
+                "
+                >
+                    {empresasFiltradas.map((empresa) => (
+                        <EmpresaCard
+                            key={empresa.id_empresa}
+                            empresa={empresa}
+                            setEmpresaState={setEmpresas}
+                        />
+                    ))}
+
+                    {empresasFiltradas.length === 0 && (
+                        <p className="text-center col-span-full opacity-70 mt-4">
+                            No se encontraron empresas.
+                        </p>
+                    )}
+                </div>
+            );
+        })()}
     </>
+
 
 }

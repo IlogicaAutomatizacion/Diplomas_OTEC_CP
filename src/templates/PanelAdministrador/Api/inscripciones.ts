@@ -7,6 +7,7 @@ export interface inscripcion {
     cursoArmado: number;
     asistencias?: number;
     calificacion?: number;
+    teorica?: number;
     notificar?: boolean;
     asistencia_marcada?: boolean
 }

@@ -4,7 +4,7 @@ import estellaLogo from '../../../assets/Formarte/EstrellaLogo.png'
 import type { CursoConAlumno } from '../../PanelAdministrador/Api/cursos-armados'
 import { b2Url, b2UsuarioBucket, frontend } from '../../../vars'
 
-export default ({ datosCurso_almuno }: { datosCurso_almuno: CursoConAlumno }) => {
+export default ({ datosCurso_almuno, fecha_vigencia }: { datosCurso_almuno: CursoConAlumno, fecha_vigencia: string | null }) => {
     return <div className='h-[100vh] bg-gray-100  w-[100wv]'>
         <div className={`certificado-page  flex items-center print:h-auto justify-center bg-gray-100 flex-col print:flex-col `}>
 
@@ -28,8 +28,6 @@ export default ({ datosCurso_almuno }: { datosCurso_almuno: CursoConAlumno }) =>
                     <p className='text-[30px] text-[#2F5597] absolute ml-62 text-center  font-bold italic'>OTEC FORMARTE</p>
                 </div>
 
-
-
                 <div className="absolute left-0 flex flex-row justify-center items-center ">
                     <div className="relative px-12 flex items-start flex-col w-full">
 
@@ -45,14 +43,18 @@ export default ({ datosCurso_almuno }: { datosCurso_almuno: CursoConAlumno }) =>
                             <div className='flex flex-row'><p className='text-gray-800 font-semibold w-33 '>CARGO:</p> <span className='text-[#102d4b] font-bold'>{datosCurso_almuno.inscripcion.usuario.especialidad}</span></div>
                             <div className='flex flex-row'><p className='text-gray-800 font-semibold w-33 '>COMPETENCIA:</p> <span className='text-[#102d4b] font-bold'>{datosCurso_almuno.curso.nombre}</span></div>
                             <div className='flex flex-row'><p className='text-gray-800 font-semibold w-33 '>VALIDEZ:</p> <span className='text-[#102d4b] font-bold'>{datosCurso_almuno.fecha_finalizacion}</span></div>
+                            <div className='flex flex-row'><p className='text-gray-800 font-semibold w-33 '>VIGENCIA:</p> <span className='text-[#102d4b] font-bold'>{fecha_vigencia}</span></div>
 
                         </div>
 
                     </div>
 
-                    <img className='absolute size-20 bg-red ml-110 mt-14' src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`${frontend}/certificados/${datosCurso_almuno.inscripcion.usuario.token}/${datosCurso_almuno.token_curso}`)}`} alt="" />
 
                 </div>
+
+                <img className='mt-15 w-25 h-25 z-10  mr-30 object-cover rounded-lg   ' src={`https://${b2UsuarioBucket}.${b2Url}/${datosCurso_almuno.inscripcion.usuario.foto_perfil}`} alt="" />
+
+                <img className='absolute size-20 bg-red ml-80 mt-14' src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`${frontend}/certificados/${datosCurso_almuno.inscripcion.usuario.token}/${datosCurso_almuno.token_curso}`)}`} alt="" />
 
                 <div className="absolute right-0 flex flex-row justify-center items-center z-1 top-0 mt-5">
                     <div className="relative px-12 flex justify-start items-start flex-col w-140">
@@ -103,7 +105,7 @@ export default ({ datosCurso_almuno }: { datosCurso_almuno: CursoConAlumno }) =>
 
             </div>
 
-            <div className='print:hidden'>
+            <div className='print:hidden flex flex-col items-center'>
                 <img className='mt-15 w-40 h-40  ring-7 ring-offset-2 ring-cyan-200 object-cover rounded-lg print:hidden bg-black shadow-lg ' src={`https://${b2UsuarioBucket}.${b2Url}/${datosCurso_almuno.inscripcion.usuario.foto_perfil}`} alt="" />
                 <p className='mt-5 text-center border-b-2 font-black '>{String(datosCurso_almuno.inscripcion.usuario.nombre).toUpperCase()}</p>
             </div>

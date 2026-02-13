@@ -8,6 +8,7 @@ import { obtenerDatosDeCertificadoConTokenDeCursoArmadoAsync, obtenerPdfDeCertif
 import type { CursoConAlumno } from '../../PanelAdministrador/Api/cursos-armados';
 import CertificadoMini from './CertificadoMini';
 import { b2Url, b2UsuarioBucket, frontend } from '../../../vars';
+import { cambiarFecha } from '../../../utility/date';
 
 function useAutoFitText(selector: string, minSize = 4, maxSize = 14) {
     useEffect(() => {
@@ -46,7 +47,7 @@ function BackCertificate({ datosCurso_almuno }: { datosCurso_almuno: CursoConAlu
                         alt="logo"
                     />
                     <p className='text-[36px] text-[#199CD8] absolute ml-55 mt-17 font-semibold'>FORMARTE </p>
-                    <p className='absolute max-auto text-[20px] ml-56 mt-35 font-semibold w-full'>{datosCurso_almuno.fecha_finalizacion}</p>
+                    <p className='absolute max-auto text-[20px] ml-56 mt-35 font-semibold w-full'>{String(datosCurso_almuno.fecha_finalizacion)}</p>
                 </div>
 
 
@@ -65,7 +66,7 @@ function BackCertificate({ datosCurso_almuno }: { datosCurso_almuno: CursoConAlu
                         </div>
 
                         <div className="mt-8 border border-gray-400 p-2">
-                            <p className="font-bold text-sm dark:text-gray-50 flex flex-row">Relatores: {datosCurso_almuno.profesor.nombre} <span className='ml-5'><img src={`https://${b2UsuarioBucket}.${b2Url}/${datosCurso_almuno.inscripcion.usuario.firma}` || undefined} className='h-15 w-20' alt="firma relator" /> </span> <span className='text-xs ml-5 whitespace-pre-line'>{datosCurso_almuno.profesor.especialidad}</span> </p>
+                            <p className="font-bold text-sm dark:text-gray-50 flex flex-row">Relatores: {datosCurso_almuno.profesor.nombre} <span className='ml-5'><img src={`https://${b2UsuarioBucket}.${b2Url}/${datosCurso_almuno.profesor.firma}` || undefined} className='h-15 w-20' alt="firma relator" /> </span> <span className='text-xs ml-5 whitespace-pre-line'>{datosCurso_almuno.profesor.especialidad}</span> </p>
                         </div>
 
                         <div className=" text-center flex justify-center items-center flex-col mt-1 ">
@@ -121,9 +122,32 @@ export default ({ id_suscriptor }: { id_suscriptor: number }) => {
     const [datosCurso_almuno, setDatos] = useState<CursoConAlumno | null>(null);
     const [msg, setMsg] = useState<string | null>('Obteniendo datos del usuario...');
 
+    const [fecha_vigencia, setFechaVigencia] = useState<string | null>(null)
+
     useAutoFitText('.ADP');
 
     useEffect(() => {
+        console.log(datosCurso_almuno)
+
+        if (datosCurso_almuno?.fecha_finalizacion) {
+            const fechaV = new Date(datosCurso_almuno.fecha_finalizacion)
+
+
+            fechaV.setFullYear(fechaV.getFullYear() + 1)
+
+            setFechaVigencia(fechaV.toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit"
+            }))
+
+        }
+
+
+    }, [datosCurso_almuno])
+
+    useEffect(() => {
+
         const original = document
             .querySelector("meta[name='viewport']")
             ?.getAttribute("content");
@@ -140,7 +164,13 @@ export default ({ id_suscriptor }: { id_suscriptor: number }) => {
 
             try {
                 const curso_alumno = await obtenerDatosDeCertificadoConTokenDeCursoArmadoAsync(id_suscriptor, token_curso, token);
-                setDatos(curso_alumno);
+
+                setDatos({
+                    ...curso_alumno,
+                    fecha_finalizacion: cambiarFecha(curso_alumno.fecha_finalizacion ?? ''),
+                    fecha_inicio: cambiarFecha(curso_alumno.fecha_inicio ?? '')
+                })
+
                 setMsg(null);
             } catch (e) {
                 setMsg('Hubo un problema al obtener el certificado del alumno.');
@@ -260,15 +290,20 @@ export default ({ id_suscriptor }: { id_suscriptor: number }) => {
 
                                         <div className="mt-4 text-center max-w-130">
                                             <p className="dark:text-gray-50">Aprobó curso: <span className='text-semibold'>{datosCurso_almuno.curso.nombre}</span></p>
-                                            <p className="">
+                                            <div className="">
                                                 <span>Asistencia:  <span className='text-semibold'>{datosCurso_almuno.inscripcion.asistencias}</span> - </span>
-                                                <span>Teórico:  <span className='text-semibold'>{datosCurso_almuno.inscripcion.calificacion}</span> - </span>
-                                                <span>Práctica:  <span className='text-semibold'>{'100%'}</span> - </span>
+                                                <span>Teórico:  <span className='text-semibold'>{datosCurso_almuno.inscripcion.calificacion}%</span> - </span>
+                                                <span>Práctica:  <span className='text-semibold'>{datosCurso_almuno.inscripcion.teorica}%</span> - </span>
                                                 <span>Duración:  <span className='text-semibold'>{datosCurso_almuno.curso.duracion}</span> {Number(datosCurso_almuno.curso.duracion) > 1 ? 'horas.' : 'hora.'}</span>
 
                                                 <p className='text-semibold'>
-                                                    Validez Certificación: {datosCurso_almuno.fecha_finalizacion}
+                                                    Validez Certificación: {String(datosCurso_almuno.fecha_finalizacion)}
                                                 </p>
+
+                                                <p className='text-semibold'>
+                                                    Fecha vigencia certificado: {String(fecha_vigencia)}
+                                                </p>
+
 
                                                 <p className='text-semibold'>
                                                     USO EXCLUSIVO EMPRESA: {datosCurso_almuno.empresa?.nombre}
@@ -281,7 +316,7 @@ export default ({ id_suscriptor }: { id_suscriptor: number }) => {
 
                                                     </p>
                                                 </div>
-                                            </p>
+                                            </div>
 
                                         </div>
 
@@ -316,7 +351,7 @@ export default ({ id_suscriptor }: { id_suscriptor: number }) => {
                         </div>
                     </div>
                 )
-                : <CertificadoMini datosCurso_almuno={datosCurso_almuno} />
+                : <CertificadoMini datosCurso_almuno={datosCurso_almuno} fecha_vigencia={String(fecha_vigencia)} />
             }
 
         </div>
