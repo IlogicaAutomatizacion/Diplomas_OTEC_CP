@@ -459,7 +459,117 @@ export default ({ usuarios, idSuscriptor, empresas, setUsuarios }: {
         {/* IMPORTACIÓN */}
         {datosImportados ? (
             /* ... tu código se mantiene igual ... */
-            <></>
+            <div className="mt-6 border p-4 rounded flex flex-col gap-6 items-center">
+                <h2 className="text-center text-lg font-medium">
+                    Relacionar columnas{" "}
+                    <span className="opacity-70">
+                        ({datosImportados.filas.length} fila(s))
+                    </span>
+                </h2>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+
+                    <div className="flex flex-col gap-1 items-center">
+                        <span>Nombre</span>
+                        <Example
+                            opciones={datosImportados.cabeceras}
+                            callbackOnSelect={(opcion) =>
+                                setMapeo(last => ({ ...last, nombre: opcion }))
+                            }
+                        />
+                    </div>
+
+                    <div className="flex flex-col gap-1 items-center">
+                        <span>Correo</span>
+                        <Example
+                            opciones={datosImportados.cabeceras}
+                            callbackOnSelect={(opcion) =>
+                                setMapeo(last => ({ ...last, correo: opcion }))
+                            }
+                        />
+                    </div>
+
+                    <div className="flex flex-col gap-1 items-center">
+                        <span>fono_fax</span>
+                        <Example
+                            opciones={datosImportados.cabeceras}
+                            callbackOnSelect={(opcion) =>
+                                setMapeo(last => ({ ...last, fono_fax: opcion }))
+                            }
+                        />
+                    </div>
+
+                    <div className="flex flex-col gap-1 items-center">
+                        <span>direccion</span>
+                        <Example
+                            opciones={datosImportados.cabeceras}
+                            callbackOnSelect={(opcion) =>
+                                setMapeo(last => ({ ...last, direccion: opcion }))
+                            }
+                        />
+                    </div>
+
+                    <div className="flex flex-col gap-1 items-center">
+                        <span>rut</span>
+                        <Example
+                            opciones={datosImportados.cabeceras}
+                            callbackOnSelect={(opcion) =>
+                                setMapeo(last => ({ ...last, rut: opcion }))
+                            }
+                        />
+                    </div>
+
+                    <div className="flex flex-col gap-1 items-center">
+                        <span>especialidad</span>
+                        <Example
+                            opciones={datosImportados.cabeceras}
+                            callbackOnSelect={(opcion) =>
+                                setMapeo(last => ({ ...last, especialidad: opcion }))
+                            }
+                        />
+                    </div>
+                </div>
+
+                <button
+                    onClick={() => {
+                        construirResultado((fila, m) => ({
+                            nombre: fila[m.nombre]
+                                ? String(fila[m.nombre]).trim()
+                                : undefined,
+
+                            correo:
+                               fila[m.correo]
+                                ? String(fila[m.correo]).trim()
+                                : undefined,
+
+                            fono_fax: fila[m.fono_fax]
+                                ? String(fila[m.fono_fax]).trim()
+                                : undefined,
+
+                            direccion: fila[m.direccion]
+                                ? String(fila[m.direccion]).trim()
+                                : undefined,
+                            rut: fila[m.rut]
+                                ? String(fila[m.rut]).trim()
+                                : undefined,
+                            especialidad: fila[m.especialidad]
+                                ? String(fila[m.especialidad]).trim()
+                                : undefined,
+                        }));
+                    }}
+                    className="
+                    bg-slate-700
+                    hover:bg-slate-600
+                    px-6
+                    py-2
+                    rounded
+                    border
+                    transition
+                "
+                >
+                    Crear usuarios
+                </button>
+            </div>
         ) : (
             <div className="mt-6 flex justify-center">
                 <input

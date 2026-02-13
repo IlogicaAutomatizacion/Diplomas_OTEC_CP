@@ -203,6 +203,7 @@ const CursoArmadoCard = ({
                     <div className="flex flex-col">
                         <span className="text-cyan-400 text-center">Profesor</span>
                         <Example
+                            
                             seleccionado={cursoArmadoLocal.profesor?.nombre}
                             callbackOnSelect={(e) => {
                                 if (e?.id) guardarParametro('profesor', e.id)

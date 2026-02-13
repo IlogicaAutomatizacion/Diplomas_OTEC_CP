@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react'
 import { ChevronDownIcon } from '@heroicons/react/20/solid'
 import { useFloating, offset, flip, shift } from '@floating-ui/react'
@@ -9,16 +10,16 @@ type Opcion<T> = {
 
 type ExampleProps<T> = {
     opciones: Opcion<T>[]
+    seleccionado?: string | null
     noCambiarNombreAlSeleccionar?: boolean
-    seleccionado?: any
     titulo?: string | null
-    callbackOnSelect: (opcion: T) => void
+    callbackOnSelect?: (opcion: T) => void
 }
 
 export function Example<T>({
-    seleccionado,
     opciones,
-    noCambiarNombreAlSeleccionar,
+    seleccionado,
+    noCambiarNombreAlSeleccionar = false,
     callbackOnSelect,
     titulo
 }: ExampleProps<T>) {
@@ -28,13 +29,37 @@ export function Example<T>({
         placement: 'bottom-start'
     })
 
+    const [textoMostrado, setTextoMostrado] = useState<string>(
+        titulo ?? seleccionado ?? 'Opciones'
+    )
+
+    useEffect(() => {
+        if (titulo) {
+            setTextoMostrado(titulo)
+        }
+    }, [titulo])
+
+    useEffect(() => {
+        if (!noCambiarNombreAlSeleccionar && seleccionado) {
+            setTextoMostrado(seleccionado)
+        }
+    }, [seleccionado, noCambiarNombreAlSeleccionar])
+
+    const handleSelect = (objeto: Opcion<T>) => {
+        if (!noCambiarNombreAlSeleccionar) {
+            setTextoMostrado(objeto.nombre ?? 'Opciones')
+        }
+
+        callbackOnSelect?.(objeto.opcion)
+    }
+
     return (
         <Menu as="div" className="inline-block relative">
             <MenuButton
                 ref={refs.setReference}
                 className="cursor-pointer inline-flex w-full justify-center gap-x-1.5 rounded-md bg-white/10 px-3 py-2 text-sm font-semibold text-white inset-ring-1 inset-ring-white/5 hover:bg-white/20"
             >
-                {(!noCambiarNombreAlSeleccionar ? seleccionado : null) ?? seleccionado ?? titulo ?? 'Opciones'}
+                {textoMostrado}
 
                 <ChevronDownIcon
                     aria-hidden="true"
@@ -52,9 +77,7 @@ export function Example<T>({
                         <MenuItem key={String((objeto.opcion as any)?.id ?? objeto.nombre)}>
                             {({ active }) => (
                                 <button
-                                    onClick={() => {
-                                        callbackOnSelect(objeto.opcion)
-                                    }}
+                                    onClick={() => handleSelect(objeto)}
                                     className={`block w-full px-4 py-2 text-left text-sm text-gray-300 
                                     ${active ? 'bg-white/10 text-white' : ''}`}
                                 >
@@ -68,4 +91,3 @@ export function Example<T>({
         </Menu>
     )
 }
-
