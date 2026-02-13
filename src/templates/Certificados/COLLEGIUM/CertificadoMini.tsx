@@ -28,7 +28,7 @@ export default ({ datosCurso_almuno, fecha_vigencia }: { datosCurso_almuno: Curs
                     <p className='text-[30px] text-[#2F5597] absolute ml-62 text-center  font-bold italic'>OTEC FORMARTE</p>
                 </div>
 
-                <div className="absolute left-0 flex flex-row justify-center items-center ">
+                <div className="absolute left-0 flex flex-row justify-center items-center z-10">
                     <div className="relative px-12 flex items-start flex-col w-full">
 
 
@@ -52,7 +52,7 @@ export default ({ datosCurso_almuno, fecha_vigencia }: { datosCurso_almuno: Curs
 
                 </div>
 
-                <img className='mt-15 w-25 h-25 z-10  mr-30 object-cover rounded-lg   ' src={`https://${b2UsuarioBucket}.${b2Url}/${datosCurso_almuno.inscripcion.usuario.foto_perfil}`} alt="" />
+                <img className='mt-5 w-25 h-25 z-0  mr-30 object-cover rounded-lg   ' src={`https://${b2UsuarioBucket}.${b2Url}/${datosCurso_almuno.inscripcion.usuario.foto_perfil}`} alt="" />
 
                 <img className='absolute size-20 bg-red ml-80 mt-14' src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`${frontend}/certificados/${datosCurso_almuno.inscripcion.usuario.token}/${datosCurso_almuno.token_curso}`)}`} alt="" />
 

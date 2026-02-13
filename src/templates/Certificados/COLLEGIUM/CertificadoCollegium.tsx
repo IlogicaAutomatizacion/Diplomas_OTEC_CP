@@ -117,7 +117,7 @@ export default ({ id_suscriptor }: { id_suscriptor: number }) => {
     const navigate = useNavigate();
 
     const search = new URLSearchParams(window.location.search);
-    const view = search.get("view") ?? "diploma"; // <-- MUY IMPORTANTE
+    const view = search.get("view") ?? "diploma";
 
     const [datosCurso_almuno, setDatos] = useState<CursoConAlumno | null>(null);
     const [msg, setMsg] = useState<string | null>('Obteniendo datos del usuario...');
@@ -130,16 +130,25 @@ export default ({ id_suscriptor }: { id_suscriptor: number }) => {
         console.log(datosCurso_almuno)
 
         if (datosCurso_almuno?.fecha_finalizacion) {
-            const fechaV = new Date(datosCurso_almuno.fecha_finalizacion)
 
+            const [day, month, year] = datosCurso_almuno?.fecha_finalizacion.split('/')
+
+            const fechaV = new Date(
+                Number(year),
+                Number(month) - 1,
+                Number(day)
+            )
 
             fechaV.setFullYear(fechaV.getFullYear() + 1)
 
-            setFechaVigencia(fechaV.toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "2-digit",
-                day: "2-digit"
-            }))
+            setFechaVigencia(
+                fechaV.toLocaleDateString("es-MX", {
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit"
+                })
+            )
+
 
         }
 
@@ -164,6 +173,7 @@ export default ({ id_suscriptor }: { id_suscriptor: number }) => {
 
             try {
                 const curso_alumno = await obtenerDatosDeCertificadoConTokenDeCursoArmadoAsync(id_suscriptor, token_curso, token);
+
 
                 setDatos({
                     ...curso_alumno,
