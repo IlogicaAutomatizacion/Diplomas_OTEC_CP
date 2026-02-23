@@ -127,6 +127,8 @@ const ProfesorCard = ({ curso, setPanel }: { curso: cursoArmado, setPanel: React
                 </p>
                 {
                     inscripciones.map(inscripcion => {
+                        if (!inscripcion?.usuario) { return }
+
                         return <>
                             <p className="text-sm bg-slate-500/20 text-slate-400 border rounded-2xl p-1 max-h-60 whitespace-pre-line">
                                 {inscripcion.usuario.nombre}
@@ -134,6 +136,7 @@ const ProfesorCard = ({ curso, setPanel }: { curso: cursoArmado, setPanel: React
                             <input disabled={
                                 cursoLocal.estado !== 'ACTIVO' ? true : false
                             } onBlur={async (e) => {
+                                if (!inscripcion?.id_inscripcion) { return }
                                 try {
                                     if (isNaN(parseFloat(e.target.value))) { throw new Error('Las asistencias no son válidas.') }
 
@@ -175,6 +178,8 @@ const ProfesorCard = ({ curso, setPanel }: { curso: cursoArmado, setPanel: React
                                 cursoLocal.estado !== 'ACTIVO' ? true : false
                             } type="number" defaultValue={cursoLocal.estado === 'ACTIVO' ? inscripcion.calificacion : undefined} placeholder={cursoLocal.estado !== 'ACTIVO' ? String(inscripcion.calificacion) : undefined}
                                 onBlur={async (e) => {
+                                    if (!inscripcion?.id_inscripcion) { return }
+
                                     try {
                                         if (isNaN(parseFloat(e.target.value))) { throw new Error('La calificación no es válida.') }
 

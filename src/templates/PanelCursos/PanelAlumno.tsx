@@ -20,6 +20,8 @@ const AlumnoCard = ({ inscripcion, setInscripciones }: { inscripcion: inscripcio
     }, [inscripcionLocal])
 
     async function handlerMarcarAsistencia() {
+        if (!inscripcion?.idinscripcion) { return }
+
         try {
             console.log('uh')
             const inscripcionActualizada: inscripcion = await editarInscripcionAsync(inscripcion.idinscripcion, {
