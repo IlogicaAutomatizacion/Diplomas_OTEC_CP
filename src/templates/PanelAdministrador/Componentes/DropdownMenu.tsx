@@ -109,8 +109,9 @@ export function Example<T>({
                         >
                             {({ active }) => (
                                 <button
-                                    ref={(el) => (itemRefs.current[index] = el)}
-                                    onClick={() => handleSelect(objeto)}
+                                    ref={(el) => {
+                                        itemRefs.current[index] = el
+                                    }} onClick={() => handleSelect(objeto)}
                                     className={`block w-full px-4 py-2 text-left text-sm text-gray-300 
                                     ${active ? 'bg-white/10 text-white' : ''}`}
                                 >
