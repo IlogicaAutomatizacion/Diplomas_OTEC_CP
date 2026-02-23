@@ -1,5 +1,4 @@
-import ArmarCursos from './Ventanas/ArmarCursos'
-import Usuarios from './Ventanas/Usuarios'
+import ArmarCursos from './Ventanas/ArmarCursos/ArmarCursos'
 import Empresas from './Ventanas/Empresas'
 import Cursos from './Ventanas/Cursos'
 import { useEffect, useState } from 'react'
@@ -13,6 +12,7 @@ import { obtenerIdDeSuscripcionPorNombreDeEmpresaAsync } from './Api/suscripcion
 
 import FormarteLogo from '../../Diseño/Formarte/FormarteLogo'
 import CPLogo from '../../Diseño/CP/CPLogo'
+import Usuarios from './Ventanas/Usuarios/Usuarios'
 
 type ids = 2 | 3
 
@@ -93,28 +93,28 @@ export default () => {
                 <div className="flex gap-4 mt-10 flex-wrap justify-center">
                     <button
                         onClick={() => setSeccion('armar')}
-                        className={`px-4 py-2 rounded ${seccion === 'armar' ? 'bg-blue-600' : 'bg-gray-700'}`}
+                        className={`px-4 py-2 rounded cursor-pointer ${seccion === 'armar' ? 'bg-blue-600' : 'bg-gray-700'}`}
                     >
                         Armar Cursos
                     </button>
 
                     <button
                         onClick={() => setSeccion('usuarios')}
-                        className={`px-4 py-2 rounded ${seccion === 'usuarios' ? 'bg-blue-600' : 'bg-gray-700'}`}
+                        className={`px-4 py-2 cursor-pointer rounded ${seccion === 'usuarios' ? 'bg-blue-600' : 'bg-gray-700'}`}
                     >
                         Usuarios
                     </button>
 
                     <button
                         onClick={() => setSeccion('empresas')}
-                        className={`px-4 py-2 rounded ${seccion === 'empresas' ? 'bg-blue-600' : 'bg-gray-700'}`}
+                        className={`px-4 py-2 cursor-pointer rounded ${seccion === 'empresas' ? 'bg-blue-600' : 'bg-gray-700'}`}
                     >
                         Empresas
                     </button>
 
                     <button
                         onClick={() => setSeccion('cursos')}
-                        className={`px-4 py-2 rounded ${seccion === 'cursos' ? 'bg-blue-600' : 'bg-gray-700'}`}
+                        className={`px-4 py-2 cursor-pointer rounded ${seccion === 'cursos' ? 'bg-blue-600' : 'bg-gray-700'}`}
                     >
                         Cursos
                     </button>
@@ -150,11 +150,6 @@ export default () => {
                             cursos={cursos}
                             setCursos={setCursos} />
                     </div>
-
-
-
-
-
                 </div>
             </div>
         </div >

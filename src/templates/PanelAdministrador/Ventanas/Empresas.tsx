@@ -406,6 +406,8 @@ export default ({ empresas, idSuscriptor, setEmpresas }: {
                     gap-4
                     overflow-y-auto
                     p-2
+                    overscroll-none
+
                 "
                 >
                     {empresasFiltradas.map((empresa) => (

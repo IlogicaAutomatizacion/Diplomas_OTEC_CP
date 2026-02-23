@@ -1,9 +1,11 @@
 import { backend } from "../../../vars";
+import type { cursoArmado } from "./cursos-armados";
 import type { usuario } from "./usuarios";
 
 export interface inscripcion {
-    id_inscripcion: number;
-    usuario: usuario;
+    id_inscripcion?: number;
+    rut?: string;
+    usuario?: usuario;
     cursoArmado: number;
     asistencias?: number;
     calificacion?: number;
@@ -17,6 +19,7 @@ export async function crearInscripcionAsync(data: {
     cursoArmado: number;
     asistencias?: number;
     calificacion?: number;
+    teorica?: number
 }) {
     const res = await fetch(`${backend}/inscripciones`, {
         method: 'POST',
@@ -32,6 +35,30 @@ export async function crearInscripcionAsync(data: {
 
     return res.json();
 }
+
+export async function crearInscripcionesAsync(data: inscripcion[]) {
+    console.log(data)
+    const res = await fetch(`${backend}/inscripciones/crearInscripciones`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            inscripciones: data
+        }),
+    });
+
+    if (!res.ok) {
+        throw new Error('Hubo un problema al crear las inscripciónes.');
+    }
+
+    const cursoArmadoActualizado: cursoArmado = await res.json();
+
+    return cursoArmadoActualizado
+}
+
+
+
 
 export async function obtenerInscripcionesAsync() {
     const res = await fetch(`${backend}/inscripciones`);

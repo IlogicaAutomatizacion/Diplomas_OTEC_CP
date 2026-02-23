@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react'
 import { ChevronDownIcon } from '@heroicons/react/20/solid'
 import { useFloating, offset, flip, shift } from '@floating-ui/react'
@@ -33,6 +33,11 @@ export function Example<T>({
         titulo ?? seleccionado ?? 'Opciones'
     )
 
+    // 🔹 Buffer de búsqueda personalizado
+    const [searchBuffer, setSearchBuffer] = useState('')
+    const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+    const itemRefs = useRef<(HTMLButtonElement | null)[]>([])
+
     useEffect(() => {
         if (titulo) {
             setTextoMostrado(titulo)
@@ -53,6 +58,30 @@ export function Example<T>({
         callbackOnSelect?.(objeto.opcion)
     }
 
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+            const newBuffer = (searchBuffer + e.key).toLowerCase()
+            setSearchBuffer(newBuffer)
+
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current)
+            }
+
+            timeoutRef.current = setTimeout(() => {
+                setSearchBuffer('')
+            }, 3000) // ⬅️ Cambia aquí el tiempo antes de resetear
+
+            // Buscar coincidencia
+            const index = opciones.findIndex(o =>
+                o.nombre?.toLowerCase().startsWith(newBuffer)
+            )
+
+            if (index !== -1) {
+                itemRefs.current[index]?.focus()
+            }
+        }
+    }
+
     return (
         <Menu as="div" className="inline-block relative">
             <MenuButton
@@ -70,13 +99,17 @@ export function Example<T>({
             <MenuItems
                 ref={refs.setFloating}
                 style={floatingStyles}
+                onKeyDown={handleKeyDown}
                 className="z-50 mt-2 rounded-md bg-gray-800 shadow-lg focus:outline-none"
             >
                 <div className="py-1 max-h-50 overflow-y-auto">
-                    {opciones?.map((objeto) => (
-                        <MenuItem key={String((objeto.opcion as any)?.id ?? objeto.nombre)}>
+                    {opciones?.map((objeto, index) => (
+                        <MenuItem
+                            key={String((objeto.opcion as any)?.id ?? objeto.nombre)}
+                        >
                             {({ active }) => (
                                 <button
+                                    ref={(el) => (itemRefs.current[index] = el)}
                                     onClick={() => handleSelect(objeto)}
                                     className={`block w-full px-4 py-2 text-left text-sm text-gray-300 
                                     ${active ? 'bg-white/10 text-white' : ''}`}

@@ -162,7 +162,7 @@ export default ({ cursos, idSuscriptor, setCursos }: {
 
     const [busqueda, setBusqueda] = useState('');
 
-    
+
 
     const {
         datosImportados,
@@ -394,6 +394,7 @@ export default ({ cursos, idSuscriptor, setCursos }: {
                     gap-4
                     overflow-y-auto
                     p-2
+                    overscroll-none
                 "
                 >
                     {cursosFiltrados.map((curso) => (
