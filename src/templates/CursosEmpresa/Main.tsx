@@ -51,10 +51,10 @@ const CursoArmadoCard = ({ cursoArmado }: { cursoArmado: cursoArmado }) => {
                             key={inscripcion.id_inscripcion}
                             className="px-2 py-1 bg-white/5 rounded-lg flex flex-row"
                         >
-                            <p>{inscripcion.usuario.nombre}</p>
+                            <p>{inscripcion?.usuario?.nombre}</p>
 
                             {cursoArmado.estado === 'FINALIZADO' ? <span className="ml-auto">
-                                <a target="_blank" href={`${frontend}/certificados/${inscripcion.usuario.token}/${cursoArmado.token_curso}`} className="px-2 py-1 cursor-pointer bg-white/5 rounded-lg">
+                                <a target="_blank" href={`${frontend}/certificados/${inscripcion?.usuario?.token}/${cursoArmado.token_curso}`} className="px-2 py-1 cursor-pointer bg-white/5 rounded-lg">
                                     Ver ceritifcado
                                 </a>
                             </span> : null}

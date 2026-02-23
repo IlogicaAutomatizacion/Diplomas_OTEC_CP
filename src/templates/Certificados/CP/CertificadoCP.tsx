@@ -194,8 +194,8 @@ export default ({ id_suscriptor }: { id_suscriptor: number }) => {
                             <p className="text-center text-sm text-gray-600 dark:text-gray-300 mb-6">Organismo técnico de capacitación., RUT 77.457.296-1, certifica que:</p>
 
                             <div className="text-center">
-                                <p className="text-4xl font-bold text-black dark:text-gray-50">{datosCurso_almuno.inscripcion.usuario.nombre}</p>
-                                <p className="text-xs text-gray-700 mt-1 dark:text-gray-200">{datosCurso_almuno.inscripcion.usuario.rut}</p>
+                                <p className="text-4xl font-bold text-black dark:text-gray-50">{datosCurso_almuno?.inscripcion?.usuario?.nombre}</p>
+                                <p className="text-xs text-gray-700 mt-1 dark:text-gray-200">{datosCurso_almuno?.inscripcion?.usuario?.rut}</p>
                             </div>
 
                             <div className="mt-6 text-center">
@@ -216,7 +216,7 @@ export default ({ id_suscriptor }: { id_suscriptor: number }) => {
                                         {datosCurso_almuno.curso.resumen}
                                     </ul>
                                 </div>
-                                <img className='size-40 bg-red border' src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`${frontend}/certificados/${datosCurso_almuno.inscripcion.usuario.token}/${datosCurso_almuno.token_curso}`)}`} alt="" />
+                                <img className='size-40 bg-red border' src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`${frontend}/certificados/${datosCurso_almuno?.inscripcion?.usuario?.token}/${datosCurso_almuno.token_curso}`)}`} alt="" />
                             </div>
 
 

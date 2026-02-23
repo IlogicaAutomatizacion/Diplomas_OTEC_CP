@@ -290,13 +290,13 @@ export default ({ id_suscriptor }: { id_suscriptor: number }) => {
 
 
                                         <h1 className="text-4xl font-semibold text-center  mb-2 mt-55 dark:text-white">{'D  I  P  L  O  M  A'.split('').join('  ')}</h1>
-                                        <p className="text-center text-[32px] text-semibold mt-6">{datosCurso_almuno.inscripcion.usuario.nombre}</p>
+                                        <p className="text-center text-[32px] text-semibold mt-6">{datosCurso_almuno.inscripcion?.usuario?.nombre ?? ""}</p>
 
                                         <div className="text-center">
-                                            <p className="text-sm font-bold text-black dark:text-gray-50">Rut: {datosCurso_almuno.inscripcion.usuario.rut}</p>
+                                            <p className="text-sm font-bold text-black dark:text-gray-50">Rut: {datosCurso_almuno.inscripcion?.usuario?.rut ?? ""}</p>
                                         </div>
 
-                                        <img className='size-20 bg-red mt-8' src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`${frontend}/certificados/${datosCurso_almuno.inscripcion.usuario.token}/${datosCurso_almuno.token_curso}`)}`} alt="" />
+                                        <img className='size-20 bg-red mt-8' src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`${frontend}/certificados/${datosCurso_almuno?.inscripcion?.usuario?.token}/${datosCurso_almuno.token_curso}`)}`} alt="" />
 
                                         <div className="mt-4 text-center max-w-130">
                                             <p className="dark:text-gray-50">Aprobó curso: <span className='text-semibold'>{datosCurso_almuno.curso.nombre}</span></p>

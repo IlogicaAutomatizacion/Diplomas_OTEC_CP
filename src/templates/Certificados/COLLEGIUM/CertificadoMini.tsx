@@ -35,12 +35,12 @@ export default ({ datosCurso_almuno, fecha_vigencia }: { datosCurso_almuno: Curs
                         {/* <img className='size-20 bg-red  mt-8' src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`${'http//localhost:3000'}/certificados/${datosCurso_almuno.inscripcion.usuario.token}/${datosCurso_almuno.token_curso}`)}`} alt="" /> */}
 
                         <div className="mt-15  max-w-130 flex flex-col">
-                            <div className='flex flex-row'><p className='text-gray-800 font-semibold w-33 '>NOMBRE:</p><span className='text-[#102d4b] font-bold'>{String(datosCurso_almuno.inscripcion.usuario.nombre).toUpperCase()}</span></div>
-                            <div className='flex flex-row'><p className='text-gray-800 font-semibold w-33 '>RUT:</p> <span className='text-[#102d4b] font-bold'>{datosCurso_almuno.inscripcion.usuario.rut}</span></div>
+                            <div className='flex flex-row'><p className='text-gray-800 font-semibold w-33 '>NOMBRE:</p><span className='text-[#102d4b] font-bold'>{String(datosCurso_almuno?.inscripcion?.usuario?.nombre).toUpperCase()}</span></div>
+                            <div className='flex flex-row'><p className='text-gray-800 font-semibold w-33 '>RUT:</p> <span className='text-[#102d4b] font-bold'>{datosCurso_almuno?.inscripcion?.usuario?.rut}</span></div>
                             <div className='flex flex-row'><p className='text-gray-800 font-semibold w-33 '>EMPRESA:</p> <span className='text-[#102d4b] font-bold'>{String(datosCurso_almuno.empresa.nombre).toUpperCase()}</span></div>
                             <br />
                             <br />
-                            <div className='flex flex-row'><p className='text-gray-800 font-semibold w-33 '>CARGO:</p> <span className='text-[#102d4b] font-bold'>{datosCurso_almuno.inscripcion.usuario.especialidad}</span></div>
+                            <div className='flex flex-row'><p className='text-gray-800 font-semibold w-33 '>CARGO:</p> <span className='text-[#102d4b] font-bold'>{datosCurso_almuno?.inscripcion?.usuario?.especialidad}</span></div>
                             <div className='flex flex-row'><p className='text-gray-800 font-semibold w-33 '>COMPETENCIA:</p> <span className='text-[#102d4b] font-bold'>{datosCurso_almuno.curso.nombre}</span></div>
                             <div className='flex flex-row'><p className='text-gray-800 font-semibold w-33 '>VALIDEZ:</p> <span className='text-[#102d4b] font-bold'>{datosCurso_almuno.fecha_finalizacion}</span></div>
                             <div className='flex flex-row'><p className='text-gray-800 font-semibold w-33 '>VIGENCIA:</p> <span className='text-[#102d4b] font-bold'>{fecha_vigencia}</span></div>
@@ -52,9 +52,9 @@ export default ({ datosCurso_almuno, fecha_vigencia }: { datosCurso_almuno: Curs
 
                 </div>
 
-                <img className='mt-5 w-25 h-25 z-0  mr-30 object-cover rounded-lg   ' src={`https://${b2UsuarioBucket}.${b2Url}/${datosCurso_almuno.inscripcion.usuario.foto_perfil}`} alt="" />
+                <img className='mt-5 w-25 h-25 z-0  mr-30 object-cover rounded-lg   ' src={`https://${b2UsuarioBucket}.${b2Url}/${datosCurso_almuno?.inscripcion?.usuario?.foto_perfil}`} alt="" />
 
-                <img className='absolute size-20 bg-red ml-80 mt-14' src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`${frontend}/certificados/${datosCurso_almuno.inscripcion.usuario.token}/${datosCurso_almuno.token_curso}`)}`} alt="" />
+                <img className='absolute size-20 bg-red ml-80 mt-14' src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`${frontend}/certificados/${datosCurso_almuno?.inscripcion?.usuario?.token}/${datosCurso_almuno.token_curso}`)}`} alt="" />
 
                 <div className="absolute right-0 flex flex-row justify-center items-center z-1 top-0 mt-5">
                     <div className="relative px-12 flex justify-start items-start flex-col w-140">
@@ -106,8 +106,8 @@ export default ({ datosCurso_almuno, fecha_vigencia }: { datosCurso_almuno: Curs
             </div>
 
             <div className='print:hidden flex flex-col items-center'>
-                <img className='mt-15 w-40 h-40  ring-7 ring-offset-2 ring-cyan-200 object-cover rounded-lg print:hidden bg-black shadow-lg ' src={`https://${b2UsuarioBucket}.${b2Url}/${datosCurso_almuno.inscripcion.usuario.foto_perfil}`} alt="" />
-                <p className='mt-5 text-center border-b-2 font-black '>{String(datosCurso_almuno.inscripcion.usuario.nombre).toUpperCase()}</p>
+                <img className='mt-15 w-40 h-40  ring-7 ring-offset-2 ring-cyan-200 object-cover rounded-lg print:hidden bg-black shadow-lg ' src={`https://${b2UsuarioBucket}.${b2Url}/${datosCurso_almuno?.inscripcion?.usuario?.foto_perfil}`} alt="" />
+                <p className='mt-5 text-center border-b-2 font-black '>{String(datosCurso_almuno?.inscripcion?.usuario?.nombre).toUpperCase()}</p>
             </div>
         </div>
     </div>
