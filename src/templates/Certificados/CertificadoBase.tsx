@@ -33,7 +33,6 @@ export default () => {
 
 
     useEffect(() => {
-        console.log('uuhuuhuhuh',token,token_curso)
 
         if (!token || !token_curso) { return }
 

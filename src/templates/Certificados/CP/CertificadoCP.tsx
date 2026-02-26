@@ -101,7 +101,21 @@ export default ({ id_suscriptor }: { id_suscriptor: number }) => {
     const [datosCurso_almuno, setDatos] = useState<CursoConAlumno | null>(null)
     const [msg, setMsg] = useState<string | null>('Obteniendo datos del usuario...')
 
+    const [mensajeBotonDescargar, setMensajeBotonDescargar] = useState<string>("Descargar certificado")
+
+    const [descargando, setDescargando] = useState<boolean>(false)
+
     useAutoFitText('.ADP')
+
+    useEffect(() => {
+
+        if (descargando) {
+            setMensajeBotonDescargar('Descargando...')
+        } else {
+            setMensajeBotonDescargar('Descargar certificado')
+        }
+
+    }, [descargando])
 
     useEffect(() => {
 
@@ -153,6 +167,10 @@ export default ({ id_suscriptor }: { id_suscriptor: number }) => {
                 <div className='flex flex-row gap-x-2'>
                     <SetDarkModeB estado={darkMode} fn={setDarkMode} />
                     <button className='cursor-pointer bg-slate-800 text-white rounded-2xl print:hidden mt-5 max-w-30 p-2 mb-5 h-15' onClick={async () => {
+                        if (descargando) { return }
+
+                        setDescargando(true)
+
                         try {
                             const blob = await obtenerPdfDeCertificado(
                                 id_suscriptor,
@@ -171,9 +189,12 @@ export default ({ id_suscriptor }: { id_suscriptor: number }) => {
                         } catch (e) {
                             console.log(e);
                             setMsg("Hubo un problema al intentar descargar el certificado; vuelve a intentarlo.");
+                        } finally {
+                            setDescargando(false)
                         }
+
                     }}>
-                        Descargar certificado
+                        {mensajeBotonDescargar}
                     </button>
                 </div>
 

@@ -124,7 +124,30 @@ export default ({ id_suscriptor }: { id_suscriptor: number }) => {
 
     const [fecha_vigencia, setFechaVigencia] = useState<string | null>(null)
 
+
+    const [mensajeBotonDescargar, setMensajeBotonDescargar] = useState<string>("Descargar diploma")
+
+    const [descargando, setDescargando] = useState<boolean>(false)
+
     useAutoFitText('.ADP');
+
+    useEffect(() => {
+
+        if (descargando) {
+            setMensajeBotonDescargar("Descargando...")
+            return
+        }
+
+        switch (view) {
+            case 'diploma':
+                setMensajeBotonDescargar("Descargar dilpoma")
+                break;
+            default:
+                setMensajeBotonDescargar("Descargar certificado")
+                break;
+        }
+
+    }, [view, descargando])
 
     useEffect(() => {
         console.log(datosCurso_almuno)
@@ -219,6 +242,10 @@ export default ({ id_suscriptor }: { id_suscriptor: number }) => {
                 <button
                     className='cursor-pointer bg-slate-800 text-white rounded-2xl print:hidden mt-5 max-w-30 p-2 mb-5 h-15'
                     onClick={async () => {
+                        if (descargando) { return }
+
+                        setDescargando(true)
+                        
                         try {
                             const blob = await obtenerPdfDeCertificado(
                                 id_suscriptor,
@@ -237,9 +264,11 @@ export default ({ id_suscriptor }: { id_suscriptor: number }) => {
                         } catch (e) {
                             console.log(e);
                             setMsg("Hubo un problema al intentar descargar el certificado; vuelve a intentarlo.");
+                        } finally {
+                            setDescargando(false)
                         }
                     }}>
-                    {view === "diploma" ? "Descargar diploma" : "Descargar certificado"}
+                    {mensajeBotonDescargar}
                 </button>
 
                 {/* Cambiar vista */}
