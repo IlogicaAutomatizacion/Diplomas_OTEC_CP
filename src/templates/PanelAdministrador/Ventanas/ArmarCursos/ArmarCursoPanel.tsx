@@ -477,7 +477,7 @@ export default ({
                     transition
                 "
                 >
-                    Crear empresas
+                    Crear inscripciones
                 </button>
             </div>) : <input
                 type="file"
