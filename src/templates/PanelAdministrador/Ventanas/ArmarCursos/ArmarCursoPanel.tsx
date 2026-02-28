@@ -381,7 +381,6 @@ export default ({
                     Estudiantes ({cursoArmadoLocal.inscripciones.length})
                 </h3>
 
-
                 <Example
                     titulo="Agregar"
                     noCambiarNombreAlSeleccionar
