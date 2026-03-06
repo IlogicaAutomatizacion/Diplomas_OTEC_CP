@@ -8,6 +8,7 @@ import PanelAdministrador from './templates/PanelAdministrador/PanelAdministrado
 import Main from './templates/CursosEmpresa/Main'
 import Layout from './templates/PanelAdministrador/Componentes/SideBar'
 import Panel from './templates/PanelCursos/Panel'
+
 import PanelProfesor from './templates/PanelCursos/PanelProfesor'
 import PanelAlumno from './templates/PanelCursos/PanelAlumno'
 import CertificadoBase from './templates/Certificados/CertificadoBase'
