@@ -13,7 +13,6 @@ import { agregarEmpresaVinculadaAsync, eliminarEmpresaVinculadaPorIdsAsync } fro
 import EditableText from "../../Componentes/EditableText"
 import { Example } from "../../Componentes/DropdownMenu"
 import { b2Url, b2UsuarioBucket } from "../../../../vars"
-import { useState } from "react"
 
 export default ({
     usuario,
