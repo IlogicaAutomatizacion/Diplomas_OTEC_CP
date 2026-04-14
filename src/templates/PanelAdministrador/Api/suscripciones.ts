@@ -84,7 +84,6 @@ export async function obtenerPdfDeCertificado(suscriptor: number, certificado_ur
     });
 
     if (!datos.ok) {
-        const errorText = await datos.text();
         throw new Error("Hubo un problema al obtener el PDF del certificado");
     }
 

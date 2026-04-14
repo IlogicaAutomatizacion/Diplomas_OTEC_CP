@@ -28,7 +28,7 @@ export default ({
     setUsuarioState: React.Dispatch<React.SetStateAction<usuario[]>>,
     onVinculacionChange: () => Promise<void>
 }) => {
-    const [botonesVisible, setBotonesVisible] = useState(false)
+    // const [botonesVisible, setBotonesVisible] = useState(false)
 
     function actualizarUsuario(cambios: Partial<usuario>) {
         setUsuarioState(prev =>
@@ -110,8 +110,8 @@ export default ({
             </button>
 
             <div
-                onMouseEnter={() => setBotonesVisible(true)}
-                onMouseLeave={() => setBotonesVisible(false)}
+                // onMouseEnter={() => setBotonesVisible(true)}
+                // onMouseLeave={() => setBotonesVisible(false)}
                 className="flex flex-col mt-5 break-all gap-y-6"
             >
                 {/* DATOS */}

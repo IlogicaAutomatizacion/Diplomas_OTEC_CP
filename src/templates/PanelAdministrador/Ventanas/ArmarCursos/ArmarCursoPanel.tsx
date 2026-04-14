@@ -9,7 +9,7 @@ import type { curso } from "../../Api/cursos";
 import type { empresa } from "../../Api/empresas";
 import { comprobarFormatoDeCotizacion, eliminarFormatoDeCotizacion, subirArchivoParaFormatoDeCotizacion } from "../../Api/suscripciones";
 import CreadorDeEncuesta, { type EncuestaFormato, type RespuestaEncuesta } from "../../Componentes/CreadorDeEncuesta";
-import { eliminarFormatoEncuestaSatisfaccionClienteAsync, eliminarFormatoEncuestaSatisfaccionUsuarioAsync, obtenerFormatoEncuestaSatisfaccionClienteAsync, obtenerFormatoEncuestaSatisfaccionUsuarioAsync, obtenerRespuestaEncuestaPorCursoArmadoAsync, obtenerRespuestasEncuestaAsync, subirFormatoEncuestaSatisfaccionClienteAsync, subirFormatoEncuestaSatisfaccionUsuarioAsync } from "../../Api/formatos-dinamicos";
+import { eliminarFormatoEncuestaSatisfaccionClienteAsync, eliminarFormatoEncuestaSatisfaccionUsuarioAsync, obtenerFormatoEncuestaSatisfaccionClienteAsync, obtenerFormatoEncuestaSatisfaccionUsuarioAsync, obtenerRespuestaEncuestaPorCursoArmadoAsync, subirFormatoEncuestaSatisfaccionClienteAsync, subirFormatoEncuestaSatisfaccionUsuarioAsync } from "../../Api/formatos-dinamicos";
 
 
 const BotonEliminarConConfirmacion = ({ onConfirmar, label = "Eliminar formato de encuesta" }: {

@@ -10,7 +10,7 @@ import { crearUsuarioDeSuscriptorAsync, crearUsuariosDeSuscriptorAsync, obtenerU
 import { Example } from "../../Componentes/DropdownMenu"
 import UsuariosCard from "./UsuariosCard"
 
-export default ({ usuarios, idSuscriptor, empresas, setUsuarios, refreshKey, onVinculacionChange, usuarioSeleccionadoId, setUsuarioSeleccionadoId }: {
+export default ({ usuarios, idSuscriptor, empresas, setUsuarios, usuarioSeleccionadoId, setUsuarioSeleccionadoId }: {
     usuarios: usuario[],
     empresas: empresa[]
     idSuscriptor: number,

@@ -60,8 +60,7 @@ const EmpresaCard = ({
 
     async function handleEliminarUsuarioAsociadoPorIdVinculacion(
         id_vinculacion: number,
-        usuario_id: number,
-        empresa_id: number
+  
     ) {
         try {
             await eliminarEmpresaVinculadaPorIdAsync(id_vinculacion)
@@ -177,8 +176,6 @@ const EmpresaCard = ({
                                             onClick={() =>
                                                 handleEliminarUsuarioAsociadoPorIdVinculacion(
                                                     vinculacion_id,
-                                                    usuario.id!,
-                                                    empresaLocal.id_empresa!
                                                 )
                                             }
                                             className="w-[25%] cursor-pointer p-2 text-white text-sm font-semibold ml-4 opacity-0 bg-red-500 group-hover:opacity-100 transition-opacity"
