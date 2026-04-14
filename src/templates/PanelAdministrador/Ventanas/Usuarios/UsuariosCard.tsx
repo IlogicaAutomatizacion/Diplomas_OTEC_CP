@@ -1,14 +1,16 @@
+//UsuariosCard.tsx
+
 import type { usuario } from "../../Api/usuarios"
 
 export default ({
     usuario,
-    setUsuarioAVisualizar
+    setUsuarioSeleccionadoId
 }: {
     usuario: usuario
-    setUsuarioAVisualizar: React.Dispatch<React.SetStateAction<usuario | null>>
+    setUsuarioSeleccionadoId: React.Dispatch<React.SetStateAction<number | null>>
 }) => {
     return <h2
-        onClick={() => setUsuarioAVisualizar(usuario)}
+        onClick={() => setUsuarioSeleccionadoId(usuario.id!)}
         className="   text-center
       font-medium
       cursor-pointer

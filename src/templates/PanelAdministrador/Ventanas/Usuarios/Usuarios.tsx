@@ -1,3 +1,5 @@
+//Usuarios.tsx
+
 import { useEffect, useState } from "react"
 
 import UsuariosPanel from "./UsuariosPanel"
@@ -8,16 +10,21 @@ import { crearUsuarioDeSuscriptorAsync, crearUsuariosDeSuscriptorAsync, obtenerU
 import { Example } from "../../Componentes/DropdownMenu"
 import UsuariosCard from "./UsuariosCard"
 
-export default ({ usuarios, idSuscriptor, empresas, setUsuarios }: {
+export default ({ usuarios, idSuscriptor, empresas, setUsuarios, refreshKey, onVinculacionChange, usuarioSeleccionadoId, setUsuarioSeleccionadoId }: {
     usuarios: usuario[],
     empresas: empresa[]
     idSuscriptor: number,
     setUsuarios: React.Dispatch<React.SetStateAction<usuario[]>>
+    refreshKey: number
+    onVinculacionChange: () => void
+    usuarioSeleccionadoId: number | null
+    setUsuarioSeleccionadoId: React.Dispatch<React.SetStateAction<number | null>>
 }) => {
+    // ELIMINA: const [usuarioAVisualizar, setUsuarioAVisualizar] = useState<usuario | null>(null)
+    // ... resto igual
     //const [mensajeUsuarios, setMensajeUsuarios] = useState<string | null>()
     const [mensajeBoton, setMensajeBoton] = useState<string | null>()
-
-    const [usuarioAVisualizar, setUsuarioAVisualizar] = useState<usuario | null>(null)
+    const usuarioAVisualizar = usuarios.find(u => u.id === usuarioSeleccionadoId) ?? null
 
     const {
         datosImportados,
@@ -27,9 +34,14 @@ export default ({ usuarios, idSuscriptor, empresas, setUsuarios }: {
         construirResultado
     } = useExcelMapper<usuario>(async (usuariosExcel) => {
 
-        const res = await crearUsuariosDeSuscriptorAsync(idSuscriptor, usuariosExcel);
+        const res = await crearUsuariosDeSuscriptorAsync(idSuscriptor, usuariosExcel.filter(
+            usuario =>{
+                return Object.values(usuario).some(Boolean)
+            }
+        ));
         setUsuarios(res);
     });
+
 
     useEffect(() => {
         (async () => {
@@ -46,6 +58,11 @@ export default ({ usuarios, idSuscriptor, empresas, setUsuarios }: {
     useEffect(() => {
         setMensajeBoton(null)
     }, [usuarios])
+
+    const refrescarUsuarios = async () => {
+        const usuariosActualizados = await obtenerUsuariosDeSuscriptorAsync(idSuscriptor)
+        setUsuarios(usuariosActualizados)
+    }
 
     const handleAddButton = async () => {
         try {
@@ -74,6 +91,7 @@ export default ({ usuarios, idSuscriptor, empresas, setUsuarios }: {
                 <h2 className="text-2xl sm:text-3xl font-semibold">
                     Usuarios <span className="opacity-70">({usuarios.length})</span>
                 </h2>
+
 
                 <button
                     onClick={handleAddButton}
@@ -104,6 +122,10 @@ export default ({ usuarios, idSuscriptor, empresas, setUsuarios }: {
                         ({datosImportados.filas.length} fila(s))
                     </span>
                 </h2>
+
+                <h3 className="text-sm sm:text-3xl font-semibold">
+                    No se insertarán usuarios con datos inválidos o con correo o rut que ya existen.
+                </h3>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
 
@@ -263,8 +285,13 @@ export default ({ usuarios, idSuscriptor, empresas, setUsuarios }: {
             );
 
             return usuarioAVisualizar ? <div>
-                <UsuariosPanel setUsuarioAVisualizar={setUsuarioAVisualizar} empresas={empresas} setUsuarioState={setUsuarios} usuario={usuarioAVisualizar} />
-
+                <UsuariosPanel
+                    setUsuarioSeleccionadoId={setUsuarioSeleccionadoId}
+                    empresas={empresas}
+                    setUsuarioState={setUsuarios}
+                    usuario={usuarioAVisualizar}
+                    onVinculacionChange={refrescarUsuarios}  // 🔥 IMPORTANTE
+                />
             </div> : <div
                 id="tabla-usuarios"
                 className="
@@ -284,7 +311,7 @@ export default ({ usuarios, idSuscriptor, empresas, setUsuarios }: {
                     <UsuariosCard
                         key={usuario.id}
                         usuario={usuario}
-                        setUsuarioAVisualizar={setUsuarioAVisualizar}
+                        setUsuarioSeleccionadoId={setUsuarioSeleccionadoId}
                     />
                 ))}
 

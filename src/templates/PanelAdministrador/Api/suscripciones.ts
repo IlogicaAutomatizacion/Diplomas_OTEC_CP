@@ -15,27 +15,26 @@ export async function obtenerSuscripcionesDeUsuario() {
     const res = await fetch(`${backend}/suscriptores`)
 
     if (!res.ok) {
-        console.log(await res.json())
         throw new Error('Hubo un problema al obtener las suscripciones.',)
     }
 
     const suscripciones = await res.json()
 
-    console.log(suscripciones)
 
     return suscripciones
 }
 
-export async function obtenerIdDeSuscripcionPorNombreDeEmpresaAsync(nombre_empresa: string) {
-    const id = await fetch(`${backend}/suscriptores/${nombre_empresa}`)
+export async function obtenerIdentificadoresDeSuscripcionPorNombreDeEmpresaAsync(nombre_empresa: string) {
+    const identificadores = await fetch(`${backend}/suscriptores/${nombre_empresa}`)
 
-
-    if (!id.ok) {
-        console.log(await id.json())
-        throw new Error('Hubo un problema al obtener el id de la suscripcion.',)
+    if (!identificadores.ok) {
+        throw new Error('Hubo un problema al obtener los identificadores de la suscripcion.',)
     }
 
-    const res = await id.json()
+    const res: {
+        id: number,
+        uuidSuscriptor: string,
+    } = await identificadores.json()
 
     return res
 }
@@ -49,7 +48,6 @@ export async function obtenerIdDeSuscripcionPorTokenDeCursoArmadoAsync(token: st
 
     const res = await id.json()
 
-    console.log(res)
 
     return res
 }
@@ -63,7 +61,6 @@ export async function obtenerDatosDeCertificadoConTokenDeCursoArmadoAsync(suscri
 
     const datos = await fetch(`${backend}/certificados?${params}`)
     if (!datos.ok) {
-        console.log(await datos.json())
 
         throw new Error('Hubo un problema al obtener los datos del certificado.')
     }
@@ -88,11 +85,10 @@ export async function obtenerPdfDeCertificado(suscriptor: number, certificado_ur
 
     if (!datos.ok) {
         const errorText = await datos.text();
-        console.log("Error del servidor:", errorText);
         throw new Error("Hubo un problema al obtener el PDF del certificado");
     }
 
-    return await datos.blob(); 
+    return await datos.blob();
 }
 
 
@@ -115,7 +111,6 @@ export async function crearCursoDeSuscriptorAsync(id_suscriptor: number, cuerpo?
 
     if (!cursoNuevo.ok) {
         const problem = await cursoNuevo.json()
-        console.log(problem)
         throw new Error(problem.message)
     }
 
@@ -135,7 +130,6 @@ export async function crearCursosDeSuscriptorAsync(id_suscriptor: number, cuerpo
 
     if (!cursosNuevo.ok) {
         const problem = await cursosNuevo.json()
-        console.log(problem)
         throw new Error(problem.message)
     }
 
@@ -169,7 +163,6 @@ export async function crearCursoArmadoDeSuscriptorAsync(id_suscriptor: number, c
 
     if (!cursoArmadoNuevo.ok) {
         const problem = await cursoArmadoNuevo.json()
-        console.log(problem)
         throw new Error(problem.message)
     }
 
@@ -203,7 +196,6 @@ export async function crearUsuarioDeSuscriptorAsync(id_suscriptor: number, cuerp
 
     if (!usuario.ok) {
         const problem = await usuario.json()
-        console.log(problem)
         throw new Error(problem.message)
     }
 
@@ -224,7 +216,6 @@ export async function crearUsuariosDeSuscriptorAsync(id_suscriptor: number, cuer
 
     if (!usuarios.ok) {
         const problem = await usuarios.json()
-        console.log(problem)
         throw new Error(problem.message)
     }
 
@@ -259,7 +250,6 @@ export async function crearEmpresaDeSuscriptorAsync(id_suscriptor: number, cuerp
 
     if (!empresa.ok) {
         const problem = await empresa.json()
-        console.log(problem)
         throw new Error(problem.message)
     }
 
@@ -280,7 +270,6 @@ export async function crearEmpresasDeSuscriptorAsync(id_suscriptor: number, cuer
     if (!empresa.ok) {
         const problem = await empresa.json()
 
-        console.log(problem)
 
         throw new Error(problem.message)
     }
@@ -301,4 +290,59 @@ export async function obtenerEmpresasDeSuscriptorAsync(id_suscripcion: number) {
     const toJson = await cursos.json()
 
     return toJson
+}
+
+
+export async function subirArchivoParaFormatoDeCotizacion(id_suscripcion: number, formatoDocx: File) {
+    const formData = new FormData()
+    formData.append("formatoCotizacion", formatoDocx)
+
+    const res = await fetch(`${backend}/suscriptores/subirFormatoDeCotizacion/${id_suscripcion}`, {
+        method: 'POST',
+
+        body: formData
+    })
+
+    if (!res.ok) {
+        throw new Error('Hubo un problema al subir el formato de cotización.')
+    }
+
+    return res.json()
+}
+
+export async function comprobarFormatoDeCotizacion(id_suscripcion: number): Promise<boolean> {
+    const res = await fetch(`${backend}/suscriptores/comprobarFormatoDeCotizacion/${id_suscripcion}`)
+
+    if (!res.ok) throw new Error('Hubo un problema al comprobar el formato de cotización.')
+
+    return res.json()
+}
+
+export async function eliminarFormatoDeCotizacion(id_suscripcion: number) {
+    const res = await fetch(`${backend}/suscriptores/eliminarFormatoDeCotizacion/${id_suscripcion}`, {
+        method: 'DELETE',
+    })
+
+    if (!res.ok) throw new Error('Hubo un problema al eliminar el formato de cotización.')
+
+    return res.json()
+}
+
+
+export async function obtenerContadorCotizaciones(id_suscripcion: number): Promise<{ contador_cotizaciones: number }> {
+    const res = await fetch(`${backend}/suscriptores/contadorCotizaciones/${id_suscripcion}`);
+
+    if (!res.ok) throw new Error('Hubo un problema al obtener el contador de cotizaciones.');
+
+    return res.json();
+}
+
+export async function incrementarContadorCotizaciones(id_suscripcion: number): Promise<{ contador_cotizaciones: number }> {
+    const res = await fetch(`${backend}/suscriptores/incrementarContadorCotizaciones/${id_suscripcion}`, {
+        method: 'POST',
+    });
+
+    if (!res.ok) throw new Error('Hubo un problema al incrementar el contador de cotizaciones.');
+
+    return res.json();
 }

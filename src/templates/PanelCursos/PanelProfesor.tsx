@@ -16,7 +16,6 @@ const ProfesorCard = ({ curso, setPanel }: { curso: cursoArmado, setPanel: React
         (async () => {
             const result = await checarSiPuedeFinalizar(curso.curso_armado_id)
 
-            console.log(result)
 
             setPuedeFinalizar(result)
         })()
@@ -32,7 +31,6 @@ const ProfesorCard = ({ curso, setPanel }: { curso: cursoArmado, setPanel: React
         try {
             const cursoArmadoActualizado: cursoArmado = await actualizarPropiedadDeCursoArmadoAsync(cursoLocal.curso_armado_id, 'en_clase', activar)
 
-            console.log(cursoArmadoActualizado)
 
             setCursoLocal(cursoArmadoActualizado)
         } catch (e) {

@@ -35,7 +35,6 @@ export async function crearEmpresaAsync(cuerpo?: empresa) {
 
         const problem = await empresaNueva.json()
 
-        console.log(problem)
         throw new Error(problem.message)
     }
 

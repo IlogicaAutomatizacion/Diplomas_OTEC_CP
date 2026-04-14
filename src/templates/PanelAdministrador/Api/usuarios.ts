@@ -59,7 +59,6 @@ export async function crearUsuarioAsync(cuerpo?: usuario) {
 
         const problem = await usuarioNuevo.json()
 
-        console.log(problem)
         throw new Error(problem.message)
     }
 
@@ -109,7 +108,6 @@ export async function actualizarPropiedadDeUsuarioAsync(usuarioId: number, propi
     })
 
     if (!res.ok) {
-        console.log(await res.json())
         throw new Error('Hubo un problema al editar la propiedad.')
     }
 }
@@ -120,7 +118,6 @@ export async function obtenerInscripcionesDeAlumno() {
     const toJson = await res.json()
 
     if (!res.ok) {
-        console.log(toJson)
         throw new Error(toJson?.message ?? 'No se pudieron obtener las inscripciones del alumno.')
     }
 
@@ -133,7 +130,6 @@ export async function obtenerCursosParaPanelProfesor() {
     const toJson = await res.json()
 
     if (!res.ok) {
-        console.log(toJson)
 
         throw new Error(toJson?.message ?? 'No se pudieron obtener las inscripciones del alumno.')
     }
@@ -150,16 +146,13 @@ export async function subirFotoDePerfilAsync(file: File, id_usuario: number) {
         body: formData
     })
 
-    console.log(res)
 
     if (!res.ok) {
-        console.log(await res.json())
         throw new Error('Hubo un problema al subir la foto del usuario.')
     }
 
     const foto_perfil: { foto_perfil: string } = await res.json()
 
-    console.log(foto_perfil)
 
     return foto_perfil
 }
@@ -174,7 +167,6 @@ export async function subirFirmaAsync(file: File, id_usuario: number) {
     })
 
     if (!res.ok) {
-        console.log(await res.json())
         throw new Error('Hubo un problema al subir la firma del usuario.')
     }
 
@@ -191,7 +183,6 @@ export async function eliminarFotoDePerfilAsync(id_usuario: number) {
     })
 
     if (!res.ok) {
-        console.log(await res.json())
         throw new Error('Hubo un problema al borrar la foto de perfil del usuario.')
     }
 
@@ -205,7 +196,6 @@ export async function eliminarFirmaAsync(id_usuario: number) {
     })
 
     if (!res.ok) {
-        console.log(await res.json())
         throw new Error('Hubo un problema al borrar la foto de perfil del usuario.')
     }
 

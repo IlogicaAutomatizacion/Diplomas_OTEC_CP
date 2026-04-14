@@ -21,6 +21,8 @@ import MisSuscripciones from './templates/PanelAdministrador/Selector'
 import NotFoundPage from './templates/NotFound/NotFound'
 import ErrorPage from './Error/Error'
 import { emitError, ErrorProvider } from './Error/ErrorContext'
+import Cliente from './templates/Encuestas/EncuestasSatisfaccion/Cliente'
+import Usuario from './templates/Encuestas/EncuestasSatisfaccion/Usuario'
 
 const originalFetch = window.fetch;
 
@@ -88,6 +90,17 @@ const router = createBrowserRouter([
     errorElement: <ErrorPage />,
     path: '/certificados/:token/:token_curso',
     element: <CertificadoBase />
+  },
+
+  {
+    errorElement: <ErrorPage />,
+    path: '/encuestas/satisfaccion-cliente/:token_usuario/:token_suscriptor/:token_curso_armado',
+    element: <Cliente />
+  },
+  {
+    errorElement: <ErrorPage />,
+    path: '/encuestas/satisfaccion-usuario/:token_inscripcion/:token_suscriptor',
+    element: < Usuario />
   },
 
   {

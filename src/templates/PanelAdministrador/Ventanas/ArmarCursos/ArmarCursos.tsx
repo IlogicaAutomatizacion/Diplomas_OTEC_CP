@@ -8,11 +8,12 @@ import { ErrorContext } from "../../../../Error/ErrorContext"
 import CursoArmadoCard from "./ArmarCursoCard"
 import ArmarCursoPanel from "./ArmarCursoPanel"
 
-export default ({ usuarios, empresas, cursos, idSuscriptor, cursosArmados, setCursosArmados }: {
+export default ({ usuarios, empresas, cursos, idSuscriptor, cursosArmados, uuidSuscriptor, setCursosArmados }: {
     usuarios: usuario[],
     empresas: empresa[],
     cursos: curso[],
 
+    uuidSuscriptor: string,
     idSuscriptor: number,
 
     cursosArmados: cursoArmado[],
@@ -77,7 +78,7 @@ export default ({ usuarios, empresas, cursos, idSuscriptor, cursosArmados, setCu
     return <div className="w-full">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <h2 className="text-2xl sm:text-3xl font-semibold">
-                Armar cursos <span className="opacity-70">({cursosArmados.length})</span>
+                Gestionar cursos <span className="opacity-70">({cursosArmados.length})</span>
             </h2>
 
             {/* INPUT DE BÚSQUEDA */}
@@ -128,7 +129,7 @@ export default ({ usuarios, empresas, cursos, idSuscriptor, cursosArmados, setCu
         overflow-y-auto
         p-2
         ">
-            <ArmarCursoPanel setCursoArmadoAVisualizar={setCursoArmadoAVisualizar} cursoArmado={cursoArmadoAVisualizar} cursos={cursos} empresas={empresas} setCursosArmadosState={setCursosArmados} usuarios={usuarios} />
+            <ArmarCursoPanel uuidSuscriptor={uuidSuscriptor} setCursoArmadoAVisualizar={setCursoArmadoAVisualizar} idSuscriptor={idSuscriptor} cursoArmado={cursoArmadoAVisualizar} cursos={cursos} empresas={empresas} setCursosArmadosState={setCursosArmados} usuarios={usuarios} />
         </div> : <div
             id="tabla-cursos-armados"
             className="

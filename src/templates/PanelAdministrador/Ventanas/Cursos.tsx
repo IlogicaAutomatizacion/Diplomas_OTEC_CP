@@ -143,7 +143,7 @@ const CursoCard = ({ curso, setCursosState }: { curso: curso, setCursosState: Re
                         text-sm sm:text-base
                     `}
                     >
-                        Eliminar
+                        Eliminar curso
                     </button>
                 </div>
             </div>
@@ -162,8 +162,6 @@ export default ({ cursos, idSuscriptor, setCursos }: {
 
     const [busqueda, setBusqueda] = useState('');
 
-
-
     const {
         datosImportados,
         // mapeo,
@@ -171,7 +169,12 @@ export default ({ cursos, idSuscriptor, setCursos }: {
         cargarArchivo,
         construirResultado
     } = useExcelMapper<curso>(async (cursosExcel) => {
-        const res = await crearCursosDeSuscriptorAsync(idSuscriptor, cursosExcel);
+        const res = await crearCursosDeSuscriptorAsync(idSuscriptor, cursosExcel.filter(
+            curso =>{
+                return Object.values(curso).some(Boolean)
+            }
+        ));
+        console.log(res)
         setCursos(res);
     });
 
@@ -325,7 +328,13 @@ export default ({ cursos, idSuscriptor, setCursos }: {
                 >
                     Crear cursos
                 </button>
+            
+                <h3 className="text-sm sm:text-3xl font-semibold text-center">
+                    No se agregarán cursos los cuales su duración no sea un número.
+                </h3>
             </div>
+            
+            
         ) : (
             <div className="mt-6 flex justify-center">
                 <input
@@ -346,6 +355,7 @@ export default ({ cursos, idSuscriptor, setCursos }: {
                 "
                 />
             </div>
+            
         )}
 
         {/* 🔍 BUSCADOR */}

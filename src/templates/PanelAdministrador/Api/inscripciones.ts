@@ -1,9 +1,11 @@
 import { backend } from "../../../vars";
+import type { CrearRespuestaEncuestaDto, RespuestaEncuesta } from "../Componentes/CreadorDeEncuesta";
 import type { cursoArmado } from "./cursos-armados";
 import type { usuario } from "./usuarios";
 
 export interface inscripcion {
     id_inscripcion?: number;
+    uuid_inscripcion?: string;
     rut?: string;
     usuario?: usuario;
     cursoArmado: number;
@@ -11,6 +13,7 @@ export interface inscripcion {
     calificacion?: number;
     teorica?: number;
     notificar?: boolean;
+    respuestas_encuestas?: Record<string, RespuestaEncuesta[]>
     asistencia_marcada?: boolean
 }
 
@@ -37,7 +40,6 @@ export async function crearInscripcionAsync(data: {
 }
 
 export async function crearInscripcionesAsync(data: inscripcion[]) {
-    console.log(data)
     const res = await fetch(`${backend}/inscripciones/crearInscripciones`, {
         method: 'POST',
         headers: {
@@ -89,7 +91,6 @@ export async function editarInscripcionAsync(
     });
 
     if (!res.ok) {
-        console.log(await res.json())
         throw new Error('Hubo un problema al editar la inscripción.');
     }
 
@@ -102,9 +103,49 @@ export async function eliminarInscripcionAsync(id: number) {
     });
 
     if (!res.ok) {
-        console.log(await res.json())
         throw new Error('Hubo un problema al eliminar la inscripción.');
     }
 
     return res.json()
+}
+
+
+export async function agregarRespuestaEncuestaAsync(
+    uuid: string,
+    uuidEncuesta: string,
+    respuesta: CrearRespuestaEncuestaDto
+) {
+    const res = await fetch(`${backend}/inscripciones/${uuid}/encuestas/${uuidEncuesta}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(respuesta),
+    });
+
+    if (!res.ok) throw new Error('Hubo un problema al guardar la respuesta.');
+
+    return res.json();
+}
+
+export async function obtenerRespuestasEncuestaAsync(
+    uuid: string,
+    uuidEncuesta: string
+): Promise<RespuestaEncuesta[]> {
+    const res = await fetch(`${backend}/inscripciones/${uuid}/encuestas/${uuidEncuesta}`);
+
+    if (!res.ok) throw new Error('No se pudieron obtener las respuestas.');
+
+    return res.json();
+}
+
+export async function eliminarRespuestasEncuestaAsync(
+    uuid: string,
+    uuidEncuesta: string
+) {
+    const res = await fetch(`${backend}/inscripciones/${uuid}/encuestas/${uuidEncuesta}`, {
+        method: 'DELETE',
+    });
+
+    if (!res.ok) throw new Error('Hubo un problema al eliminar las respuestas.');
+
+    return res.json();
 }

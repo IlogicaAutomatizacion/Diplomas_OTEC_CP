@@ -20,6 +20,12 @@ export interface cursoArmado {
     estado?: 'ACTIVO' | 'INACTIVO' | 'FINALIZADO'
     curso?: curso,
     profesor?: usuario,
+    valorUnitario: number,
+    lugar_de_realizacion: string,
+    notas_cotizacion: string,
+    alumnosCotizados: number,
+    contactoDeCotizacion?: usuario,
+    precioPorAlumno?: number,
     empresa?: empresa,
     en_clase?: boolean
     calificacion_aprobatoria?: number,
@@ -76,7 +82,6 @@ export async function actualizarPropiedadDeCursoArmadoAsync(cursoId: number, pro
     })
 
     if (!res.ok) {
-        console.log(await res.json())
         throw new Error('Hubo un problema al editar la propiedad.')
     }
 
@@ -109,9 +114,54 @@ export async function checarSiPuedeFinalizar(curso_armado_id: number) {
     const res = await fetch(`${backend}/curso-armado/curso/puedeFinalizar/${curso_armado_id}`)
 
     if (!res.ok) {
-        console.log(await res.json())
         throw new Error('Hubo un problema al obtener la informacion.')
     }
 
     return res.json()
+}
+
+export async function mandarCotizacionDeCurso(curso_armado_id: number) {
+
+    const res = await fetch(`${backend}/curso-armado/curso/mandarCotizacion/${curso_armado_id}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    })
+
+    if (!res.ok) {
+        throw new Error('Hubo un problema al mandar la cotización del curso.')
+    }
+}
+
+
+export async function mandarEncuestasDeSatisfaccion(curso_armado_id: number) {
+
+    const res = await fetch(`${backend}/curso-armado/curso/mandarEncuestasDeSatisfaccion/${curso_armado_id}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    })
+
+    if (!res.ok) {
+        throw new Error('Hubo un problema al mandar las encuestas de satisfacción.')
+    }
+
+}
+
+export async function descargarCotizacionAsync(curso_armado_id: number) {
+    const res = await fetch(`${backend}/curso-armado/curso/descargarCotizacion/${curso_armado_id}`)
+
+    if (!res.ok) throw new Error('Hubo un problema al descargar la cotización.')
+
+    const blob = await res.blob()
+    const url = URL.createObjectURL(blob)
+
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `cotizacion_vista_previa.pdf`
+    a.click()
+
+    URL.revokeObjectURL(url)
 }

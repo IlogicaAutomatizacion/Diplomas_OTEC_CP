@@ -5,6 +5,21 @@ export type EmpresaVinculada ={
     nombre: string
 }
 
+
+export async function obtenerUsuariosVinculadosAEmpresaPorIdEmpresaAsync(data: {
+    empresa_id: number;
+}) {
+    const res = await fetch(`${backend}/empresasVinculadas/asociadosEmpresa/${data.empresa_id}`, {
+        method: 'GET',
+    });
+
+    if (!res.ok) {
+        throw new Error('Hubo un problema al obtener los usuarios vinculados a la empresa.');
+    }
+
+    return res.json();
+}
+
 export async function agregarEmpresaVinculadaAsync(data: {
     usuario_id: number;
     empresa_id: number;
@@ -18,7 +33,25 @@ export async function agregarEmpresaVinculadaAsync(data: {
     });
 
     if (!res.ok) {
-        console.log(await res.json());
+        throw new Error('Hubo un problema al vincular la empresa con el usuario.');
+    }
+
+    return res.json();
+}
+
+export async function agregarUsuarioVinculadoConEmpresaAsync(data: {
+    usuario_id: number;
+    empresa_id: number;
+}) {
+    const res = await fetch(`${backend}/empresasVinculadas/vincularUsuarioConEmpresa`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+    });
+
+    if (!res.ok) {
         throw new Error('Hubo un problema al vincular la empresa con el usuario.');
     }
 
@@ -38,7 +71,6 @@ export async function eliminarEmpresaVinculadaPorIdsAsync(data: {
     });
 
     if (!res.ok) {
-        console.log(await res.json());
         throw new Error('Hubo un problema al eliminar la vinculación.');
     }
 
@@ -56,7 +88,6 @@ export async function eliminarEmpresaVinculadaPorIdAsync(
     );
 
     if (!res.ok) {
-        console.log(await res.json());
         throw new Error('Hubo un problema al eliminar la vinculación.');
     }
 
