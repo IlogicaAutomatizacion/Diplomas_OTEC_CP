@@ -1,9 +1,76 @@
+import { useEffect, useState } from "react"
 
-export default ({ text, lostFocusCallback }: {
-    text: string,
-    lostFocusCallback: (e: React.FocusEvent<HTMLSpanElement, Element>) => void
-}) => {
-    return <span suppressContentEditableWarning contentEditable={true} className="focus:outline-none" onBlur={lostFocusCallback}>
-        {text}
-    </span>
+export default function EditableText({
+    text,
+    onChange
+}: {
+    text: string | number,
+    onChange: (value: string) => void
+}) {
+    const [draft, setDraft] = useState(String(text ?? ''))
+
+    useEffect(() => {
+        setDraft(String(text ?? ''))
+    }, [text])
+
+    const isLongText =
+        draft.includes('\n') ||
+        String(text ?? '').includes('\n') ||
+        draft.length > 80
+
+    if (isLongText) {
+        return (
+            <textarea
+                value={draft}
+                dir="ltr"
+                rows={3}
+                className="
+                    mt-1
+                    block
+                    w-full
+                    rounded
+                    border
+                    border-slate-600
+                    bg-slate-900/60
+                    px-2
+                    py-1
+                    text-left
+                    align-top
+                    outline-none
+                    resize-y
+                "
+                onChange={(e) => {
+                    const value = e.target.value
+                    setDraft(value)
+                    onChange(value)
+                }}
+            />
+        )
+    }
+
+    return (
+        <input
+            type="text"
+            value={draft}
+            dir="ltr"
+            className="
+                inline-block
+                min-w-[12rem]
+                max-w-full
+                rounded
+                border
+                border-slate-600
+                bg-slate-900/60
+                px-2
+                py-1
+                text-left
+                outline-none
+            "
+            onChange={(e) => {
+                const value = e.target.value
+                setDraft(value)
+                onChange(value)
+            }}
+        />
+    )
 }

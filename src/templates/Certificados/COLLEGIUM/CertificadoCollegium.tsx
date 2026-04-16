@@ -227,6 +227,8 @@ export default ({ id_suscriptor }: { id_suscriptor: number }) => {
 
     if (!datosCurso_almuno) return null;
 
+    const certificador = datosCurso_almuno.certificador ?? datosCurso_almuno.profesor
+
     // --------------------------
     // GENERAR URL CON VIEW
     // --------------------------
@@ -245,7 +247,7 @@ export default ({ id_suscriptor }: { id_suscriptor: number }) => {
                         if (descargando) { return }
 
                         setDescargando(true)
-                        
+
                         try {
                             const blob = await obtenerPdfDeCertificado(
                                 id_suscriptor,
@@ -348,13 +350,24 @@ export default ({ id_suscriptor }: { id_suscriptor: number }) => {
                                                     USO EXCLUSIVO EMPRESA: {datosCurso_almuno.empresa?.nombre}
                                                 </p>
 
-                                                <div className='absolute z-30 mt-10 ml-90 w-70'>
-                                                    <p className='text-semibold border-t-2'>
-                                                        Franklin Ramírez Lambreht <br />
-                                                        Director Ejecutivo
+                                                <div className='absolute z-30  ml-120 w-70 flex flex-col justify-center items-center'>
+                                                    {/* certificado por: */}
+                                                    {certificador.firma ? (
+                                                        <img
+                                                            src={`https://${b2UsuarioBucket}.${b2Url}/${certificador.firma}`}
+                                                            className='object-contain h-20 '
+                                                            alt="firma certificador"
+                                                        />
+                                                    ) : null}
 
-                                                    </p>
+                                                    {/* certificado por: */}
+                                                    <div className="h-1 w-50 border-b border-gray-400 mb-1"></div>
+                                                    <p className="text-sm font-semibold dark:text-gray-50">{certificador.nombre}</p>
+                                                    <p className="text-xs text-gray-500 dark:text-gray-100">{certificador.especialidad}</p>
                                                 </div>
+
+
+
                                             </div>
 
                                         </div>
@@ -363,6 +376,8 @@ export default ({ id_suscriptor }: { id_suscriptor: number }) => {
 
 
                                     </div>
+
+
 
                                     <div className="flex-col  basis-full lg:flex-row z-10 text-[10px] text-center w-190 mb-25 flex items-center justify-center">
                                         <p className='text-blue-600'>
@@ -381,7 +396,9 @@ export default ({ id_suscriptor }: { id_suscriptor: number }) => {
                                     alt="logo"
                                     className="absolute  -bottom-20 right-0 size-135 bg-center object-fit h-auto block"
                                 />
-
+                                <div className='absolute z-30 mr-228 mt-170  text-black'>
+                                    <p>Certificado No. {datosCurso_almuno.inscripcion.numero_certificado ?? 'Pendiente'}</p>
+                                </div>
                             </div>
 
 

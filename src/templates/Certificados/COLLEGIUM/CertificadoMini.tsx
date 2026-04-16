@@ -5,6 +5,8 @@ import type { CursoConAlumno } from '../../PanelAdministrador/Api/cursos-armados
 import { b2Url, b2UsuarioBucket, frontend } from '../../../vars'
 
 export default ({ datosCurso_almuno, fecha_vigencia }: { datosCurso_almuno: CursoConAlumno, fecha_vigencia: string | null }) => {
+    const certificador = datosCurso_almuno.certificador ?? datosCurso_almuno.profesor
+
     return <div className='h-[100vh] bg-gray-100  w-[100wv]'>
         <div className={`certificado-page  flex items-center print:h-auto justify-center bg-gray-100 flex-col print:flex-col `}>
 
@@ -82,8 +84,21 @@ export default ({ datosCurso_almuno, fecha_vigencia }: { datosCurso_almuno: Curs
                         {/* <img className='size-20 bg-red  mt-8' src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`${'http//localhost:3000'}/certificados/${datosCurso_almuno.inscripcion.usuario.token}/${datosCurso_almuno.token_curso}`)}`} alt="" /> */}
 
                         <p className='text-center w-60 mr-5 text-[#23476b] font-semibold'>
-                            Certificado por:&nbsp;{datosCurso_almuno.profesor.nombre} <br />
-                            {datosCurso_almuno.profesor.especialidad}
+                            {/* certificado por: */}
+                            <div className=" text-center flex justify-center items-center flex-col mt-1 ">
+                                {certificador.firma ? (
+                                    <img
+                                        src={`https://${b2UsuarioBucket}.${b2Url}/${certificador.firma}`}
+                                        className='object-contain h-20 '
+                                        alt="firma certificador"
+                                    />
+                                ) : null}
+
+                                {/* certificado por: */}
+                                <div className="h-1 w-50 border-b border-gray-400 mb-1"></div>
+                                <p className="text-sm font-semibold dark:text-gray-50">{certificador.nombre}</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-100">{certificador.especialidad}</p>
+                            </div>
                         </p>
                         <br />
                         <p className='text-center w-70 mr-5 text-[#23476b] font-semibold'>

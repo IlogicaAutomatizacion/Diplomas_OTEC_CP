@@ -34,6 +34,8 @@ const EmpresaCard = ({
     const [infoAbierta, setInfoAbierta] = useState(false)
     const [botonesVisible, setBotonesVisible] = useState(false)
     const [empresaLocal, setEmpresaLocal] = useState<empresa>(empresa)
+    const [empresaGuardada, setEmpresaGuardada] = useState<empresa>(empresa)
+    const [guardando, setGuardando] = useState(false)
     const [usuariosVinculadosAEmpresa, setUsuariosVinculadosAEmpresa] = useState<null | vinculacion[]>(null)
 
     useEffect(() => {
@@ -48,6 +50,7 @@ const EmpresaCard = ({
 
     useEffect(() => {
         setEmpresaLocal(empresa)
+        setEmpresaGuardada(empresa)
     }, [empresa.id_empresa])
 
     useEffect(() => {
@@ -106,18 +109,33 @@ const EmpresaCard = ({
         }
     }
 
-    async function guardarParametro(nombreParametro: keyof empresa, nuevoValor: string) {
-        if (!empresaLocal.id_empresa) return
-        const valorActual = empresaLocal[nombreParametro]
-        const valorNuevo = nuevoValor.trim()
-        if (valorActual === valorNuevo) return
+    const hayCambios = (Object.entries(empresaLocal) as [keyof empresa, empresa[keyof empresa]][])
+        .some(([key, value]) => !String(key).toLowerCase().includes('id') && value !== empresaGuardada[key])
 
-        setEmpresaLocal(prev => ({ ...prev, [nombreParametro]: valorNuevo }))
+    async function guardarCambios() {
+        if (!empresaLocal.id_empresa || !hayCambios) return
+
+        setGuardando(true)
+
         try {
-            await actualizarPropiedadDeEmpresaAsync(empresaLocal.id_empresa, nombreParametro, valorNuevo)
+            const entries = Object.entries(empresaLocal) as [keyof empresa, empresa[keyof empresa]][]
+
+            for (const [key, value] of entries) {
+                if (String(key).toLowerCase().includes('id') || value === empresaGuardada[key]) continue
+
+                await actualizarPropiedadDeEmpresaAsync(
+                    empresaLocal.id_empresa,
+                    key,
+                    String(value ?? '').trim()
+                )
+            }
+
+            setEmpresaGuardada(empresaLocal)
         } catch (e) {
             console.log(e)
-            setEmpresaLocal(prev => ({ ...prev, [nombreParametro]: valorActual }))
+            setEmpresaLocal(empresaGuardada)
+        } finally {
+            setGuardando(false)
         }
     }
 
@@ -143,9 +161,13 @@ const EmpresaCard = ({
                                 <p key={key}>
                                     <span className="text-blue-400">{key}:</span>{' '}
                                     <EditableText
-                                        lostFocusCallback={(e) =>
-                                            guardarParametro(key as keyof empresa, e.target.textContent ?? '')
-                                        }
+                                        onChange={(value) => {
+                                            const nombreParametro = key as keyof empresa
+                                            setEmpresaLocal(prev => ({
+                                                ...prev,
+                                                [nombreParametro]: value.trim()
+                                            }))
+                                        }}
                                         text={value ?? 'Sin dato'}
                                     />
                                 </p>
@@ -189,6 +211,13 @@ const EmpresaCard = ({
                     </div>
 
                     <div className="flex flex-col gap-y-2 pt-2">
+                        <button
+                            onClick={guardarCambios}
+                            disabled={!hayCambios || guardando}
+                            className={`h-10 w-full text-sm sm:text-base ${!hayCambios || guardando ? 'bg-slate-600 cursor-not-allowed' : 'bg-blue-600 cursor-pointer'}`}
+                        >
+                            {guardando ? 'Guardando...' : 'Guardar'}
+                        </button>
                         <button
                             onClick={handleDelete}
                             className={`${botonesVisible ? '' : 'hidden'} h-10 w-full cursor-pointer bg-red-400 text-sm sm:text-base`}

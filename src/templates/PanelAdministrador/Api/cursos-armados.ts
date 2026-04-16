@@ -9,8 +9,10 @@ export interface CursoConAlumno extends cursoArmado {
     curso_armado_id: cursoArmado['curso_armado_id']
     empresa: empresa;
     profesor: usuario;
+    certificador?: usuario | null;
     curso: curso;
     inscripcion: inscripcion
+    inicio_contador_certificados?: number
 }
 
 export interface cursoArmado {

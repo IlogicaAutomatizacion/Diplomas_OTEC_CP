@@ -7,11 +7,11 @@ interface ErrorPopoutProps {
 
 export default function ErrorPopout({ mensaje, onClose }: ErrorPopoutProps) {
 
-    // cerrar con ESC (extra nice)
     useEffect(() => {
         const handler = (e: KeyboardEvent) => {
             if (e.key === "Escape") onClose();
         };
+
         window.addEventListener("keydown", handler);
         return () => window.removeEventListener("keydown", handler);
     }, [onClose]);
@@ -26,7 +26,6 @@ export default function ErrorPopout({ mensaje, onClose }: ErrorPopoutProps) {
         animate-fadeIn
       "
         >
-            {/* card */}
             <div
                 onClick={(e) => e.stopPropagation()}
                 className="
@@ -38,14 +37,13 @@ export default function ErrorPopout({ mensaje, onClose }: ErrorPopoutProps) {
           p-6
           text-white
           space-y-4
-          animate-scaleIn
         "
             >
                 <h2 className="text-2xl font-bold text-red-400 text-center">
-                    Ocurrió un error
+                    Ocurrio un error
                 </h2>
 
-                <p className="text-center text-slate-300 break-words">
+                <p className="text-left text-slate-300 break-words whitespace-pre-line leading-6">
                     {mensaje}
                 </p>
 

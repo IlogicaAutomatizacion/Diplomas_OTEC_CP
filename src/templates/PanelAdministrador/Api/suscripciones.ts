@@ -11,6 +11,11 @@ export type suscripcionAdministrador = {
     id_empresa: number
 }
 
+export type parametrosSuscriptor = {
+    certificador: usuario | null,
+    inicio_contador_certificados: number
+}
+
 export async function obtenerSuscripcionesDeUsuario() {
     const res = await fetch(`${backend}/suscriptores`)
 
@@ -344,4 +349,34 @@ export async function incrementarContadorCotizaciones(id_suscripcion: number): P
     if (!res.ok) throw new Error('Hubo un problema al incrementar el contador de cotizaciones.');
 
     return res.json();
+}
+
+export async function obtenerParametrosDeSuscriptorAsync(id_suscripcion: number): Promise<parametrosSuscriptor> {
+    const res = await fetch(`${backend}/suscriptores/parametros/${id_suscripcion}`)
+
+    if (!res.ok) {
+        throw new Error('Hubo un problema al obtener los parámetros del suscriptor.')
+    }
+
+    return res.json()
+}
+
+export async function actualizarParametrosDeSuscriptorAsync(
+    id_suscripcion: number,
+    cuerpo: { certificador?: number | null, inicio_contador_certificados?: number }
+): Promise<parametrosSuscriptor> {
+    const res = await fetch(`${backend}/suscriptores/parametros/${id_suscripcion}`, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(cuerpo)
+    })
+
+    if (!res.ok) {
+        const problem = await res.json().catch(() => null)
+        throw new Error(problem?.message ?? 'Hubo un problema al guardar los parámetros del suscriptor.')
+    }
+
+    return res.json()
 }

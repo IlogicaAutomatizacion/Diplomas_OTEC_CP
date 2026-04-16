@@ -2,9 +2,6 @@ import gotTitleBlanco from '../../../assets/CP/cr_fondo_blanco/title.png'
 import gotTitleNegro from '../../../assets/CP/cr_fondo_negro/title.png'
 import dadosNegro from '../../../assets/CP/cr_fondo_negro/dados.png'
 import dadosBlanco from '../../../assets/CP/cr_fondo_blanco/dados.png'
-import firmaGn from '../../../assets/CP/firma_Gn.png'
-
-
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 //import { backend, frontend } from '../../../vars'
@@ -55,6 +52,8 @@ function useAutoFitText(selector: string, minSize = 4, maxSize = 14) {
 }
 
 function BackCertificate({ datosAl }: { datosAl: CursoConAlumno, dark: boolean }) {
+    const certificador = datosAl.certificador ?? datosAl.profesor
+
     return (
         <div className={`certificado-page lg:w-[297mm] print:w-[297mm] print:h-[209mm] bg-white dark:bg-black shadow-lg border border-gray-200 print:shadow-none print:border-0`}>
 
@@ -75,13 +74,18 @@ function BackCertificate({ datosAl }: { datosAl: CursoConAlumno, dark: boolean }
                 </div>
 
                 <div className=" text-center flex justify-center items-center flex-col mt-1 ">
-                    <img src={firmaGn || ''} className='object-contain h-20 ' alt="" />
+                    {certificador.firma ? (
+                        <img
+                            src={`https://${b2UsuarioBucket}.${b2Url}/${certificador.firma}`}
+                            className='object-contain h-20 '
+                            alt="firma certificador"
+                        />
+                    ) : null}
 
-                    {/* <img src={datosAl.profesor} className='object-contain h-20 ' alt="" /> */}
-
+                    {/* certificado por: */}
                     <div className="h-1 w-50 border-b border-gray-400 mb-1"></div>
-                    <p className="text-sm font-semibold dark:text-gray-50">Gianfranco Gonzalez Chavez</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-100">REP LEGAL GAME OF TRAINING OTEC</p>
+                    <p className="text-sm font-semibold dark:text-gray-50">{certificador.nombre}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-100">{certificador.especialidad}</p>
                 </div>
             </div>
 
@@ -104,6 +108,7 @@ export default ({ id_suscriptor }: { id_suscriptor: number }) => {
     const [mensajeBotonDescargar, setMensajeBotonDescargar] = useState<string>("Descargar certificado")
 
     const [descargando, setDescargando] = useState<boolean>(false)
+    const certificador = datosCurso_almuno?.certificador ?? datosCurso_almuno?.profesor
 
     useAutoFitText('.ADP')
 
@@ -250,11 +255,17 @@ export default ({ id_suscriptor }: { id_suscriptor: number }) => {
 
                                 <div className=" lg:absolute text-right w-full lg:left-25">
                                     <div className=" text-center flex justify-center items-center flex-col mt-10">
-                                        <img src={firmaGn || ''} className='object-contain h-20 ' alt="" />
+                                        {certificador?.firma ? (
+                                            <img
+                                                src={`https://${b2UsuarioBucket}.${b2Url}/${certificador.firma}`}
+                                                className='object-contain h-20 '
+                                                alt="firma certificador"
+                                            />
+                                        ) : null}
 
                                         <div className="h-1 w-50 border-b border-gray-400 mb-1"></div>
-                                        <p className="text-sm font-semibold dark:text-gray-50">Gianfranco Gonzalez Chavez</p>
-                                        <p className="text-xs text-gray-500 dark:text-gray-100">REP LEGAL GAME OF TRAINING OTEC</p>
+                                        <p className="text-sm font-semibold dark:text-gray-50">{certificador?.nombre}</p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-100">{certificador?.especialidad}</p>
                                     </div>
                                 </div>
                             </div>

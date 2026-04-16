@@ -15,6 +15,7 @@ export interface inscripcion {
     notificar?: boolean;
     respuestas_encuestas?: Record<string, RespuestaEncuesta[]>
     asistencia_marcada?: boolean
+    numero_certificado?: number | null
 }
 
 export async function crearInscripcionAsync(data: {
@@ -80,6 +81,7 @@ export async function editarInscripcionAsync(
         notificar?: boolean;
         asistencia_marcada?: boolean;
         calificacion?: number;
+        teorica?: number;
     }
 ) {
     const res = await fetch(`${backend}/inscripciones/${id_inscripcion}`, {

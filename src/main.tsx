@@ -21,6 +21,7 @@ import MisSuscripciones from './templates/PanelAdministrador/Selector'
 import NotFoundPage from './templates/NotFound/NotFound'
 import ErrorPage from './Error/Error'
 import { emitError, ErrorProvider } from './Error/ErrorContext'
+import { normalizeErrorMessage } from './Error/normalizeError'
 import Cliente from './templates/Encuestas/EncuestasSatisfaccion/Cliente'
 import Usuario from './templates/Encuestas/EncuestasSatisfaccion/Usuario'
 
@@ -55,10 +56,9 @@ window.fetch = async (
   if (!res.ok) {
     try {
       const data = await res.clone().json()
-      console.log(data)
-      emitError(data?.message ?? 'Error inesperado')
+      emitError(normalizeErrorMessage(data))
     } catch {
-      emitError('Error inesperado del servidor')
+      emitError(`Error ${res.status}: ${res.statusText || 'respuesta no valida del servidor'}`)
     }
   }
 

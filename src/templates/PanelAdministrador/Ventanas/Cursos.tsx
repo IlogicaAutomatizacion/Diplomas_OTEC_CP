@@ -10,12 +10,16 @@ const CursoCard = ({ curso, setCursosState }: { curso: curso, setCursosState: Re
     const [botonesVisible, setBotonesVisible] = useState(false)
 
     const [cursoLocal, setCursoLocal] = useState<curso>(curso)
+    const [cursoGuardado, setCursoGuardado] = useState<curso>(curso)
+    const [guardando, setGuardando] = useState(false)
+    const numericFields: (keyof curso)[] = ['duracion']
 
     /**
      * Sync SOLO cuando cambia el curso desde afuera
      */
     useEffect(() => {
         setCursoLocal(curso)
+        setCursoGuardado(curso)
     }, [curso.curso_id])
 
     /**
@@ -44,41 +48,44 @@ const CursoCard = ({ curso, setCursosState }: { curso: curso, setCursosState: Re
         }
     }
 
-    async function guardarParametro(
-        nombreParametro: keyof curso,
-        nuevoValor: string
-    ) {
-        if (!cursoLocal.curso_id) return
+    function normalizarValor(nombreParametro: keyof curso, nuevoValor: string) {
+        const valor = nuevoValor.trim()
 
-        const valorActual = cursoLocal[nombreParametro]
-        let valorNuevo: string | number = nuevoValor.trim()
-
-        if (!isNaN(Number(valorNuevo))) {
-            valorNuevo = Number(valorNuevo)
+        if (numericFields.includes(nombreParametro)) {
+            const numero = Number(valor)
+            return Number.isNaN(numero) ? cursoLocal[nombreParametro] : numero
         }
 
-        if (valorActual === valorNuevo) return
+        return valor
+    }
 
-        // optimistic update
-        setCursoLocal(prev => ({
-            ...prev,
-            [nombreParametro]: valorNuevo
-        }))
+    const hayCambios = (Object.entries(cursoLocal) as [keyof curso, curso[keyof curso]][])
+        .some(([key, value]) => !String(key).toLowerCase().includes('id') && value !== cursoGuardado[key])
+
+    async function guardarCambios() {
+        if (!cursoLocal.curso_id || !hayCambios) return
+
+        setGuardando(true)
 
         try {
-            await actualizarPropiedadDeCursoAsync(
-                cursoLocal.curso_id,
-                nombreParametro,
-                valorNuevo
-            )
+            const entries = Object.entries(cursoLocal) as [keyof curso, curso[keyof curso]][]
+
+            for (const [key, value] of entries) {
+                if (String(key).toLowerCase().includes('id') || value === cursoGuardado[key]) continue
+
+                await actualizarPropiedadDeCursoAsync(
+                    cursoLocal.curso_id,
+                    key,
+                    value as string | number
+                )
+            }
+
+            setCursoGuardado(cursoLocal)
         } catch (e) {
             console.log(e)
-
-            // rollback
-            setCursoLocal(prev => ({
-                ...prev,
-                [nombreParametro]: valorActual
-            }))
+            setCursoLocal(cursoGuardado)
+        } finally {
+            setGuardando(false)
         }
     }
 
@@ -120,8 +127,13 @@ const CursoCard = ({ curso, setCursosState }: { curso: curso, setCursosState: Re
                             <p key={key}>
                                 <span className="text-red-400">{key}:</span>{' '}
                                 <EditableText
-                                    lostFocusCallback={(e) => {
-                                        guardarParametro((key) as keyof curso, e.target.textContent ?? '')
+                                    onChange={(value) => {
+                                        const nombreParametro = key as keyof curso
+
+                                        setCursoLocal(prev => ({
+                                            ...prev,
+                                            [nombreParametro]: normalizarValor(nombreParametro, value)
+                                        }))
                                     }}
                                     text={value ?? 'Sin dato'}
                                 />
@@ -132,6 +144,18 @@ const CursoCard = ({ curso, setCursosState }: { curso: curso, setCursosState: Re
 
                 {/* BOTONES */}
                 <div className="flex flex-col gap-y-2 pt-2">
+                    <button
+                        onClick={guardarCambios}
+                        disabled={!hayCambios || guardando}
+                        className={`
+                        h-10
+                        w-full
+                        text-sm sm:text-base
+                        ${!hayCambios || guardando ? 'bg-slate-600 cursor-not-allowed' : 'bg-blue-600 cursor-pointer'}
+                    `}
+                    >
+                        {guardando ? 'Guardando...' : 'Guardar'}
+                    </button>
                     <button
                         onClick={handleDelete}
                         className={`

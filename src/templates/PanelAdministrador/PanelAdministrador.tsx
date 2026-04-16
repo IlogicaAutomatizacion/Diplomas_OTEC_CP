@@ -13,6 +13,7 @@ import { obtenerCursosDeSuscriptorAsync, obtenerEmpresasDeSuscriptorAsync, obten
 import FormarteLogo from '../../Diseño/Formarte/FormarteLogo'
 import CPLogo from '../../Diseño/CP/CPLogo'
 import Usuarios from './Ventanas/Usuarios/Usuarios'
+import Parametros from './Ventanas/Parametros'
 
 type ids = 2 | 3
 
@@ -37,7 +38,7 @@ export default () => {
     const [identificadoresSuscriptor, setIdentificadoresSuscriptor] = useState<{ id: ids, uuidSuscriptor: string } | null>(null)
 
 
-    const [seccion, setSeccion] = useState<'armar' | 'usuarios' | 'empresas' | 'cursos'>('armar')
+    const [seccion, setSeccion] = useState<'armar' | 'usuarios' | 'empresas' | 'cursos' | 'parametros'>('armar')
 
     const [logo, setLogo] = useState<ids | null>(null)
     const [usuarioSeleccionadoId, setUsuarioSeleccionadoId] = useState<number | null>(null)
@@ -133,6 +134,11 @@ export default () => {
                 </h1>
 
                 <div className="flex gap-4 mt-10 flex-wrap justify-center">
+
+                    <button onClick={() => cambiarSeccion('parametros')} className={seccion === 'parametros' ? 'bg-blue-600 px-4 py-2' : 'bg-gray-700 px-4 py-2'}>
+                        Parametros
+                    </button>
+
                     <button onClick={() => cambiarSeccion('armar')} className={seccion === 'armar' ? 'bg-blue-600 px-4 py-2' : 'bg-gray-700 px-4 py-2'}>
                         Gestionar cursos
                     </button>
@@ -148,6 +154,7 @@ export default () => {
                     <button onClick={() => cambiarSeccion('cursos')} className={seccion === 'cursos' ? 'bg-blue-600 px-4 py-2' : 'bg-gray-700 px-4 py-2'}>
                         Cursos
                     </button>
+
                 </div>
 
                 <div className="w-full mt-10">
@@ -199,6 +206,13 @@ export default () => {
                             idSuscriptor={identificadoresSuscriptor.id}
                             cursos={cursos}
                             setCursos={setCursos}
+                        />
+                    )}
+
+                    {seccion === 'parametros' && (
+                        <Parametros
+                            idSuscriptor={identificadoresSuscriptor.id}
+                            usuarios={usuarios}
                         />
                     )}
                 </div>

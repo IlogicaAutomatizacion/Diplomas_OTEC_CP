@@ -24,4 +24,12 @@ html {
     overflow: auto !important;
     padding: 0 !important;
   }
+
+  input,
+  textarea,
+  [contenteditable="true"] {
+    direction: ltr;
+    unicode-bidi: plaintext;
+    text-align: left;
+  }
 }
