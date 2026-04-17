@@ -24,6 +24,7 @@ import { emitError, ErrorProvider } from './Error/ErrorContext'
 import { normalizeErrorMessage } from './Error/normalizeError'
 import Cliente from './templates/Encuestas/EncuestasSatisfaccion/Cliente'
 import Usuario from './templates/Encuestas/EncuestasSatisfaccion/Usuario'
+import PanelAdministradores from './templates/PanelAdministrador/PanelAdministradores'
 
 const originalFetch = window.fetch;
 
@@ -140,6 +141,10 @@ const router = createBrowserRouter([
     {
       path: '/panelAdminitradorCursos',
       element: <MisSuscripciones />
+    },
+    {
+      path: '/panelAdministradores',
+      element: <PanelAdministradores />
     },
 
     {

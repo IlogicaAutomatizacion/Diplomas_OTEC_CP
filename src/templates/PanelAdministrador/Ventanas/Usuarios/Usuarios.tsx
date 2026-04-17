@@ -286,6 +286,7 @@ export default ({ usuarios, idSuscriptor, empresas, setUsuarios, usuarioSeleccio
 
             return usuarioAVisualizar ? <div>
                 <UsuariosPanel
+                    idSuscriptor={idSuscriptor}
                     setUsuarioSeleccionadoId={setUsuarioSeleccionadoId}
                     empresas={empresas}
                     setUsuarioState={setUsuarios}

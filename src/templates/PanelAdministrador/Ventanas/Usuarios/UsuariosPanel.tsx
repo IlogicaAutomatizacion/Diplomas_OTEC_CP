@@ -8,20 +8,23 @@ import {
     type usuario,
 } from "../../Api/usuarios"
 import type { empresa } from "../../Api/empresas"
-import { agregarRolAUsuarioAsync, eliminarRolPorIdDeUsuarioAsync, type rolEnum } from "../../Api/roles"
+import { agregarRolAUsuarioAsync, eliminarRolPorIdDeUsuarioAsync, obtenerRolesDeUsuarioAsync, type rolEnum } from "../../Api/roles"
 import { agregarEmpresaVinculadaAsync, eliminarEmpresaVinculadaPorIdsAsync } from "../../Api/empresasVinculadas"
+import { desvincularUsuarioDeSuscriptorAsync } from "../../Api/suscripciones"
 import EditableText from "../../Componentes/EditableText"
 import { Example } from "../../Componentes/DropdownMenu"
 import { b2Url, b2UsuarioBucket } from "../../../../vars"
 import { useEffect, useState } from "react"
 
 export default ({
+    idSuscriptor,
     usuario,
     setUsuarioState,
     empresas,
     setUsuarioSeleccionadoId,
     onVinculacionChange,
 }: {
+    idSuscriptor: number,
     setUsuarioSeleccionadoId: React.Dispatch<React.SetStateAction<number | null>>,
     empresas: empresa[],
     usuario: usuario,
@@ -31,11 +34,25 @@ export default ({
     const [usuarioLocal, setUsuarioLocal] = useState(usuario)
     const [usuarioGuardado, setUsuarioGuardado] = useState(usuario)
     const [guardando, setGuardando] = useState(false)
+    const [desvinculando, setDesvinculando] = useState(false)
+    const [eliminandoUsuario, setEliminandoUsuario] = useState(false)
+    const [rolesUsuarioActual, setRolesUsuarioActual] = useState<rolEnum[]>([])
 
     useEffect(() => {
         setUsuarioLocal(usuario)
         setUsuarioGuardado(usuario)
     }, [usuario.id])
+
+    useEffect(() => {
+        ; (async () => {
+            try {
+                const roles = await obtenerRolesDeUsuarioAsync()
+                setRolesUsuarioActual(roles)
+            } catch (e) {
+                console.log(e)
+            }
+        })()
+    }, [])
 
     function actualizarUsuario(cambios: Partial<usuario>) {
         setUsuarioLocal(prev => ({ ...prev, ...cambios }))
@@ -44,13 +61,33 @@ export default ({
         )
     }
 
+    async function handleDesvincular() {
+        if (!usuarioLocal.id) return
+        try {
+            setDesvinculando(true)
+            await desvincularUsuarioDeSuscriptorAsync(idSuscriptor, usuarioLocal.id)
+            setUsuarioState(prev => prev.filter(u => u.id !== usuarioLocal.id))
+            setUsuarioSeleccionadoId(null)
+            await onVinculacionChange()
+        } catch (e) {
+            console.log(e)
+        } finally {
+            setDesvinculando(false)
+        }
+    }
+
     async function handleDelete() {
         if (!usuarioLocal.id) return
         try {
+            setEliminandoUsuario(true)
             await borrarUsuarioAsync(usuarioLocal.id)
             setUsuarioState(prev => prev.filter(u => u.id !== usuarioLocal.id))
+            setUsuarioSeleccionadoId(null)
+            await onVinculacionChange()
         } catch (e) {
             console.log(e)
+        } finally {
+            setEliminandoUsuario(false)
         }
     }
 
@@ -146,6 +183,15 @@ export default ({
         }
     }
 
+    const rolesDisponibles = [
+        ['PROFESOR', 'Profesor'],
+        ['ALUMNO', 'Alumno'],
+        ['EMPRESA', 'Empresa'],
+        ...(rolesUsuarioActual.includes('ADMINISTRADOR')
+            ? [['ADMINISTRADOR', 'Administrador'] as const]
+            : []),
+    ] as const
+
     return (
         <div className="border mt-5 p-2 w-full overflow-y-auto overflow-x-hidden flex flex-col">
             <button
@@ -190,11 +236,7 @@ export default ({
                 <div className="flex flex-col justify-center">
                     <h3 className="text-xl sm:text-2xl text-center mb-2">Roles</h3>
                     <div className="overflow-y-auto border grid grid-cols-1 sm:grid-cols-2 gap-y-2 p-2">
-                        {([
-                            ['PROFESOR', 'Profesor'],
-                            ['ALUMNO', 'Alumno'],
-                            ['EMPRESA', 'Empresa'],
-                        ] as const).map(([rol, label]) => (
+                        {rolesDisponibles.map(([rol, label]) => (
                             <div key={rol} className="flex flex-row gap-x-2 items-center">
                                 <input
                                     type="checkbox"
@@ -324,10 +366,18 @@ export default ({
                         {guardando ? 'Guardando...' : 'Guardar'}
                     </button>
                     <button
-                        onClick={handleDelete}
-                        className={`h-10 w-full mt-20 cursor-pointer bg-red-400`}
+                        onClick={handleDesvincular}
+                        disabled={desvinculando}
+                        className={`h-10 w-full mt-20 cursor-pointer ${desvinculando ? 'bg-red-300 cursor-not-allowed' : 'bg-red-400'}`}
                     >
-                        Eliminar usuario
+                        {desvinculando ? 'Desvinculando...' : 'Desvincular'}
+                    </button>
+                    <button
+                        onClick={handleDelete}
+                        disabled={eliminandoUsuario}
+                        className={`h-10 w-full cursor-pointer ${eliminandoUsuario ? 'bg-red-700 cursor-not-allowed' : 'bg-red-600'}`}
+                    >
+                        {eliminandoUsuario ? 'Eliminando usuario...' : 'Eliminar usuario'}
                     </button>
                 </div>
             </div>

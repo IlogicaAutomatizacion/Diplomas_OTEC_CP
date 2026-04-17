@@ -16,6 +16,7 @@ type ParametrosProps = {
 const parametrosVacios: parametrosSuscriptor = {
     certificador: null,
     inicio_contador_certificados: 0,
+    contador_cotizaciones: 0,
 }
 
 export default function Parametros({ idSuscriptor, usuarios }: ParametrosProps) {
@@ -37,13 +38,12 @@ export default function Parametros({ idSuscriptor, usuarios }: ParametrosProps) 
 
                 if (!activo) return
 
-                // Separamos estado editable y guardado para persistir solo con el botón.
                 setParametrosGuardados(parametros)
                 setParametrosEditados(parametros)
             } catch (e) {
                 if (!activo) return
 
-                setMensaje(e instanceof Error ? e.message : 'No se pudieron cargar los parámetros.')
+                setMensaje(e instanceof Error ? e.message : 'No se pudieron cargar los parametros.')
             } finally {
                 if (activo) setCargando(false)
             }
@@ -63,7 +63,8 @@ export default function Parametros({ idSuscriptor, usuarios }: ParametrosProps) 
 
     const hayCambios =
         (parametrosEditados.certificador?.id ?? null) !== (parametrosGuardados.certificador?.id ?? null) ||
-        Number(parametrosEditados.inicio_contador_certificados) !== Number(parametrosGuardados.inicio_contador_certificados)
+        Number(parametrosEditados.inicio_contador_certificados) !== Number(parametrosGuardados.inicio_contador_certificados) ||
+        Number(parametrosEditados.contador_cotizaciones) !== Number(parametrosGuardados.contador_cotizaciones)
 
     async function guardarCambios() {
         if (!hayCambios || guardando) return
@@ -75,28 +76,29 @@ export default function Parametros({ idSuscriptor, usuarios }: ParametrosProps) 
             const guardados = await actualizarParametrosDeSuscriptorAsync(idSuscriptor, {
                 certificador: parametrosEditados.certificador?.id ?? null,
                 inicio_contador_certificados: Number(parametrosEditados.inicio_contador_certificados) || 0,
+                contador_cotizaciones: Number(parametrosEditados.contador_cotizaciones) || 0,
             })
 
             setParametrosGuardados(guardados)
             setParametrosEditados(guardados)
-            setMensaje('Parámetros guardados correctamente.')
+            setMensaje('Parametros guardados correctamente.')
         } catch (e) {
-            setMensaje(e instanceof Error ? e.message : 'No se pudieron guardar los parámetros.')
+            setMensaje(e instanceof Error ? e.message : 'No se pudieron guardar los parametros.')
         } finally {
             setGuardando(false)
         }
     }
 
     if (cargando) {
-        return <p className="text-center opacity-80">Cargando parámetros...</p>
+        return <p className="text-center opacity-80">Cargando parametros...</p>
     }
 
     return (
         <div className="w-full max-w-4xl mx-auto border border-white/10 bg-white/5 rounded-xl p-6 flex flex-col gap-6">
             <div className="flex flex-col gap-2">
-                <h2 className="text-2xl sm:text-3xl font-semibold">Parámetros</h2>
+                <h2 className="text-2xl sm:text-3xl font-semibold">Parametros</h2>
                 <p className="text-sm opacity-75">
-                    Cada suscriptor mantiene su propio certificador y su propio inicio de contador.
+                    Cada suscriptor mantiene su propio certificador, su inicio de contador y su inicio de cotizador.
                 </p>
             </div>
 
@@ -147,7 +149,27 @@ export default function Parametros({ idSuscriptor, usuarios }: ParametrosProps) 
                     </label>
 
                     <p className="text-sm opacity-75">
-                        Si aquí pones <strong>100</strong>, el siguiente certificado quedará contado desde el 101.
+                        Si aqui pones <strong>100</strong>, el siguiente certificado quedara contado desde el 101.
+                    </p>
+
+                    <label className="flex flex-col gap-2">
+                        <span className="text-sm opacity-75">Inicio de cotizador</span>
+                        <input
+                            type="number"
+                            min={0}
+                            value={parametrosEditados.contador_cotizaciones}
+                            onChange={(e) => {
+                                setParametrosEditados(last => ({
+                                    ...last,
+                                    contador_cotizaciones: Math.max(0, Number(e.target.value) || 0)
+                                }))
+                            }}
+                            className="w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-600"
+                        />
+                    </label>
+
+                    <p className="text-sm opacity-75">
+                        Si aqui pones <strong>100</strong>, la siguiente cotizacion usara el 101.
                     </p>
                 </div>
 
@@ -170,6 +192,7 @@ export default function Parametros({ idSuscriptor, usuarios }: ParametrosProps) 
                         <p><span className="opacity-70">Nombre:</span> {parametrosEditados.certificador?.nombre ?? 'Sin seleccionar'}</p>
                         <p><span className="opacity-70">Especialidad:</span> {parametrosEditados.certificador?.especialidad ?? 'Sin dato'}</p>
                         <p><span className="opacity-70">Inicio contador:</span> {parametrosEditados.inicio_contador_certificados}</p>
+                        <p><span className="opacity-70">Inicio cotizador:</span> {parametrosEditados.contador_cotizaciones}</p>
                     </div>
                 </div>
             </div>

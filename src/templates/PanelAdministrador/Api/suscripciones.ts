@@ -11,9 +11,28 @@ export type suscripcionAdministrador = {
     id_empresa: number
 }
 
+export type suscripcionGlobal = suscripcionAdministrador & {
+    uuid_suscriptor: string,
+    rut?: string | null,
+    contador_cotizaciones: number
+}
+
 export type parametrosSuscriptor = {
     certificador: usuario | null,
     inicio_contador_certificados: number
+    contador_cotizaciones: number
+}
+
+export type vinculacionUsuarioSuscriptorAdmin = {
+    message: string
+    id_suscriptor: number
+    usuario: Pick<usuario, 'id' | 'nombre' | 'email' | 'rut'>
+}
+
+export type desvinculacionUsuarioSuscriptor = {
+    message: string
+    id_suscriptor: number
+    id_usuario: number
 }
 
 export async function obtenerSuscripcionesDeUsuario() {
@@ -27,6 +46,72 @@ export async function obtenerSuscripcionesDeUsuario() {
 
 
     return suscripciones
+}
+
+export async function obtenerTodasLasSuscripcionesAsync(): Promise<suscripcionGlobal[]> {
+    const res = await fetch(`${backend}/suscriptores/admin`)
+
+    if (!res.ok) {
+        throw new Error('Hubo un problema al obtener las suscripciones.')
+    }
+
+    return res.json()
+}
+
+export async function crearSuscripcionAdminAsync(cuerpo: {
+    nombre: string,
+    rut?: string,
+    telefono_contacto?: string,
+    email_contacto?: string,
+    nombre_contacto?: string,
+}): Promise<suscripcionGlobal> {
+    const res = await fetch(`${backend}/suscriptores/admin`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(cuerpo),
+    })
+
+    if (!res.ok) {
+        const problem = await res.json().catch(() => null)
+        throw new Error(problem?.message ?? 'Hubo un problema al crear la suscripcion.')
+    }
+
+    return res.json()
+}
+
+export async function eliminarSuscripcionAdminAsync(id_suscripcion: number) {
+    const res = await fetch(`${backend}/suscriptores/admin/${id_suscripcion}`, {
+        method: 'DELETE',
+    })
+
+    if (!res.ok) {
+        const problem = await res.json().catch(() => null)
+        throw new Error(problem?.message ?? 'Hubo un problema al eliminar la suscripcion.')
+    }
+
+    return res.json()
+}
+
+export async function vincularUsuarioExistenteASuscriptorAdminAsync(
+    id_suscripcion: number,
+    usuario_id: number
+): Promise<vinculacionUsuarioSuscriptorAdmin> {
+    const res = await fetch(`${backend}/suscriptores/admin/${id_suscripcion}/usuarios`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ usuario_id }),
+    })
+
+    if (!res.ok) {
+        const problem = await res.json().catch(() => null)
+        throw new Error(problem?.message ?? 'Hubo un problema al vincular el usuario a la suscripcion.')
+    }
+
+    return res.json()
 }
 
 export async function obtenerIdentificadoresDeSuscripcionPorNombreDeEmpresaAsync(nombre_empresa: string) {
@@ -241,6 +326,22 @@ export async function obtenerUsuariosDeSuscriptorAsync(id_suscripcion: number) {
     return toJson
 }
 
+export async function desvincularUsuarioDeSuscriptorAsync(
+    id_suscripcion: number,
+    id_usuario: number
+): Promise<desvinculacionUsuarioSuscriptor> {
+    const res = await fetch(`${backend}/suscriptores/usuarios/${id_suscripcion}/${id_usuario}`, {
+        method: 'DELETE',
+    })
+
+    if (!res.ok) {
+        const problem = await res.json().catch(() => null)
+        throw new Error(problem?.message ?? 'Hubo un problema al desvincular el usuario del suscriptor.')
+    }
+
+    return res.json()
+}
+
 ////////////////////////////////////////////////
 
 export async function crearEmpresaDeSuscriptorAsync(id_suscriptor: number, cuerpo?: empresa) {
@@ -363,7 +464,7 @@ export async function obtenerParametrosDeSuscriptorAsync(id_suscripcion: number)
 
 export async function actualizarParametrosDeSuscriptorAsync(
     id_suscripcion: number,
-    cuerpo: { certificador?: number | null, inicio_contador_certificados?: number }
+    cuerpo: { certificador?: number | null, inicio_contador_certificados?: number, contador_cotizaciones?: number }
 ): Promise<parametrosSuscriptor> {
     const res = await fetch(`${backend}/suscriptores/parametros/${id_suscripcion}`, {
         method: 'PATCH',
