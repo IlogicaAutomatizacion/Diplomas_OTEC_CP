@@ -28,15 +28,53 @@ import PanelAdministradores from './templates/PanelAdministrador/PanelAdministra
 
 const originalFetch = window.fetch;
 
+const publicPagePathMatchers = [
+  '/certificados/',
+  '/encuestas/satisfaccion-cliente/',
+  '/encuestas/satisfaccion-usuario/',
+];
+
+const publicApiPathMatchers = [
+  '/formatos-dinamicos/obtenerFormatoEncuestaSatisfaccionCliente/',
+  '/formatos-dinamicos/obtenerFormatoEncuestaSatisfaccionUsuario/',
+  '/formatos-dinamicos/agregarRespuesta/',
+  '/formatos-dinamicos/obtenerRespuestas/',
+  '/formatos-dinamicos/respuestas/',
+];
+
+const isPublicPage = (pathname: string) =>
+  publicPagePathMatchers.some((matcher) => pathname.includes(matcher));
+
+const isPublicApiRequest = (url: string) => {
+  if (
+    url.includes('/inscripciones/') &&
+    url.includes('/encuestas/')
+  ) {
+    return true;
+  }
+
+  return publicApiPathMatchers.some((matcher) => url.includes(matcher));
+};
+
 window.fetch = async (
   input: RequestInfo | URL,
   init: RequestInit = {}
 ) => {
   const token = localStorage.getItem('token');
+  const requestUrl = typeof input === 'string'
+    ? input
+    : input instanceof URL
+      ? input.toString()
+      : input.url;
+  const shouldAttachAuth = Boolean(
+    token &&
+    !isPublicPage(window.location.pathname) &&
+    !isPublicApiRequest(requestUrl)
+  );
 
   const headers = new Headers(init.headers);
 
-  if (token) {
+  if (shouldAttachAuth) {
     headers.set('Authorization', `Bearer ${token}`);
   }
 
@@ -45,7 +83,7 @@ window.fetch = async (
     headers,
   });
 
-  if (res.status === 401 && token) {
+  if (res.status === 401 && shouldAttachAuth) {
     localStorage.removeItem('token');
 
     if (!window.location.pathname.includes('/login')) {
