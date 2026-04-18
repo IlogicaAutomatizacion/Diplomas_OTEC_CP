@@ -3,6 +3,7 @@ import CreadorDeEncuesta, { type EncuestaFormato, type RespuestaEncuesta } from 
 import { eliminarFormatoEncuestaSatisfaccionClienteAsync, eliminarFormatoEncuestaSatisfaccionUsuarioAsync, obtenerFormatoEncuestaSatisfaccionClienteAsync, obtenerFormatoEncuestaSatisfaccionUsuarioAsync, subirFormatoEncuestaSatisfaccionClienteAsync, subirFormatoEncuestaSatisfaccionUsuarioAsync } from "../../Api/formatos-dinamicos"
 import type { inscripcion } from "../../Api/inscripciones"
 import type { usuario } from "../../Api/usuarios"
+import type { curso } from "../../Api/cursos"
 
 const BotonEliminarConConfirmacion = ({ onConfirmar, label = "Eliminar formato de encuesta" }: {
     onConfirmar: () => Promise<void>,
@@ -304,6 +305,7 @@ const TablaAsistenciasEstudiantes = ({ inscripciones }: {
 // Este bloque agrupa solo vistas de lectura para no mezclar reportes con edición.
 export default function ArmarCursoPanelRegistros({
     idSuscriptor,
+    curso,
     uuidSuscriptor,
     inscripciones,
     respuestasCliente,
@@ -311,6 +313,7 @@ export default function ArmarCursoPanelRegistros({
 }: {
     idSuscriptor: number,
     uuidSuscriptor: string,
+    curso: curso | null | undefined
     inscripciones: inscripcion[],
     respuestasCliente: RespuestaEncuesta[] | null | undefined,
     cliente: usuario | null | undefined
@@ -324,10 +327,10 @@ export default function ArmarCursoPanelRegistros({
             setFormatoSatisfaccionCliente(encuesta)
         })()
 
-        ; (async () => {
-            const encuesta = await obtenerFormatoEncuestaSatisfaccionUsuarioAsync(uuidSuscriptor)
-            setFormatoSatisfaccionUsuario(encuesta)
-        })()
+            ; (async () => {
+                const encuesta = await obtenerFormatoEncuestaSatisfaccionUsuarioAsync(uuidSuscriptor)
+                setFormatoSatisfaccionUsuario(encuesta)
+            })()
     }, [uuidSuscriptor])
 
     return (
@@ -341,7 +344,7 @@ export default function ArmarCursoPanelRegistros({
                     {!formatoSatifaccionUsuario ? (
                         <CreadorDeEncuesta
                             titulo="Encuesta de satisfacción de alumno"
-                            descripcion="Aqui va algo"
+                            descripcion={`${curso?.nombre ?? ""}`}
                             limite_respuestas={-1}
                             callbackParaEncuestaTerminada={async (encuesta) => {
                                 await subirFormatoEncuestaSatisfaccionUsuarioAsync(idSuscriptor, encuesta)
@@ -369,7 +372,7 @@ export default function ArmarCursoPanelRegistros({
                     {!formatoSatifaccionCliente ? (
                         <CreadorDeEncuesta
                             titulo="Encuesta de satisfacción del cliente"
-                            descripcion="Aqui va algo"
+                            descripcion={`${curso?.nombre ?? ""}`}
                             limite_respuestas={-1}
                             callbackParaEncuestaTerminada={async (encuesta) => {
                                 await subirFormatoEncuestaSatisfaccionClienteAsync(idSuscriptor, encuesta)

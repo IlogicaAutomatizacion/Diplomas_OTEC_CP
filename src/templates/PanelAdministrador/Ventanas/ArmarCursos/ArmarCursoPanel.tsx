@@ -100,6 +100,7 @@ export default function ArmarCursoPanel({
 
             <ArmarCursoPanelRegistros
                 idSuscriptor={idSuscriptor}
+                curso={cursoArmado.curso}
                 uuidSuscriptor={uuidSuscriptor}
                 inscripciones={panel.cursoArmadoLocal.inscripciones}
                 respuestasCliente={panel.respuestasCliente}
