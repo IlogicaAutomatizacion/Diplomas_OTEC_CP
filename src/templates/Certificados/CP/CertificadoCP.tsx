@@ -212,7 +212,7 @@ export default ({ id_suscriptor }: { id_suscriptor: number }) => {
                     <div className="relative left-25">
                         <div className="relative px-12 py-10 flex justify-center flex-col items-center w-full">
 
-                            <div className="lg:absolute -top-7  text-center lg:text-start lg:-left-70 w-full z-45 text-xs text-black dark:text-white opacity-100 ">                                    <p>Certificado No. {datosCurso_almuno.inscripcion.numero_certificado ?? 'Pendiente'}</p>
+                            <div className="lg:absolute -top-7  text-center lg:text-start lg:-left-70 w-full z-45 text-xs text-black dark:text-white opacity-100 ">
                                 Certificado No. {datosCurso_almuno.inscripcion.numero_certificado ?? 'Pendiente'}
                             </div>
 
