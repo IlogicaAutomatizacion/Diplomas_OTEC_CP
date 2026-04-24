@@ -231,7 +231,7 @@ export default ({ id_suscriptor }: { id_suscriptor: number }) => {
                             <div className="mt-4 text-center max-w-130">
                                 <p className="text-xl font-semibold dark:text-gray-50">{datosCurso_almuno.curso.nombre}</p>
                                 <p className="text-xs text-gray-800 mt-2 dark:text-gray-200">Realizado los días: {datosCurso_almuno.fecha_inicio} AL {datosCurso_almuno.fecha_finalizacion}</p>
-                                <p className="text-xs text-gray-800 mt-2 dark:text-gray-200">Número de asistencias: {datosCurso_almuno.inscripcion.asistencias}</p>
+                                <p className="text-xs text-gray-800 mt-2 dark:text-gray-200">% asistencias: {datosCurso_almuno.inscripcion.asistencias}</p>
 
                             </div>
 
@@ -248,7 +248,7 @@ export default ({ id_suscriptor }: { id_suscriptor: number }) => {
 
                             <div className="flex-col lg:flex-row relative mt-5 flex items-center justify-center">
                                 <div className="text-center w-full gap-y-5 flex flex-col ">
-                                    <p className='text-s text-start w-full text-gray-700 dark:text-gray-100'>Grado de aprobación del curso: {datosCurso_almuno.inscripcion.calificacion}%</p>
+                                    <p className='text-s text-start w-full text-gray-700 dark:text-gray-100'>% Nota práctica: {datosCurso_almuno.inscripcion.calificacion}  % Nota teórica: {datosCurso_almuno.inscripcion.teorica}</p>
 
                                     <p className="text-xs text-gray-700 dark:text-gray-300">Este Certificado es entregado al interesado para fines y trámites que se estimen conveniente.</p>
                                 </div>
