@@ -212,7 +212,9 @@ export default ({ id_suscriptor }: { id_suscriptor: number }) => {
                     <div className="relative left-25">
                         <div className="relative px-12 py-10 flex justify-center flex-col items-center w-full">
 
-                            <div className="lg:absolute -top-7  text-center lg:text-start lg:-left-70 w-full z-45 text-xs text-black dark:text-white opacity-100 ">:{`<`}{datosCurso_almuno.curso_armado_id}{`>`}-{`<`}{datosCurso_almuno.inscripcion.id_inscripcion}{`>`}-{`<`}{datosCurso_almuno.fecha_finalizacion}{`>`}</div>
+                            <div className="lg:absolute -top-7  text-center lg:text-start lg:-left-70 w-full z-45 text-xs text-black dark:text-white opacity-100 ">                                    <p>Certificado No. {datosCurso_almuno.inscripcion.numero_certificado ?? 'Pendiente'}</p>
+                                Certificado No. {datosCurso_almuno.inscripcion.numero_certificado ?? 'Pendiente'}
+                            </div>
 
                             <img src={darkMode ? gotTitleNegro : gotTitleBlanco} alt="logo" className={`lg:absolute object-contain  ${darkMode ? '-top-74' : '-top-108'} ${darkMode ? 'lg:h-155' : 'lg:h-225'}  ${darkMode ? 'w-150' : 'w-160'}`} />
 
@@ -280,6 +282,6 @@ export default ({ id_suscriptor }: { id_suscriptor: number }) => {
                 <BackCertificate datosAl={datosCurso_almuno} dark={darkMode} />
 
             </div>
-        </div>
+        </div >
     ) : null
 }
