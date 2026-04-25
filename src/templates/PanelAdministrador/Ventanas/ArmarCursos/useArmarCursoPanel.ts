@@ -164,6 +164,7 @@ export function useArmarCursoPanel({
                     campo === 'empresa' ||
                     campo === 'curso' ||
                     campo === 'contactoDeCotizacion' ||
+                    campo === "vendedor" ||
                     campo === 'profesor'
                 )
                     ? getRelacionId(valorLocal)

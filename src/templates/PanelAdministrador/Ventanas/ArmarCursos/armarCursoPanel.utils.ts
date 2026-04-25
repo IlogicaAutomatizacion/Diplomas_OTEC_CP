@@ -5,6 +5,7 @@ export const COTIZACION_FIELDS = [
     'curso',
     'contactoDeCotizacion',
     'alumnosCotizados',
+    "vendedor",
     'valorUnitario',
     'notas_cotizacion'
 ] as const satisfies readonly (keyof cursoArmado)[]

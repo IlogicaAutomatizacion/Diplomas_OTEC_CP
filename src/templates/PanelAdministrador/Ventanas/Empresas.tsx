@@ -1,4 +1,4 @@
-//Empresas.tsx
+// Empresas.tsx
 
 import { useEffect, useState } from "react"
 import EditableText from "../Componentes/EditableText"
@@ -15,6 +15,74 @@ export type vinculacion = {
     usuario: usuario
 }
 
+// ─── Íconos SVG inline ────────────────────────────────────────────────────────
+
+const IconBuilding = () => (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="2" y="7" width="20" height="15" rx="2" /><path d="M16 7V5a2 2 0 0 0-4 0v2" /><line x1="12" y1="12" x2="12" y2="12.01" />
+    </svg>
+)
+const IconChevron = ({ open }: { open: boolean }) => (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+        style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s ease' }}>
+        <polyline points="6 9 12 15 18 9" />
+    </svg>
+)
+const IconTrash = () => (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14H6L5 6" /><path d="M10 11v6M14 11v6" /><path d="M9 6V4h6v2" />
+    </svg>
+)
+const IconSave = () => (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" /><polyline points="17 21 17 13 7 13 7 21" /><polyline points="7 3 7 8 15 8" />
+    </svg>
+)
+const IconUserPlus = () => (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><line x1="19" y1="8" x2="19" y2="14" /><line x1="22" y1="11" x2="16" y2="11" />
+    </svg>
+)
+const IconSearch = () => (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+    </svg>
+)
+const IconPlus = () => (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+    </svg>
+)
+const IconUpload = () => (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" />
+    </svg>
+)
+const IconX = () => (
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
+        <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
+)
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+const FIELD_LABELS: Partial<Record<keyof empresa, string>> = {
+    nombre: 'Nombre',
+    rut: 'RUT',
+}
+
+const FieldRow = ({ fieldKey, value, onChange }: { fieldKey: string; value: unknown; onChange: (v: string) => void }) => {
+    const label = FIELD_LABELS[fieldKey as keyof empresa] ?? fieldKey
+    return (
+        <div className="grid grid-cols-[90px_1fr] gap-2 items-start py-2 border-b border-zinc-800 last:border-0">
+            <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider pt-0.5 truncate">{label}</span>
+            <EditableText onChange={onChange} text={String(value ?? '—')} />
+        </div>
+    )
+}
+
+// ─── EmpresaCard ──────────────────────────────────────────────────────────────
+
 const EmpresaCard = ({
     empresa,
     setEmpresaState,
@@ -26,77 +94,45 @@ const EmpresaCard = ({
     setEmpresaState: React.Dispatch<React.SetStateAction<empresa[]>>
     refreshKey: number
     usuarios: usuario[]
-
     onVinculacionChange: () => void
-
     setUsuarios: React.Dispatch<React.SetStateAction<usuario[]>>
 }) => {
-    const [infoAbierta, setInfoAbierta] = useState(false)
-    const [botonesVisible, setBotonesVisible] = useState(false)
+    const [open, setOpen] = useState(false)
     const [empresaLocal, setEmpresaLocal] = useState<empresa>(empresa)
     const [empresaGuardada, setEmpresaGuardada] = useState<empresa>(empresa)
     const [guardando, setGuardando] = useState(false)
-    const [usuariosVinculadosAEmpresa, setUsuariosVinculadosAEmpresa] = useState<null | vinculacion[]>(null)
+    const [confirmDelete, setConfirmDelete] = useState(false)
+    const [usuariosVinculados, setUsuariosVinculados] = useState<vinculacion[] | null>(null)
+    const [activeTab, setActiveTab] = useState<'datos' | 'usuarios'>('datos')
 
     useEffect(() => {
-        ; (async () => {
+        ;(async () => {
             if (!empresaLocal?.id_empresa) return
-            const data = await obtenerUsuariosVinculadosAEmpresaPorIdEmpresaAsync({
-                empresa_id: empresaLocal.id_empresa,
-            })
-            setUsuariosVinculadosAEmpresa(data)
+            const data = await obtenerUsuariosVinculadosAEmpresaPorIdEmpresaAsync({ empresa_id: empresaLocal.id_empresa })
+            setUsuariosVinculados(data)
         })()
     }, [refreshKey])
 
+    useEffect(() => { setEmpresaLocal(empresa); setEmpresaGuardada(empresa) }, [empresa.id_empresa])
     useEffect(() => {
-        setEmpresaLocal(empresa)
-        setEmpresaGuardada(empresa)
-    }, [empresa.id_empresa])
-
-    useEffect(() => {
-        setEmpresaState(prev =>
-            prev.map(e => (e.id_empresa === empresaLocal.id_empresa ? empresaLocal : e))
-        )
+        setEmpresaState(prev => prev.map(e => e.id_empresa === empresaLocal.id_empresa ? empresaLocal : e))
     }, [empresaLocal.id_empresa, empresaLocal])
 
-
-
-    async function handleEliminarUsuarioAsociadoPorIdVinculacion(
-        id_vinculacion: number,
-  
-    ) {
+    async function handleEliminarVinculacion(id_vinculacion: number) {
         try {
             await eliminarEmpresaVinculadaPorIdAsync(id_vinculacion)
-
-            setUsuariosVinculadosAEmpresa(last =>
-                last?.filter(v => v.vinculacion_id !== id_vinculacion) ?? null
-            )
-
+            setUsuariosVinculados(last => last?.filter(v => v.vinculacion_id !== id_vinculacion) ?? null)
             onVinculacionChange()
-
-        } catch (e) {
-            console.log(e)
-        }
+        } catch (e) { console.log(e) }
     }
 
-    async function agregarUsuarioAsociadoAEmpresa(usuario: usuario, empresa_id: number) {
+    async function agregarUsuario(usuario: usuario, empresa_id: number) {
         if (!usuario.id) return
-
         try {
-            const vinculacion = await agregarUsuarioVinculadoConEmpresaAsync({
-                usuario_id: usuario.id,
-                empresa_id
-            })
-
-            setUsuariosVinculadosAEmpresa(last => {
-                if (!last) return last
-                return [...last, vinculacion]
-            })
-
-            // 🔥 FALTA ESTO
+            const vinculacion = await agregarUsuarioVinculadoConEmpresaAsync({ usuario_id: usuario.id, empresa_id })
+            setUsuariosVinculados(last => (last ? [...last, vinculacion] : [vinculacion]))
             onVinculacionChange()
-
-        } catch (e) { }
+        } catch { }
     }
 
     async function handleDelete() {
@@ -104,9 +140,7 @@ const EmpresaCard = ({
         try {
             await borrarEmpresaAsync(empresaLocal.id_empresa)
             setEmpresaState(prev => prev.filter(e => e.id_empresa !== empresaLocal.id_empresa))
-        } catch (e) {
-            console.log(e)
-        }
+        } catch (e) { console.log(e) }
     }
 
     const hayCambios = (Object.entries(empresaLocal) as [keyof empresa, empresa[keyof empresa]][])
@@ -114,22 +148,12 @@ const EmpresaCard = ({
 
     async function guardarCambios() {
         if (!empresaLocal.id_empresa || !hayCambios) return
-
         setGuardando(true)
-
         try {
-            const entries = Object.entries(empresaLocal) as [keyof empresa, empresa[keyof empresa]][]
-
-            for (const [key, value] of entries) {
+            for (const [key, value] of Object.entries(empresaLocal) as [keyof empresa, empresa[keyof empresa]][]) {
                 if (String(key).toLowerCase().includes('id') || value === empresaGuardada[key]) continue
-
-                await actualizarPropiedadDeEmpresaAsync(
-                    empresaLocal.id_empresa,
-                    key,
-                    String(value ?? '').trim()
-                )
+                await actualizarPropiedadDeEmpresaAsync(empresaLocal.id_empresa, key, String(value ?? '').trim())
             }
-
             setEmpresaGuardada(empresaLocal)
         } catch (e) {
             console.log(e)
@@ -139,97 +163,175 @@ const EmpresaCard = ({
         }
     }
 
+    const nVinculados = usuariosVinculados?.length ?? 0
+
     return (
-        <div className="border p-2 w-full max-w-full overflow-x-hidden flex flex-col">
-            <h2
-                onClick={() => setInfoAbierta(last => !last)}
-                className="text-center font-medium cursor-pointer border-b pb-2 hover:text-cyan-400 transition"
+        <div className="rounded-xl border border-zinc-800 bg-zinc-900 overflow-hidden transition-all duration-200 hover:border-zinc-600 hover:shadow-lg hover:shadow-black/30">
+            {/* Header */}
+            <button
+                onClick={() => setOpen(o => !o)}
+                className="w-full flex items-start justify-between gap-3 px-4 py-3.5 text-left hover:bg-zinc-800/50 transition-colors"
             >
-                {empresaLocal.nombre ?? 'Sin dato'}
-            </h2>
-
-            {infoAbierta ? (
-                <div
-                    onMouseEnter={() => setBotonesVisible(true)}
-                    onMouseLeave={() => setBotonesVisible(false)}
-                    className="flex flex-col mt-4 sm:mt-5 gap-y-3 break-all"
-                >
-                    <div className="overflow-y-auto max-h-48 sm:max-h-64 text-sm sm:text-base [&::-webkit-scrollbar]:hidden">
-                        {Object.entries(empresaLocal).map(([key, value]) => {
-                            if (key.toLowerCase().includes('id')) return null
-                            return (
-                                <p key={key}>
-                                    <span className="text-blue-400">{key}:</span>{' '}
-                                    <EditableText
-                                        onChange={(value) => {
-                                            const nombreParametro = key as keyof empresa
-                                            setEmpresaLocal(prev => ({
-                                                ...prev,
-                                                [nombreParametro]: value.trim()
-                                            }))
-                                        }}
-                                        text={value ?? 'Sin dato'}
-                                    />
-                                </p>
-                            )
-                        })}
-                    </div>
-
-                    <p className="text-2xl mt-4 text-green-400">Usuarios asociados</p>
-
-                    <Example
-                        titulo="Agregar"
-                        noCambiarNombreAlSeleccionar
-                        callbackOnSelect={(usuario) => {
-                            if (!usuario || !empresaLocal?.id_empresa) { return }
-
-                            agregarUsuarioAsociadoAEmpresa(usuario, empresaLocal.id_empresa)
-                        }}
-                        opciones={usuarios.map(u => ({ nombre: u.nombre, opcion: u }))}
-                    />
-
-                    <div className="overflow-y-auto max-h-48 sm:max-h-64 text-sm sm:text-base [&::-webkit-scrollbar]:hidden">
-                        <ul className="list-disc list-inside pl-2">
-                            {usuariosVinculadosAEmpresa?.map(({ usuario, vinculacion_id }) => (
-                                <div key={usuario.id} className="group">
-                                    <li className="border-2 p-2 flex items-center justify-between">
-                                        <p className="w-[75%]">{usuario.nombre}</p>
-                                        <button
-                                            onClick={() =>
-                                                handleEliminarUsuarioAsociadoPorIdVinculacion(
-                                                    vinculacion_id,
-                                                )
-                                            }
-                                            className="w-[25%] cursor-pointer p-2 text-white text-sm font-semibold ml-4 opacity-0 bg-red-500 group-hover:opacity-100 transition-opacity"
-                                        >
-                                            X
-                                        </button>
-                                    </li>
-                                </div>
-                            ))}
-                        </ul>
-                    </div>
-
-                    <div className="flex flex-col gap-y-2 pt-2">
-                        <button
-                            onClick={guardarCambios}
-                            disabled={!hayCambios || guardando}
-                            className={`h-10 w-full text-sm sm:text-base ${!hayCambios || guardando ? 'bg-slate-600 cursor-not-allowed' : 'bg-blue-600 cursor-pointer'}`}
-                        >
-                            {guardando ? 'Guardando...' : 'Guardar'}
-                        </button>
-                        <button
-                            onClick={handleDelete}
-                            className={`${botonesVisible ? '' : 'hidden'} h-10 w-full cursor-pointer bg-red-400 text-sm sm:text-base`}
-                        >
-                            Eliminar empresa
-                        </button>
+                <div className="flex items-start gap-2.5 min-w-0">
+                    <span className="mt-0.5 text-violet-400 shrink-0"><IconBuilding /></span>
+                    <div className="min-w-0">
+                        <p className="text-sm font-semibold text-zinc-100 truncate leading-snug">
+                            {empresaLocal.nombre ?? <span className="text-zinc-600 italic">Sin nombre</span>}
+                        </p>
+                        {empresaLocal.rut && (
+                            <p className="text-xs text-zinc-500 mt-0.5 font-mono">{empresaLocal.rut}</p>
+                        )}
                     </div>
                 </div>
-            ) : null}
+                <div className="flex items-center gap-2 shrink-0">
+                    {nVinculados > 0 && (
+                        <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-violet-900/50 border border-violet-700 text-violet-300 text-xs font-semibold">
+                            {nVinculados}
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg>
+                        </span>
+                    )}
+                    <span className="text-zinc-500"><IconChevron open={open} /></span>
+                </div>
+            </button>
+
+            {/* Body */}
+            {open && (
+                <div className="border-t border-zinc-800 flex flex-col">
+                    {/* Tabs */}
+                    <div className="flex border-b border-zinc-800">
+                        {(['datos', 'usuarios'] as const).map(tab => (
+                            <button
+                                key={tab}
+                                onClick={() => setActiveTab(tab)}
+                                className={`flex-1 py-2.5 text-xs font-semibold capitalize transition-colors cursor-pointer
+                                    ${activeTab === tab
+                                        ? 'text-white border-b-2 border-violet-500 -mb-px bg-zinc-800/30'
+                                        : 'text-zinc-500 hover:text-zinc-300'
+                                    }`}
+                            >
+                                {tab === 'datos' ? 'Datos' : `Usuarios${nVinculados ? ` (${nVinculados})` : ''}`}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Tab: Datos */}
+                    {activeTab === 'datos' && (
+                        <div className="px-4 pt-3 pb-4 flex flex-col gap-3">
+                            <div className="rounded-lg bg-zinc-800/40 px-3 py-1">
+                                {Object.entries(empresaLocal).map(([key, value]) => {
+                                    if (key.toLowerCase().includes('id')) return null
+                                    return (
+                                        <FieldRow
+                                            key={key}
+                                            fieldKey={key}
+                                            value={value}
+                                            onChange={(val) => {
+                                                const k = key as keyof empresa
+                                                setEmpresaLocal(prev => ({ ...prev, [k]: val.trim() }))
+                                            }}
+                                        />
+                                    )
+                                })}
+                            </div>
+
+                            {/* Acciones */}
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={guardarCambios}
+                                    disabled={!hayCambios || guardando}
+                                    className={`flex items-center gap-1.5 flex-1 justify-center px-3 py-2 rounded-lg text-xs font-semibold transition-all
+                                        ${!hayCambios || guardando
+                                            ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed'
+                                            : 'bg-violet-600 hover:bg-violet-500 text-white cursor-pointer shadow-md shadow-violet-900/40'
+                                        }`}
+                                >
+                                    <IconSave />
+                                    {guardando ? 'Guardando…' : 'Guardar cambios'}
+                                </button>
+
+                                {!confirmDelete ? (
+                                    <button
+                                        onClick={() => setConfirmDelete(true)}
+                                        className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-semibold text-zinc-500 hover:text-red-400 hover:bg-red-950/40 border border-zinc-700 hover:border-red-800 transition-all cursor-pointer"
+                                    >
+                                        <IconTrash />
+                                    </button>
+                                ) : (
+                                    <div className="flex gap-1">
+                                        <button
+                                            onClick={handleDelete}
+                                            className="px-3 py-2 rounded-lg text-xs font-semibold bg-red-600 hover:bg-red-500 text-white cursor-pointer transition-all"
+                                        >
+                                            Confirmar
+                                        </button>
+                                        <button
+                                            onClick={() => setConfirmDelete(false)}
+                                            className="px-3 py-2 rounded-lg text-xs font-semibold text-zinc-400 hover:text-white border border-zinc-700 hover:border-zinc-500 cursor-pointer transition-all"
+                                        >
+                                            Cancelar
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Tab: Usuarios */}
+                    {activeTab === 'usuarios' && (
+                        <div className="px-4 pt-3 pb-4 flex flex-col gap-3">
+                            {/* Agregar usuario */}
+                            <div className="flex flex-col gap-1.5">
+                                <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider flex items-center gap-1.5">
+                                    <IconUserPlus /> Agregar usuario
+                                </p>
+                                <Example
+                                    titulo="Seleccionar usuario…"
+                                    noCambiarNombreAlSeleccionar
+                                    callbackOnSelect={(usuario) => {
+                                        if (!usuario || !empresaLocal?.id_empresa) return
+                                        agregarUsuario(usuario, empresaLocal.id_empresa)
+                                    }}
+                                    opciones={usuarios.map(u => ({ nombre: u.nombre, opcion: u }))}
+                                />
+                            </div>
+
+                            {/* Lista de vinculados */}
+                            {usuariosVinculados && usuariosVinculados.length > 0 ? (
+                                <ul className="flex flex-col gap-1.5">
+                                    {usuariosVinculados.map(({ usuario, vinculacion_id }) => (
+                                        <li
+                                            key={usuario.id}
+                                            className="group flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-zinc-800/60 border border-zinc-700/50 hover:border-zinc-600 transition-all"
+                                        >
+                                            <div className="flex items-center gap-2 min-w-0">
+                                                <span className="w-6 h-6 rounded-full bg-violet-900 border border-violet-700 text-violet-300 text-xs font-bold flex items-center justify-center shrink-0 uppercase">
+                                                    {(usuario.nombre ?? '?')[0]}
+                                                </span>
+                                                <span className="text-sm text-zinc-200 truncate">{usuario.nombre}</span>
+                                            </div>
+                                            <button
+                                                onClick={() => handleEliminarVinculacion(vinculacion_id)}
+                                                className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md text-zinc-500 hover:text-red-400 hover:bg-red-950/40 transition-all cursor-pointer"
+                                            >
+                                                <IconX />
+                                            </button>
+                                        </li>
+                                    ))}
+                                </ul>
+                            ) : (
+                                <p className="text-xs text-zinc-600 text-center py-4">
+                                    Sin usuarios vinculados
+                                </p>
+                            )}
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
     )
 }
+
+// ─── Componente principal ─────────────────────────────────────────────────────
 
 export default ({
     empresas,
@@ -238,7 +340,7 @@ export default ({
     setEmpresas,
     refreshKey,
     onVinculacionChange,
-    setUsuarios,  // 👈
+    setUsuarios,
 }: {
     empresas: empresa[]
     usuarios: usuario[]
@@ -246,93 +348,93 @@ export default ({
     setEmpresas: React.Dispatch<React.SetStateAction<empresa[]>>
     refreshKey: number
     onVinculacionChange: () => void
-    setUsuarios: React.Dispatch<React.SetStateAction<usuario[]>>  // 👈
+    setUsuarios: React.Dispatch<React.SetStateAction<usuario[]>>
 }) => {
-    const [mensajeBoton, setMensajeBoton] = useState<string | null>()
-    const [busqueda, setBusqueda] = useState("")
+    const [mensajeBoton, setMensajeBoton] = useState<string | null>(null)
+    const [busqueda, setBusqueda] = useState('')
+
+    const refrescarEmpresas = async () => {
+        const data = await obtenerEmpresasDeSuscriptorAsync(idSuscriptor)
+        setEmpresas(data)
+    }
 
     const { datosImportados, setMapeo, cargarArchivo, construirResultado } =
         useExcelMapper<empresa>(async (empresasExcel) => {
-            const res = await crearEmpresasDeSuscriptorAsync(idSuscriptor, empresasExcel.filter(
-            empresa =>{
-                return Object.values(empresa).some(Boolean)
-            }
-        ))
-            setEmpresas(res)
+            await crearEmpresasDeSuscriptorAsync(idSuscriptor, empresasExcel.filter(e => Object.values(e).some(Boolean)))
+            await refrescarEmpresas()
         })
 
     useEffect(() => {
-        ; (async () => {
+        ;(async () => {
             try {
-                const empresas = await obtenerEmpresasDeSuscriptorAsync(idSuscriptor)
-                setEmpresas(empresas)
-            } catch (e) { }
+                const data = await obtenerEmpresasDeSuscriptorAsync(idSuscriptor)
+                setEmpresas(data)
+            } catch { }
         })()
     }, [])
 
-    useEffect(() => {
-        setMensajeBoton(null)
-    }, [empresas])
+    useEffect(() => { setMensajeBoton(null) }, [empresas])
 
     const handleAddButton = async () => {
         try {
-            setMensajeBoton('Creando...')
-            const empresaNueva = await crearEmpresaDeSuscriptorAsync(idSuscriptor)
-            setEmpresas(last => [...last, empresaNueva])
-        } catch (e) {
-            setMensajeBoton('Hubo un problema al crear la empresa.')
+            setMensajeBoton('Creando…')
+            const nueva = await crearEmpresaDeSuscriptorAsync(idSuscriptor)
+            setEmpresas(last => [...last, nueva])
+        } catch {
+            setMensajeBoton('Error al crear.')
             setTimeout(() => setMensajeBoton(null), 2000)
         }
     }
 
+    const q = busqueda.toLowerCase()
+    const empresasFiltradas = empresas.filter(e =>
+        (e.nombre ?? '').toLowerCase().includes(q) ||
+        (e.rut ?? '').toLowerCase().includes(q)
+    )
+
     return (
-        <>
-            <div className="w-full">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <h2 className="text-2xl sm:text-3xl font-semibold">
-                        Empresas <span className="opacity-70">({empresas.length})</span>
-                    </h2>
-                    <button
-                        onClick={handleAddButton}
-                        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded transition w-full sm:w-auto"
-                    >
-                        {mensajeBoton ?? 'Agregar'}
-                    </button>
+        <div className="flex flex-col gap-6">
+            {/* ── Header ── */}
+            <div className="flex items-center justify-between">
+                <div>
+                    <h2 className="text-2xl font-bold text-white tracking-tight">Empresas</h2>
+                    <p className="text-sm text-zinc-500 mt-0.5">
+                        {empresasFiltradas.length} de {empresas.length} empresas
+                    </p>
                 </div>
+                <button
+                    onClick={handleAddButton}
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold transition-all shadow-lg shadow-violet-900/30 cursor-pointer"
+                >
+                    <IconPlus />
+                    {mensajeBoton ?? 'Nueva empresa'}
+                </button>
             </div>
 
+            {/* ── Importación Excel ── */}
             {datosImportados ? (
-                <div className="mt-6 border p-4 rounded flex flex-col gap-6 items-center">
-                    <h2 className="text-center text-lg font-medium">
-                        Relacionar columnas{' '}
-                        <span className="opacity-70">({datosImportados.filas.length} fila(s))</span>
-                    </h2>
-
-
-                    <h3 className="text-sm sm:text-3xl font-semibold">
-                        No se agregarán empresas con datos inválidos o que cuyo RUT ya exista.
-                    </h3>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 w-full">
-                        <div className="flex flex-col gap-1 items-center">
-                            <span>RUT</span>
-                            <Example
-                                opciones={datosImportados.cabeceras}
-                                callbackOnSelect={(opcion) =>
-                                    setMapeo(last => ({ ...last, rut: opcion }))
-                                }
-                            />
-                        </div>
-                        <div className="flex flex-col gap-1 items-center">
-                            <span>Nombre</span>
-                            <Example
-                                opciones={datosImportados.cabeceras}
-                                callbackOnSelect={(opcion) =>
-                                    setMapeo(last => ({ ...last, nombre: opcion }))
-                                }
-                            />
-                        </div>
+                <div className="rounded-2xl border border-zinc-700 bg-zinc-900 p-6 flex flex-col gap-5">
+                    <div>
+                        <h3 className="text-base font-semibold text-zinc-100">Relacionar columnas</h3>
+                        <p className="text-xs text-zinc-500 mt-0.5">
+                            {datosImportados.filas.length} fila(s) · Empresas con RUT duplicado o datos inválidos serán omitidas
+                        </p>
                     </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        {(['rut', 'nombre'] as const).map(campo => (
+                            <div key={campo} className="flex flex-col gap-1.5">
+                                <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+                                    {FIELD_LABELS[campo] ?? campo}
+                                </span>
+                                <Example
+                                    opciones={datosImportados.cabeceras}
+                                    callbackOnSelect={(opcion) => setMapeo(last => ({ ...last, [campo]: opcion }))}
+                                />
+                            </div>
+                        ))}
+                    </div>
+
                     <button
                         onClick={() => {
                             construirResultado((fila, m) => ({
@@ -340,68 +442,73 @@ export default ({
                                 nombre: fila[m.nombre] ? String(fila[m.nombre]).trim() : undefined,
                             }))
                         }}
-                        className="bg-slate-700 hover:bg-slate-600 px-6 py-2 rounded border transition"
+                        className="self-start flex items-center gap-2 px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold transition-all cursor-pointer shadow-lg shadow-violet-900/30"
                     >
                         Crear empresas
                     </button>
                 </div>
             ) : (
-                <div className="mt-6 flex justify-center">
+                <label className="flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-zinc-700 hover:border-zinc-500 bg-zinc-900/50 hover:bg-zinc-900 transition-all px-6 py-10 cursor-pointer group">
+                    <span className="text-zinc-500 group-hover:text-zinc-300 transition-colors"><IconUpload /></span>
+                    <div className="text-center">
+                        <p className="text-sm font-medium text-zinc-300">Importar desde Excel</p>
+                        <p className="text-xs text-zinc-600 mt-0.5">Arrastra un archivo .xlsx o .xls, o haz clic para seleccionar</p>
+                    </div>
                     <input
                         type="file"
                         accept=".xlsx,.xls"
-                        onChange={(e) => {
-                            const file = e.target.files?.[0]
-                            if (file) cargarArchivo(file)
-                        }}
-                        className="w-full sm:w-auto p-2 bg-slate-700 border rounded cursor-pointer"
+                        className="hidden"
+                        onChange={(e) => { const f = e.target.files?.[0]; if (f) cargarArchivo(f) }}
                     />
-                </div>
+                </label>
             )}
 
-            <div className="mt-6 w-full flex justify-center">
+            {/* ── Buscador ── */}
+            <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none">
+                    <IconSearch />
+                </span>
                 <input
                     type="text"
-                    placeholder="Buscar empresa por nombre, RUT..."
+                    placeholder="Buscar por nombre o RUT…"
                     value={busqueda}
-                    onChange={(e) => setBusqueda(e.target.value)}
-                    className="w-full sm:w-1/2 p-2 bg-slate-800 border border-slate-700 rounded text-white focus:outline-none focus:ring-2 focus:ring-blue-600"
+                    onChange={e => setBusqueda(e.target.value)}
+                    className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-sm text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition"
                 />
+                {busqueda && (
+                    <button
+                        onClick={() => setBusqueda('')}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition text-xs cursor-pointer"
+                    >✕</button>
+                )}
             </div>
 
-            {(() => {
-                const q = busqueda.toLowerCase()
-                const empresasFiltradas = empresas.filter(
-                    e =>
-                        (e.nombre ?? '').toLowerCase().includes(q) ||
-                        (e.rut ?? '').toLowerCase().includes(q)
-                )
-
-                return (
-                    <div
-                        id="tabla-empresas"
-                        className="mt-6 w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 overflow-y-auto p-2 overscroll-none"
-                    >
-                        {empresasFiltradas.map(empresa => (
-                            <EmpresaCard
-                                usuarios={usuarios}
-                                key={empresa.id_empresa}
-                                empresa={empresa}
-                                setEmpresaState={setEmpresas}
-                                refreshKey={refreshKey}
-                                onVinculacionChange={onVinculacionChange}
-                                setUsuarios={setUsuarios}  // 👈
-                            />
-                        ))}
-
-                        {empresasFiltradas.length === 0 && (
-                            <p className="text-center col-span-full opacity-70 mt-4">
-                                No se encontraron empresas.
-                            </p>
-                        )}
-                    </div>
-                )
-            })()}
-        </>
+            {/* ── Grid ── */}
+            {empresasFiltradas.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 text-center">
+                    <span className="text-4xl mb-3">🏢</span>
+                    <p className="text-zinc-400 font-medium">
+                        {busqueda ? 'Sin resultados para esa búsqueda' : 'Aún no hay empresas'}
+                    </p>
+                    <p className="text-zinc-600 text-sm mt-1">
+                        {busqueda ? 'Intenta con otro término' : 'Crea la primera con el botón de arriba'}
+                    </p>
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    {empresasFiltradas.map(empresa => (
+                        <EmpresaCard
+                            key={empresa.id_empresa}
+                            empresa={empresa}
+                            setEmpresaState={setEmpresas}
+                            refreshKey={refreshKey}
+                            onVinculacionChange={onVinculacionChange}
+                            usuarios={usuarios}
+                            setUsuarios={setUsuarios}
+                        />
+                    ))}
+                </div>
+            )}
+        </div>
     )
 }

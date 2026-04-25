@@ -1,7 +1,6 @@
-//Usuarios.tsx
+{/*Usuarios*/}
 
-import { useEffect, useState } from "react"
-
+import { useState, useEffect } from "react"
 import UsuariosPanel from "./UsuariosPanel"
 import type { usuario } from "../../Api/usuarios"
 import type { empresa } from "../../Api/empresas"
@@ -10,321 +9,233 @@ import { crearUsuarioDeSuscriptorAsync, crearUsuariosDeSuscriptorAsync, obtenerU
 import { Example } from "../../Componentes/DropdownMenu"
 import UsuariosCard from "./UsuariosCard"
 
-export default ({ usuarios, idSuscriptor, empresas, setUsuarios, usuarioSeleccionadoId, setUsuarioSeleccionadoId }: {
-    usuarios: usuario[],
+// ─── Íconos ───────────────────────────────────────────────────────────────────
+
+const IconPlus = () => (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+    </svg>
+)
+const IconSearch = () => (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+    </svg>
+)
+const IconUpload = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" />
+    </svg>
+)
+
+// ─── Campos del mapper ────────────────────────────────────────────────────────
+
+const CAMPOS: { key: keyof usuario; label: string }[] = [
+    { key: 'nombre',      label: 'Nombre' },
+    { key: 'correo',      label: 'Correo' },
+    { key: 'fono_fax',    label: 'Teléfono / Fax' },
+    { key: 'direccion',   label: 'Dirección' },
+    { key: 'rut',         label: 'RUT' },
+    { key: 'especialidad',label: 'Especialidad' },
+]
+
+// ─── Componente ───────────────────────────────────────────────────────────────
+
+export default ({
+    usuarios,
+    idSuscriptor,
+    empresas,
+    setUsuarios,
+    usuarioSeleccionadoId,
+    setUsuarioSeleccionadoId,
+}: {
+    usuarios: usuario[]
     empresas: empresa[]
-    idSuscriptor: number,
+    idSuscriptor: number
     setUsuarios: React.Dispatch<React.SetStateAction<usuario[]>>
-    refreshKey: number
-    onVinculacionChange: () => void
+    refreshKey?: number
+    onVinculacionChange?: () => void
     usuarioSeleccionadoId: number | null
     setUsuarioSeleccionadoId: React.Dispatch<React.SetStateAction<number | null>>
 }) => {
-    // ELIMINA: const [usuarioAVisualizar, setUsuarioAVisualizar] = useState<usuario | null>(null)
-    // ... resto igual
-    //const [mensajeUsuarios, setMensajeUsuarios] = useState<string | null>()
-    const [mensajeBoton, setMensajeBoton] = useState<string | null>()
+    const [mensajeBoton, setMensajeBoton] = useState<string | null>(null)
+    const [busqueda, setBusqueda] = useState('')
     const usuarioAVisualizar = usuarios.find(u => u.id === usuarioSeleccionadoId) ?? null
 
-    const {
-        datosImportados,
-        //     mapeo,
-        setMapeo,
-        cargarArchivo,
-        construirResultado
-    } = useExcelMapper<usuario>(async (usuariosExcel) => {
+    const refrescarUsuarios = async () => {
+        const data = await obtenerUsuariosDeSuscriptorAsync(idSuscriptor)
+        setUsuarios(data)
+    }
 
-        const res = await crearUsuariosDeSuscriptorAsync(idSuscriptor, usuariosExcel.filter(
-            usuario =>{
-                return Object.values(usuario).some(Boolean)
-            }
-        ));
-        setUsuarios(res);
-    });
-
+    const { datosImportados, setMapeo, cargarArchivo, construirResultado } =
+        useExcelMapper<usuario>(async (usuariosExcel) => {
+            await crearUsuariosDeSuscriptorAsync(idSuscriptor, usuariosExcel.filter(u => Object.values(u).some(Boolean)))
+            await refrescarUsuarios()
+        })
 
     useEffect(() => {
-        (async () => {
+        ;(async () => {
             try {
-                const usuarios = await obtenerUsuariosDeSuscriptorAsync(idSuscriptor)
-
-                setUsuarios(usuarios)
-            } catch (e) {
-                //      setMensajeUsuarios(`Hubo un error al obtener los usuarios: ${String(e)}`)
-            }
+                const data = await obtenerUsuariosDeSuscriptorAsync(idSuscriptor)
+                setUsuarios(data)
+            } catch { }
         })()
     }, [])
 
-    useEffect(() => {
-        setMensajeBoton(null)
-    }, [usuarios])
-
-    const refrescarUsuarios = async () => {
-        const usuariosActualizados = await obtenerUsuariosDeSuscriptorAsync(idSuscriptor)
-        setUsuarios(usuariosActualizados)
-    }
+    useEffect(() => { setMensajeBoton(null) }, [usuarios])
 
     const handleAddButton = async () => {
         try {
-            setMensajeBoton('Creando...')
-
-            const usuarioNuevo = await crearUsuarioDeSuscriptorAsync(idSuscriptor)
-
-            setUsuarios((last) => {
-                return [...last, usuarioNuevo]
-            })
-        } catch (e) {
-            setMensajeBoton('Hubo un problema al crear el usuario.')
-
-            setTimeout(() => {
-                setMensajeBoton(null)
-            }, 2000);
+            setMensajeBoton('Creando…')
+            const nuevo = await crearUsuarioDeSuscriptorAsync(idSuscriptor)
+            setUsuarios(last => [...last, nuevo])
+        } catch {
+            setMensajeBoton('Error al crear.')
+            setTimeout(() => setMensajeBoton(null), 2000)
         }
     }
-    const [busqueda, setBusqueda] = useState('');
 
+    const q = busqueda.toLowerCase()
+    const usuariosFiltrados = usuarios.filter(u =>
+        (u.nombre ?? '').toLowerCase().includes(q) ||
+        (u.rut ?? '').toLowerCase().includes(q) ||
+        (u.email ?? '').toLowerCase().includes(q) ||
+        (u.especialidad ?? '').toLowerCase().includes(q) ||
+        (u.direccion ?? '').toLowerCase().includes(q)
+    )
 
-    return <>
-        {/* HEADER */}
-        <div className="w-full">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <h2 className="text-2xl sm:text-3xl font-semibold">
-                    Usuarios <span className="opacity-70">({usuarios.length})</span>
-                </h2>
+    // ── Panel de detalle ──────────────────────────────────────────────────────
+    if (usuarioAVisualizar) {
+        return (
+            <UsuariosPanel
+                idSuscriptor={idSuscriptor}
+                setUsuarioSeleccionadoId={setUsuarioSeleccionadoId}
+                empresas={empresas}
+                setUsuarioState={setUsuarios}
+                usuario={usuarioAVisualizar}
+                onVinculacionChange={refrescarUsuarios}
+            />
+        )
+    }
 
+    // ── Vista de lista ────────────────────────────────────────────────────────
+    return (
+        <div className="flex flex-col gap-6">
 
+            {/* Header */}
+            <div className="flex items-center justify-between">
+                <div>
+                    <h2 className="text-2xl font-bold text-white tracking-tight">Usuarios</h2>
+                    <p className="text-sm text-zinc-500 mt-0.5">
+                        {usuariosFiltrados.length} de {usuarios.length} usuarios
+                    </p>
+                </div>
                 <button
                     onClick={handleAddButton}
-                    className="
-                    bg-green-600
-                    hover:bg-green-700
-                    text-white
-                    px-4
-                    py-2
-                    rounded
-                    transition
-                    w-full
-                    sm:w-auto
-                "
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold transition-all shadow-lg shadow-emerald-900/30 cursor-pointer"
                 >
-                    {mensajeBoton ?? 'Agregar'}
+                    <IconPlus />
+                    {mensajeBoton ?? 'Nuevo usuario'}
                 </button>
             </div>
-        </div>
 
-        {/* IMPORTACIÓN */}
-        {datosImportados ? (
-            /* ... tu código se mantiene igual ... */
-            <div className="mt-6 border p-4 rounded flex flex-col gap-6 items-center">
-                <h2 className="text-center text-lg font-medium">
-                    Relacionar columnas{" "}
-                    <span className="opacity-70">
-                        ({datosImportados.filas.length} fila(s))
-                    </span>
-                </h2>
-
-                <h3 className="text-sm sm:text-3xl font-semibold">
-                    No se insertarán usuarios con datos inválidos o con correo o rut que ya existen.
-                </h3>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
-
-                    <div className="flex flex-col gap-1 items-center">
-                        <span>Nombre</span>
-                        <Example
-                            opciones={datosImportados.cabeceras}
-                            callbackOnSelect={(opcion) =>
-                                setMapeo(last => ({ ...last, nombre: opcion }))
-                            }
-                        />
+            {/* Importación Excel */}
+            {datosImportados ? (
+                <div className="rounded-2xl border border-zinc-700 bg-zinc-900 p-6 flex flex-col gap-5">
+                    <div>
+                        <h3 className="text-base font-semibold text-zinc-100">Relacionar columnas</h3>
+                        <p className="text-xs text-zinc-500 mt-0.5">
+                            {datosImportados.filas.length} fila(s) · Usuarios con correo o RUT duplicado serán omitidos
+                        </p>
                     </div>
 
-                    <div className="flex flex-col gap-1 items-center">
-                        <span>Correo</span>
-                        <Example
-                            opciones={datosImportados.cabeceras}
-                            callbackOnSelect={(opcion) =>
-                                setMapeo(last => ({ ...last, correo: opcion }))
-                            }
-                        />
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        {CAMPOS.map(({ key, label }) => (
+                            <div key={key} className="flex flex-col gap-1.5">
+                                <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">{label}</span>
+                                <Example
+                                    opciones={datosImportados.cabeceras}
+                                    callbackOnSelect={(opcion) => setMapeo(last => ({ ...last, [key]: opcion }))}
+                                />
+                            </div>
+                        ))}
                     </div>
 
-                    <div className="flex flex-col gap-1 items-center">
-                        <span>fono_fax</span>
-                        <Example
-                            opciones={datosImportados.cabeceras}
-                            callbackOnSelect={(opcion) =>
-                                setMapeo(last => ({ ...last, fono_fax: opcion }))
-                            }
-                        />
-                    </div>
-
-                    <div className="flex flex-col gap-1 items-center">
-                        <span>direccion</span>
-                        <Example
-                            opciones={datosImportados.cabeceras}
-                            callbackOnSelect={(opcion) =>
-                                setMapeo(last => ({ ...last, direccion: opcion }))
-                            }
-                        />
-                    </div>
-
-                    <div className="flex flex-col gap-1 items-center">
-                        <span>rut</span>
-                        <Example
-                            opciones={datosImportados.cabeceras}
-                            callbackOnSelect={(opcion) =>
-                                setMapeo(last => ({ ...last, rut: opcion }))
-                            }
-                        />
-                    </div>
-
-                    <div className="flex flex-col gap-1 items-center">
-                        <span>especialidad</span>
-                        <Example
-                            opciones={datosImportados.cabeceras}
-                            callbackOnSelect={(opcion) =>
-                                setMapeo(last => ({ ...last, especialidad: opcion }))
-                            }
-                        />
-                    </div>
+                    <button
+                        onClick={() => {
+                            construirResultado((fila, m) =>
+                                Object.fromEntries(
+                                    CAMPOS.map(({ key }) => [
+                                        key,
+                                        fila[(m as Record<string, string>)[key]]
+                                            ? String(fila[(m as Record<string, string>)[key]]).trim()
+                                            : undefined,
+                                    ])
+                                ) as Partial<usuario>
+                            )
+                        }}
+                        className="self-start px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold transition-all cursor-pointer shadow-lg shadow-emerald-900/30"
+                    >
+                        Crear usuarios
+                    </button>
                 </div>
-
-                <button
-                    onClick={() => {
-                        construirResultado((fila, m) => ({
-                            nombre: fila[m.nombre]
-                                ? String(fila[m.nombre]).trim()
-                                : undefined,
-
-                            correo:
-                                fila[m.correo]
-                                    ? String(fila[m.correo]).trim()
-                                    : undefined,
-
-                            fono_fax: fila[m.fono_fax]
-                                ? String(fila[m.fono_fax]).trim()
-                                : undefined,
-
-                            direccion: fila[m.direccion]
-                                ? String(fila[m.direccion]).trim()
-                                : undefined,
-                            rut: fila[m.rut]
-                                ? String(fila[m.rut]).trim()
-                                : undefined,
-                            especialidad: fila[m.especialidad]
-                                ? String(fila[m.especialidad]).trim()
-                                : undefined,
-                        }));
-                    }}
-                    className="
-                    bg-slate-700
-                    hover:bg-slate-600
-                    px-6
-                    py-2
-                    rounded
-                    border
-                    transition
-                "
-                >
-                    Crear usuarios
-                </button>
-            </div>
-        ) : (
-            <div className="mt-6 flex justify-center">
-                <input
-                    type="file"
-                    accept=".xlsx,.xls"
-                    onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) cargarArchivo(file);
-                    }}
-                    className="
-                    w-full
-                    sm:w-auto
-                    p-2
-                    bg-slate-700
-                    border
-                    rounded
-                    cursor-pointer
-                "
-                />
-            </div>
-        )}
-
-        {/* 🔍 BUSCADOR */}
-        <div className="mt-6 w-full flex justify-center">
-            <input
-                type="text"
-                placeholder="Buscar usuario por nombre, rut, correo, especialidad..."
-                value={busqueda}
-                onChange={(e) => setBusqueda(e.target.value)}
-                className="
-                w-full
-                sm:w-1/2
-                p-2
-                bg-slate-800
-                border border-slate-700
-                rounded
-                text-white
-                focus:outline-none
-                focus:ring-2
-                focus:ring-blue-600
-            "
-            />
-        </div>
-
-        {/* 🔎 LÓGICA DEL FILTRO */}
-        {(() => {
-            const usuariosFiltrados = usuarios.filter(u =>
-                (u.nombre ?? '').toLowerCase().includes(busqueda.toLowerCase()) ||
-                (u.rut ?? '').toLowerCase().includes(busqueda.toLowerCase()) ||
-                (u.email ?? '').toLowerCase().includes(busqueda.toLowerCase()) ||
-                (u.especialidad ?? '').toLowerCase().includes(busqueda.toLowerCase()) ||
-                (u.direccion ?? '').toLowerCase().includes(busqueda.toLowerCase())
-            );
-
-            return usuarioAVisualizar ? <div>
-                <UsuariosPanel
-                    idSuscriptor={idSuscriptor}
-                    setUsuarioSeleccionadoId={setUsuarioSeleccionadoId}
-                    empresas={empresas}
-                    setUsuarioState={setUsuarios}
-                    usuario={usuarioAVisualizar}
-                    onVinculacionChange={refrescarUsuarios}  // 🔥 IMPORTANTE
-                />
-            </div> : <div
-                id="tabla-usuarios"
-                className="
-                    mt-6
-                    w-full
-                    grid
-                    grid-cols-1
-                    sm:grid-cols-2
-                    lg:grid-cols-2
-                    gap-4
-                    overflow-y-auto
-                    overscroll-none
-                    p-2
-                "
-            >
-                {usuariosFiltrados.map((usuario) => (
-                    <UsuariosCard
-                        key={usuario.id}
-                        usuario={usuario}
-                        setUsuarioSeleccionadoId={setUsuarioSeleccionadoId}
+            ) : (
+                <label className="flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-zinc-700 hover:border-zinc-500 bg-zinc-900/50 hover:bg-zinc-900 transition-all px-6 py-10 cursor-pointer group">
+                    <span className="text-zinc-500 group-hover:text-zinc-300 transition-colors"><IconUpload /></span>
+                    <div className="text-center">
+                        <p className="text-sm font-medium text-zinc-300">Importar desde Excel</p>
+                        <p className="text-xs text-zinc-600 mt-0.5">Arrastra un archivo .xlsx o .xls, o haz clic para seleccionar</p>
+                    </div>
+                    <input
+                        type="file"
+                        accept=".xlsx,.xls"
+                        className="hidden"
+                        onChange={(e) => { const f = e.target.files?.[0]; if (f) cargarArchivo(f) }}
                     />
-                ))}
+                </label>
+            )}
 
-                {usuariosFiltrados.length === 0 && (
-                    <p className="text-center col-span-full opacity-70 mt-4">
-                        No se encontraron usuarios.
-                    </p>
+            {/* Buscador */}
+            <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none">
+                    <IconSearch />
+                </span>
+                <input
+                    type="text"
+                    placeholder="Buscar por nombre, RUT, correo, especialidad…"
+                    value={busqueda}
+                    onChange={e => setBusqueda(e.target.value)}
+                    className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-sm text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+                />
+                {busqueda && (
+                    <button
+                        onClick={() => setBusqueda('')}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 text-xs transition cursor-pointer"
+                    >✕</button>
                 )}
             </div>
 
-        })()}
-    </>
-
-
+            {/* Grid de cards */}
+            {usuariosFiltrados.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 text-center">
+                    <span className="text-4xl mb-3">👤</span>
+                    <p className="text-zinc-400 font-medium">
+                        {busqueda ? 'Sin resultados para esa búsqueda' : 'Aún no hay usuarios'}
+                    </p>
+                    <p className="text-zinc-600 text-sm mt-1">
+                        {busqueda ? 'Intenta con otro término' : 'Crea el primero con el botón de arriba'}
+                    </p>
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {usuariosFiltrados.map(usuario => (
+                        <UsuariosCard
+                            key={usuario.id}
+                            usuario={usuario}
+                            setUsuarioSeleccionadoId={setUsuarioSeleccionadoId}
+                        />
+                    ))}
+                </div>
+            )}
+        </div>
+    )
 }

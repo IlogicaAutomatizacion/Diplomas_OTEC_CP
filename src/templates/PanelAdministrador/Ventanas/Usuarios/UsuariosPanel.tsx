@@ -1,3 +1,5 @@
+{/*UsuariosPanel*/ }
+
 import {
     actualizarPropiedadDeUsuarioAsync,
     borrarUsuarioAsync,
@@ -193,194 +195,187 @@ export default ({
     ] as const
 
     return (
-        <div className="border mt-5 p-2 w-full overflow-y-auto overflow-x-hidden flex flex-col">
+        <div className="flex flex-col gap-6 p-4 w-full overflow-y-auto overflow-x-hidden">
+
+            {/* HEADER */}
             <button
                 onClick={() => setUsuarioSeleccionadoId(null)}
-                className="bg-green-600 hover:bg-green-700 text-white px-4 cursor-pointer py-2 rounded transition w-full sm:w-auto"
+                className="self-start flex items-center gap-2 text-sm text-slate-400 hover:text-white transition px-3 py-1.5 rounded-md border border-slate-700 hover:bg-slate-800"
             >
-                Volver a la lista de usuarios
+                ← Volver a usuarios
             </button>
 
-            <div
-                // onMouseEnter={() => setBotonesVisible(true)}
-                // onMouseLeave={() => setBotonesVisible(false)}
-                className="flex flex-col mt-5 break-all gap-y-6"
-            >
-                {/* DATOS */}
-                <div className="overflow-y-auto max-h-40 sm:max-h-56">
-                    {Object.entries(usuarioLocal).map(([key, value]) => {
-                        if (
-                            key.toLowerCase() === 'id' ||
-                            key.toLowerCase().includes('token') ||
-                            key.toLowerCase().includes('roles') ||
-                            key.toLowerCase().includes('vinculadas') ||
-                            key.toLowerCase() === 'firma' ||
-                            key.toLowerCase() === 'foto_perfil'
-                        ) return null
-
-                        return (
-                            <p key={key} className="text-sm sm:text-base">
-                                <span className="text-blue-400">{key}:</span>{' '}
-                                <EditableText
-                                    onChange={(value) =>
-                                        actualizarUsuario({ [key]: value.trim() } as Partial<usuario>)
-                                    }
-                                    text={value ?? 'Sin dato'}
-                                />
-                            </p>
-                        )
-                    })}
+            <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-full bg-blue-900/60 text-blue-300 flex items-center justify-center font-medium text-sm shrink-0">
+                    {usuarioLocal.nombre?.slice(0, 2).toUpperCase() ?? '??'}
                 </div>
-
-                {/* ROLES */}
-                <div className="flex flex-col justify-center">
-                    <h3 className="text-xl sm:text-2xl text-center mb-2">Roles</h3>
-                    <div className="overflow-y-auto border grid grid-cols-1 sm:grid-cols-2 gap-y-2 p-2">
-                        {rolesDisponibles.map(([rol, label]) => (
-                            <div key={rol} className="flex flex-row gap-x-2 items-center">
-                                <input
-                                    type="checkbox"
-                                    onChange={(e) => handleRolCheckbox(e.target.checked, rol as rolEnum)}
-                                    checked={usuarioLocal.rolesVinculados?.includes(rol as rolEnum) ?? false}
-                                />
-                                <p>{label}</p>
-                            </div>
-                        ))}
-                    </div>
+                <div>
+                    <p className="font-medium text-base">{usuarioLocal.nombre ?? 'Sin nombre'}</p>
+                    <p className="text-xs text-slate-500">ID #{usuarioLocal.id}</p>
                 </div>
-
-                {/* EMPRESAS */}
-                <div className="flex flex-col justify-center">
-                    <div className="flex flex-col sm:flex-row gap-y-2 sm:gap-x-2 mb-2 items-start sm:items-center">
-                        <h3 className="text-xl sm:text-2xl">Empresas</h3>
-                        <span className="sm:ml-auto w-full sm:w-auto">
-                            <Example
-                                titulo="Agregar"
-                                noCambiarNombreAlSeleccionar={true}
-                                callbackOnSelect={(opcion) => {
-                                    if (!opcion?.id_empresa) return
-                                    handleAgregarEmpresaVinculada(opcion.id_empresa)
-                                }}
-                                opciones={empresas?.map(e => ({ nombre: e.nombre, opcion: e }))}
-                            />
-                        </span>
-                    </div>
-                    <div className="overflow-y-auto max-h-32 border flex flex-col gap-y-2 p-2">
-                        {usuarioLocal.empresasVinculadas?.map(empresa => (
-                            <div key={empresa.id_empresa} className="grid grid-cols-1 sm:grid-cols-2 gap-2 items-center">
-                                <span className="w-full border p-1 text-center">{empresa.nombre}</span>
-                                <button
-                                    onClick={() => handleDeleteEmpresaVinculada(empresa.id_empresa)}
-                                    className="bg-red-500 rounded-3xl cursor-pointer p-1"
-                                >
-                                    Eliminar
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                {/* IMÁGENES */}
-                <div className="flex flex-col justify-center items-center sm:flex-row overflow-x-auto p-2 gap-6">
-                    {/* FOTO PERFIL */}
-                    <div className="flex flex-col justify-center shrink-0 min-w-[200px]">
-                        <h3 className="text-xl text-center mb-2">Foto del usuario</h3>
-                        {usuarioLocal.foto_perfil ? (
-                            <div className="relative inline-block group self-center">
-                                <img
-                                    src={`https://${b2UsuarioBucket}.${b2Url}/${usuarioLocal.foto_perfil}`}
-                                    alt="Foto de perfil"
-                                    className="w-32 h-32 sm:w-40 sm:h-40 object-cover rounded-lg"
-                                />
-                                <button
-                                    onClick={async () => {
-                                        if (!usuarioLocal?.id) return
-                                        const res = await eliminarFotoDePerfilAsync(usuarioLocal.id)
-                                        if (res) actualizarUsuario({ foto_perfil: undefined })
-                                    }}
-                                    className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 hover:bg-red-600 transition"
-                                >
-                                    ✕
-                                </button>
-                            </div>
-                        ) : (
-                            <input
-                                className="border h-10 p-2"
-                                type="file"
-                                accept="image/*"
-                                onChange={async (e) => {
-                                    if (!usuarioLocal.id) return
-                                    const selected = e.target.files?.[0]
-                                    if (!selected) return
-                                    const res = await subirFotoDePerfilAsync(selected, usuarioLocal.id)
-                                    actualizarUsuario({ foto_perfil: res.foto_perfil })
-                                }}
-                            />
-                        )}
-                    </div>
-
-                    {/* FIRMA */}
-                    <div className="flex flex-col justify-center shrink-0 min-w-[200px]">
-                        <h3 className="text-xl text-center mb-2">Firma del usuario</h3>
-                        {usuarioLocal.firma ? (
-                            <div className="relative inline-block group self-center">
-                                <img
-                                    src={`https://${b2UsuarioBucket}.${b2Url}/${usuarioLocal.firma}`}
-                                    className="w-32 h-32 sm:w-40 sm:h-40 object-cover rounded-lg"
-                                    alt=""
-                                />
-                                <button
-                                    onClick={async () => {
-                                        if (!usuarioLocal?.id) return
-                                        const res = await eliminarFirmaAsync(usuarioLocal.id)
-                                        if (res) actualizarUsuario({ firma: undefined })
-                                    }}
-                                    className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 hover:bg-red-600 transition"
-                                >
-                                    ✕
-                                </button>
-                            </div>
-                        ) : (
-                            <input
-                                className="border h-10 p-2"
-                                type="file"
-                                accept="image/*"
-                                onChange={async (e) => {
-                                    if (!usuarioLocal.id) return
-                                    const selected = e.target.files?.[0]
-                                    if (!selected) return
-                                    const res = await subirFirmaAsync(selected, usuarioLocal.id)
-                                    actualizarUsuario({ firma: res.firma })
-                                }}
-                            />
-                        )}
-                    </div>
-                </div>
-
-                <div className="flex flex-col gap-y-2">
+                <div className="ml-auto">
                     <button
                         onClick={guardarCambios}
                         disabled={!hayCambios || guardando}
-                        className={`h-10 w-full cursor-pointer ${!hayCambios || guardando ? 'bg-slate-600 cursor-not-allowed' : 'bg-blue-600'}`}
+                        className="px-4 py-2 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white disabled:bg-slate-600 disabled:cursor-not-allowed transition"
                     >
-                        {guardando ? 'Guardando...' : 'Guardar'}
-                    </button>
-                    <button
-                        onClick={handleDesvincular}
-                        disabled={desvinculando}
-                        className={`h-10 w-full mt-20 cursor-pointer ${desvinculando ? 'bg-red-300 cursor-not-allowed' : 'bg-red-400'}`}
-                    >
-                        {desvinculando ? 'Desvinculando...' : 'Desvincular'}
-                    </button>
-                    <button
-                        onClick={handleDelete}
-                        disabled={eliminandoUsuario}
-                        className={`h-10 w-full cursor-pointer ${eliminandoUsuario ? 'bg-red-700 cursor-not-allowed' : 'bg-red-600'}`}
-                    >
-                        {eliminandoUsuario ? 'Eliminando usuario...' : 'Eliminar usuario'}
+                        {guardando ? 'Guardando...' : 'Guardar cambios'}
                     </button>
                 </div>
             </div>
+
+            {/* DATOS */}
+            <div className="border border-slate-700/60 rounded-xl p-4 flex flex-col gap-3 bg-slate-900/40">
+                <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">Información personal</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {Object.entries(usuarioLocal).map(([key, value]) => {
+                        if (['id', 'firma', 'foto_perfil'].includes(key) ||
+                            key.toLowerCase().includes('token') ||
+                            key.toLowerCase().includes('roles') ||
+                            key.toLowerCase().includes('vinculadas')) return null
+                        return (
+                            <div key={key} className="flex flex-col gap-1">
+                                <span className="text-xs text-slate-500">{key}</span>
+                                <div className="text-sm px-3 py-1.5 rounded-md border border-slate-700/60 bg-slate-800/60">
+                                    <EditableText
+                                        onChange={(v) => actualizarUsuario({ [key]: v.trim() } as Partial<usuario>)}
+                                        text={String(value ?? '')}
+                                    />
+                                </div>
+                            </div>
+                        )
+                    })}
+                </div>
+            </div>
+
+            {/* ROLES */}
+            <div className="border border-slate-700/60 rounded-xl p-4 flex flex-col gap-3 bg-slate-900/40">
+                <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">Roles asignados</p>
+                <div className="flex flex-col gap-2">
+                    {rolesDisponibles.map(([rol, label]) => {
+                        const activo = usuarioLocal.rolesVinculados?.includes(rol as rolEnum) ?? false
+                        return (
+                            <label key={rol} className="flex items-center gap-3 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    onChange={(e) => handleRolCheckbox(e.target.checked, rol as rolEnum)}
+                                    checked={activo}
+                                    className="accent-blue-500"
+                                />
+                                <span className={`text-sm px-3 py-1 rounded-full border transition ${activo
+                                        ? 'bg-blue-900/50 border-blue-700/60 text-blue-300'
+                                        : 'border-slate-700/60 text-slate-400'
+                                    }`}>
+                                    {label}
+                                </span>
+                            </label>
+                        )
+                    })}
+                </div>
+            </div>
+
+            {/* EMPRESAS */}
+            <div className="border border-slate-700/60 rounded-xl p-4 flex flex-col gap-3 bg-slate-900/40">
+                <div className="flex items-center justify-between">
+                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">Empresas vinculadas</p>
+                    <Example
+                        titulo="+ Agregar"
+                        noCambiarNombreAlSeleccionar={true}
+                        callbackOnSelect={(opcion) => {
+                            if (!opcion?.id_empresa) return
+                            handleAgregarEmpresaVinculada(opcion.id_empresa)
+                        }}
+                        opciones={empresas?.map(e => ({ nombre: e.nombre, opcion: e }))}
+                    />
+                </div>
+                <div className="flex flex-col gap-2">
+                    {usuarioLocal.empresasVinculadas?.map(empresa => (
+                        <div key={empresa.id_empresa} className="flex items-center justify-between px-3 py-2 rounded-md border border-slate-700/60 bg-slate-800/40 text-sm">
+                            <span>{empresa.nombre}</span>
+                            <button
+                                onClick={() => handleDeleteEmpresaVinculada(empresa.id_empresa)}
+                                className="w-6 h-6 rounded-full text-slate-400 hover:text-red-400 hover:bg-red-950/40 flex items-center justify-center text-xs transition"
+                            >
+                                ✕
+                            </button>
+                        </div>
+                    ))}
+                    {!usuarioLocal.empresasVinculadas?.length && (
+                        <p className="text-xs text-slate-600 italic">Sin empresas vinculadas</p>
+                    )}
+                </div>
+            </div>
+
+            {/* IMÁGENES */}
+            <div className="border border-slate-700/60 rounded-xl p-4 flex flex-col gap-3 bg-slate-900/40">
+                <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">Imágenes</p>
+                <div className="flex flex-wrap gap-8">
+                    {[
+                        { label: 'Foto de perfil', field: 'foto_perfil', src: usuarioLocal.foto_perfil, onDelete: () => eliminarFotoDePerfilAsync(usuarioLocal.id!).then(r => r && actualizarUsuario({ foto_perfil: undefined })), onUpload: (f: File) => subirFotoDePerfilAsync(f, usuarioLocal.id!).then(r => actualizarUsuario({ foto_perfil: r.foto_perfil })) },
+                        { label: 'Firma', field: 'firma', src: usuarioLocal.firma, onDelete: () => eliminarFirmaAsync(usuarioLocal.id!).then(r => r && actualizarUsuario({ firma: undefined })), onUpload: (f: File) => subirFirmaAsync(f, usuarioLocal.id!).then(r => actualizarUsuario({ firma: r.firma })) },
+                    ].map(({ label, src, onDelete, onUpload }) => (
+                        <div key={label} className="flex flex-col gap-2 items-start">
+                            <span className="text-xs text-slate-500">{label}</span>
+                            {src ? (
+                                <div className="relative group">
+                                    <img
+                                        src={`https://${b2UsuarioBucket}.${b2Url}/${src}`}
+                                        className="w-20 h-20 object-cover rounded-lg border border-slate-700/60"
+                                        alt={label}
+                                    />
+                                    <button
+                                        onClick={() => { if (usuarioLocal.id) onDelete() }}
+                                        className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white text-xs opacity-0 group-hover:opacity-100 hover:bg-red-700 transition flex items-center justify-center"
+                                    >✕</button>
+                                </div>
+                            ) : (
+                                <label className="cursor-pointer text-xs px-3 py-1.5 rounded-md border border-slate-700 hover:bg-slate-800 text-slate-400 transition">
+                                    Subir imagen
+                                    <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                                        if (!usuarioLocal.id) return
+                                        const f = e.target.files?.[0]
+                                        if (f) onUpload(f)
+                                    }} />
+                                </label>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* ZONA DE PELIGRO */}
+            <div className="border border-red-900/40 rounded-xl p-4 flex flex-col gap-3 bg-red-950/10">
+                <p className="text-xs font-medium text-red-700 uppercase tracking-wide">Zona de peligro</p>
+                <div className="flex flex-col gap-2">
+                    <div className="flex items-center justify-between p-3 rounded-md border border-slate-700/60">
+                        <div>
+                            <p className="text-sm font-medium">Desvincular usuario</p>
+                            <p className="text-xs text-slate-500">Quita la asociación con este suscriptor</p>
+                        </div>
+                        <button
+                            onClick={handleDesvincular}
+                            disabled={desvinculando}
+                            className="px-3 py-1.5 text-sm rounded-md border border-red-800/60 text-red-400 hover:bg-red-950/40 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                        >
+                            {desvinculando ? 'Desvinculando...' : 'Desvincular'}
+                        </button>
+                    </div>
+                    <div className="flex items-center justify-between p-3 rounded-md border border-red-900/50 bg-red-950/20">
+                        <div>
+                            <p className="text-sm font-medium text-red-300">Eliminar usuario</p>
+                            <p className="text-xs text-red-700">Esta acción no se puede deshacer</p>
+                        </div>
+                        <button
+                            onClick={handleDelete}
+                            disabled={eliminandoUsuario}
+                            className="px-3 py-1.5 text-sm rounded-md bg-red-700 hover:bg-red-600 text-white disabled:opacity-40 disabled:cursor-not-allowed transition"
+                        >
+                            {eliminandoUsuario ? 'Eliminando...' : 'Eliminar usuario'}
+                        </button>
+                    </div>
+                </div>
+            </div>
+
         </div>
     )
 }

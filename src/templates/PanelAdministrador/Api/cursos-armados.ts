@@ -22,6 +22,7 @@ export interface cursoArmado {
     estado?: 'ACTIVO' | 'INACTIVO' | 'FINALIZADO'
     curso?: curso,
     profesor?: usuario,
+    vendedor?: usuario,
     valorUnitario: number,
     lugar_de_realizacion: string,
     notas_cotizacion: string,

@@ -14,6 +14,7 @@ import FormarteLogo from '../../Diseño/Formarte/FormarteLogo'
 import CPLogo from '../../Diseño/CP/CPLogo'
 import Usuarios from './Ventanas/Usuarios/Usuarios'
 import Parametros from './Ventanas/Parametros'
+import ReportesCursos from './Ventanas/Reportescursos'
 
 type ids = 2 | 3
 
@@ -27,6 +28,19 @@ const ObtenerLogo = ({ id }: { id: ids }) => {
     return <Logo />
 }
 
+type Seccion = 'armar' | 'usuarios' | 'empresas' | 'cursos' | 'parametros' | 'reportes'
+
+const NAV_ITEMS: { key: Seccion; label: string }[] = [
+
+    { key: 'parametros', label: 'Parámetros' },
+    { key: 'armar', label: 'Gestionar cursos' },
+    { key: 'usuarios', label: 'Usuarios' },
+    { key: 'empresas', label: 'Empresas' },
+    { key: 'cursos', label: 'Cursos' },
+    { key: 'reportes', label: 'Reportes de cursos' },
+
+]
+
 export default () => {
     const [cursos, setCursos] = useState<curso[]>([])
     const [usuarios, setUsuarios] = useState<usuario[]>([])
@@ -37,8 +51,7 @@ export default () => {
 
     const [identificadoresSuscriptor, setIdentificadoresSuscriptor] = useState<{ id: ids, uuidSuscriptor: string } | null>(null)
 
-
-    const [seccion, setSeccion] = useState<'armar' | 'usuarios' | 'empresas' | 'cursos' | 'parametros'>('armar')
+    const [seccion, setSeccion] = useState<Seccion>('armar')
 
     const [logo, setLogo] = useState<ids | null>(null)
     const [usuarioSeleccionadoId, setUsuarioSeleccionadoId] = useState<number | null>(null)
@@ -48,50 +61,38 @@ export default () => {
 
     const { nombreEmpresa } = useParams()
 
-
     useEffect(() => {
         if (identificadoresSuscriptor) setLogo(identificadoresSuscriptor.id)
     }, [identificadoresSuscriptor])
 
-
     useEffect(() => {
         (async () => {
-            if (!identificadoresSuscriptor) { return }
-
+            if (!identificadoresSuscriptor) return
             try {
-                const usuarios = await obtenerUsuariosDeSuscriptorAsync(identificadoresSuscriptor.id)
-
-                setUsuarios(usuarios)
-            } catch (e) {
-                //      setMensajeUsuarios(`Hubo un error al obtener los usuarios: ${String(e)}`)
-            }
+                const u = await obtenerUsuariosDeSuscriptorAsync(identificadoresSuscriptor.id)
+                setUsuarios(u)
+            } catch { }
         })()
     }, [identificadoresSuscriptor])
 
-
     useEffect(() => {
         (async () => {
-            if (!identificadoresSuscriptor) { return }
-
+            if (!identificadoresSuscriptor) return
             try {
-                const cursos = await obtenerCursosDeSuscriptorAsync(identificadoresSuscriptor.id)
-
-                console.log(cursos)
-                setCursos(cursos)
-            } catch (e) {
-                //setMensajeCursos(`Hubo un error al obtener los cursos: ${String(e)}`)
-            }
+                const c = await obtenerCursosDeSuscriptorAsync(identificadoresSuscriptor.id)
+                console.log(c)
+                setCursos(c)
+            } catch { }
         })()
     }, [identificadoresSuscriptor])
 
     useEffect(() => {
         ; (async () => {
-            if (!identificadoresSuscriptor) { return }
-
+            if (!identificadoresSuscriptor) return
             try {
-                const empresas = await obtenerEmpresasDeSuscriptorAsync(identificadoresSuscriptor.id)
-                setEmpresas(empresas)
-            } catch (e) { }
+                const e = await obtenerEmpresasDeSuscriptorAsync(identificadoresSuscriptor.id)
+                setEmpresas(e)
+            } catch { }
         })()
     }, [identificadoresSuscriptor])
 
@@ -100,12 +101,7 @@ export default () => {
             ; (async () => {
                 try {
                     const identificadores = await obtenerIdentificadoresDeSuscripcionPorNombreDeEmpresaAsync(nombreEmpresa)
-
-                    setIdentificadoresSuscriptor(identificadores as {
-                        id: ids,
-                        uuidSuscriptor: string,
-                    })
-
+                    setIdentificadoresSuscriptor(identificadores as { id: ids; uuidSuscriptor: string })
                 } catch (e) {
                     console.log(String(e))
                     setMensaje('No se encontró la empresa.')
@@ -117,9 +113,8 @@ export default () => {
         if (identificadoresSuscriptor) setMensaje(null)
     }, [identificadoresSuscriptor])
 
-    function cambiarSeccion(nueva: typeof seccion) {
+    function cambiarSeccion(nueva: Seccion) {
         setSeccion(nueva)
-
         if (nueva === 'usuarios') setRefreshKeyUsuarios(k => k + 1)
         if (nueva === 'empresas') setRefreshKeyEmpresas(k => k + 1)
     }
@@ -129,35 +124,37 @@ export default () => {
             {logo ? <ObtenerLogo id={logo} /> : null}
 
             <div className="w-full max-w-7xl px-4 py-6 flex flex-col items-center text-white">
-                <h1 className="text-4xl font-semibold text-center">
-                    Administrador
-                </h1>
+                <h1 className="text-4xl font-semibold text-center">Administrador</h1>
 
-                <div className="flex gap-4 mt-10 flex-wrap justify-center">
-
-                    <button onClick={() => cambiarSeccion('parametros')} className={seccion === 'parametros' ? 'bg-blue-600 px-4 py-2' : 'bg-gray-700 px-4 py-2'}>
-                        Parametros
-                    </button>
-
-                    <button onClick={() => cambiarSeccion('armar')} className={seccion === 'armar' ? 'bg-blue-600 px-4 py-2' : 'bg-gray-700 px-4 py-2'}>
-                        Gestionar cursos
-                    </button>
-
-                    <button onClick={() => cambiarSeccion('usuarios')} className={seccion === 'usuarios' ? 'bg-blue-600 px-4 py-2' : 'bg-gray-700 px-4 py-2'}>
-                        Usuarios
-                    </button>
-
-                    <button onClick={() => cambiarSeccion('empresas')} className={seccion === 'empresas' ? 'bg-blue-600 px-4 py-2' : 'bg-gray-700 px-4 py-2'}>
-                        Empresas
-                    </button>
-
-                    <button onClick={() => cambiarSeccion('cursos')} className={seccion === 'cursos' ? 'bg-blue-600 px-4 py-2' : 'bg-gray-700 px-4 py-2'}>
-                        Cursos
-                    </button>
-
-                </div>
+                {/* Nav */}
+                <nav className="flex gap-2 mt-10 flex-wrap justify-center">
+                    {NAV_ITEMS.map(({ key, label }) => (
+                        <button
+                            key={key}
+                            onClick={() => cambiarSeccion(key)}
+                            className={`
+                                px-4 py-2 rounded-lg text-sm font-medium transition cursor-pointer
+                                ${seccion === key
+                                    ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/40'
+                                    : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700 border border-zinc-700'}
+                            `}
+                        >
+                            {label}
+                        </button>
+                    ))}
+                </nav>
 
                 <div className="w-full mt-10">
+                    {seccion === 'reportes' && (
+                        <ReportesCursos
+                            cursos={cursos}
+                            empresas={empresas}
+                            cursosArmados={cursosArmados}
+                            usuarios={usuarios}
+                        />
+                    )}
+
+
                     {seccion === 'armar' && (
                         <ArmarCursos
                             uuidSuscriptor={identificadoresSuscriptor.uuidSuscriptor}
@@ -169,6 +166,7 @@ export default () => {
                             setCursosArmados={setCursosArmados}
                         />
                     )}
+
 
                     {seccion === 'usuarios' && (
                         <Usuarios
