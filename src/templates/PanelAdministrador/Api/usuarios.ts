@@ -201,3 +201,22 @@ export async function eliminarFirmaAsync(id_usuario: number) {
 
     return true
 }
+
+// @Roles("ADMINISTRADOREMPRESA")
+export async function borrarUsuariosAsyncBulk(usuarioIds: number[]) {
+    const res = await fetch(`${backend}/usuarios/bulk`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ ids: usuarioIds })
+    })
+
+    const toJson = await res.json()
+
+    if (!res.ok) {
+        throw new Error('No se pudieron borrar los usuarios.')
+    }
+
+    return toJson
+}

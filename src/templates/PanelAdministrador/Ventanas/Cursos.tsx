@@ -1,9 +1,20 @@
 import { useEffect, useState } from "react"
 import EditableText from "../Componentes/EditableText"
-import { actualizarPropiedadDeCursoAsync, borrarCursoAsync, type curso } from "../Api/cursos"
+import { actualizarPropiedadDeCursoAsync, borrarCursoAsync, borrarCursosAsyncBulk, type curso } from "../Api/cursos"
 import { crearCursoDeSuscriptorAsync, crearCursosDeSuscriptorAsync, obtenerCursosDeSuscriptorAsync } from "../Api/suscripciones"
 import { Example } from "../Componentes/DropdownMenu"
 import { useExcelMapper } from "../Componentes/SeccionadorSapa"
+
+// ─── Tipos de ordenamiento ────────────────────────────────────────────────────
+
+type OrdenCurso = 'nombre_asc' | 'nombre_desc' | 'duracion_desc' | 'duracion_asc'
+
+const OPCIONES_ORDEN_CURSOS: { label: string; value: OrdenCurso }[] = [
+    { label: 'Nombre A→Z',           value: 'nombre_asc'    },
+    { label: 'Nombre Z→A',           value: 'nombre_desc'   },
+    { label: 'Duración mayor→menor', value: 'duracion_desc' },
+    { label: 'Duración menor→mayor', value: 'duracion_asc'  },
+]
 
 // ─── Íconos SVG inline ────────────────────────────────────────────────────────
 
@@ -48,6 +59,16 @@ const IconUpload = () => (
         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" />
     </svg>
 )
+const IconSort = () => (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="3" y1="6"  x2="21" y2="6"  /><line x1="3" y1="12" x2="15" y2="12" /><line x1="3" y1="18" x2="9"  y2="18" />
+    </svg>
+)
+const IconCheck = () => (
+    <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="2 6 5 9 10 3" />
+    </svg>
+)
 
 // ─── Helpers de UI ────────────────────────────────────────────────────────────
 
@@ -58,19 +79,72 @@ const FIELD_LABELS: Partial<Record<keyof curso, string>> = {
     temario: 'Temario',
 }
 
+const MULTILINE_FIELDS: (keyof curso)[] = ['resumen', 'temario']
+
 const FieldRow = ({ fieldKey, value, onChange }: { fieldKey: string; value: unknown; onChange: (v: string) => void }) => {
     const label = FIELD_LABELS[fieldKey as keyof curso] ?? fieldKey
+    const isMultiline = MULTILINE_FIELDS.includes(fieldKey as keyof curso)
+
     return (
-        <div className="grid grid-cols-[110px_1fr] gap-2 items-start py-2 border-b border-zinc-800 last:border-0">
-            <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider pt-0.5 truncate">{label}</span>
-            <EditableText onChange={onChange} text={String(value ?? '—')} />
+        <div className="flex flex-col gap-1.5 py-3 border-b border-zinc-700/60 last:border-0">
+            <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">{label}</span>
+            <div className={`
+                w-full rounded-lg bg-zinc-700/40 border border-zinc-600/50
+                hover:border-zinc-500 focus-within:border-sky-500 focus-within:bg-zinc-700/60
+                transition-all duration-150
+                ${isMultiline ? 'min-h-[90px]' : 'min-h-[42px]'}
+            `}>
+                <EditableText
+                    onChange={onChange}
+                    text={String(value ?? '')}
+                    className="w-full px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-500 bg-transparent outline-none resize-none leading-relaxed"
+                />
+            </div>
+        </div>
+    )
+}
+
+// ─── SortSelect ───────────────────────────────────────────────────────────────
+
+function SortSelect<T extends string>({
+    value, onChange, opciones,
+}: {
+    value: T
+    onChange: (v: T) => void
+    opciones: { label: string; value: T }[]
+}) {
+    return (
+        <div className="flex items-center gap-1.5">
+            <span className="text-zinc-500 shrink-0"><IconSort /></span>
+            <select
+                value={value}
+                onChange={e => onChange(e.target.value as T)}
+                className="text-xs font-medium text-zinc-300 bg-zinc-800 border border-zinc-700 rounded-lg px-2 py-1.5 cursor-pointer hover:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-sky-500 transition appearance-none pr-6"
+                style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E\")", backgroundRepeat: 'no-repeat', backgroundPosition: 'right 6px center' }}
+            >
+                {opciones.map(o => (
+                    <option key={o.value} value={o.value} className="bg-zinc-800 text-zinc-200">{o.label}</option>
+                ))}
+            </select>
         </div>
     )
 }
 
 // ─── CursoCard ────────────────────────────────────────────────────────────────
 
-const CursoCard = ({ curso, setCursosState }: { curso: curso; setCursosState: React.Dispatch<React.SetStateAction<curso[]>> }) => {
+const CursoCard = ({
+    curso,
+    setCursosState,
+    modoSeleccion,
+    seleccionado,
+    onToggleSeleccion,
+}: {
+    curso: curso
+    setCursosState: React.Dispatch<React.SetStateAction<curso[]>>
+    modoSeleccion: boolean
+    seleccionado: boolean
+    onToggleSeleccion: (id: number) => void
+}) => {
     const [open, setOpen] = useState(false)
     const [cursoLocal, setCursoLocal] = useState<curso>(curso)
     const [cursoGuardado, setCursoGuardado] = useState<curso>(curso)
@@ -78,15 +152,18 @@ const CursoCard = ({ curso, setCursosState }: { curso: curso; setCursosState: Re
     const [confirmDelete, setConfirmDelete] = useState(false)
     const numericFields: (keyof curso)[] = ['duracion']
 
+    // ✅ Solo reinicializar cuando cambia el ID (nuevo curso montado), no en cada render
     useEffect(() => { setCursoLocal(curso); setCursoGuardado(curso) }, [curso.curso_id])
-    useEffect(() => {
-        setCursosState(prev => prev.map(c => c.curso_id === cursoLocal.curso_id ? cursoLocal : c))
-    }, [cursoLocal.curso_id, cursoLocal])
+
+    // ✅ ELIMINADO: el useEffect que subía cambios locales al padre en cada keystroke
+    // Era el causante de que el filtro/orden se recalculara mientras se editaba,
+    // lo que podía resetear el estado local de la card.
 
     async function handleDelete() {
         if (!cursoLocal.curso_id) return
         try {
             await borrarCursoAsync(cursoLocal.curso_id)
+            // ✅ Actualizar el padre solo al confirmar eliminación
             setCursosState(prev => prev.filter(c => c.curso_id !== cursoLocal.curso_id))
         } catch (e) { console.log(e) }
     }
@@ -112,46 +189,68 @@ const CursoCard = ({ curso, setCursosState }: { curso: curso; setCursosState: Re
                 await actualizarPropiedadDeCursoAsync(cursoLocal.curso_id, key, value as string | number)
             }
             setCursoGuardado(cursoLocal)
+            // ✅ Actualizar el padre solo al guardar exitosamente
+            setCursosState(prev => prev.map(c => c.curso_id === cursoLocal.curso_id ? cursoLocal : c))
         } catch (e) {
             console.log(e)
             setCursoLocal(cursoGuardado)
         } finally {
-            setGuardando(false) }
+            setGuardando(false)
+        }
     }
 
     const duracion = cursoLocal.duracion
 
     return (
         <div
-            className="group rounded-xl border border-zinc-800 bg-zinc-900 overflow-hidden transition-all duration-200 hover:border-zinc-600 hover:shadow-lg hover:shadow-black/30"
+            onClick={modoSeleccion && cursoLocal.curso_id ? () => onToggleSeleccion(cursoLocal.curso_id!) : undefined}
+            className={`group rounded-xl border bg-zinc-900 overflow-hidden transition-all duration-200
+                ${modoSeleccion
+                    ? `cursor-pointer ${seleccionado
+                        ? 'border-sky-500 ring-2 ring-sky-500/20 shadow-lg shadow-sky-900/20'
+                        : 'border-zinc-700 hover:border-zinc-500'}`
+                    : 'border-zinc-800 hover:border-zinc-600 hover:shadow-lg hover:shadow-black/30'
+                }`}
             style={{ contain: 'layout' }}
         >
             {/* Header de la card */}
-            <button
-                onClick={() => setOpen(o => !o)}
-                className="w-full flex items-start justify-between gap-3 px-4 py-3.5 text-left hover:bg-zinc-800/50 transition-colors"
-            >
-                <div className="flex items-start gap-2.5 min-w-0">
-                    <span className="mt-0.5 text-sky-500 shrink-0"><IconBook /></span>
-                    <div className="min-w-0">
-                        <p className="text-sm font-semibold text-zinc-100 truncate leading-snug">
-                            {cursoLocal.nombre ?? <span className="text-zinc-600 italic">Sin nombre</span>}
-                        </p>
-                        {duracion != null && (
-                            <p className="flex items-center gap-1 text-xs text-zinc-500 mt-0.5">
-                                <IconClock /> {duracion} hrs
-                            </p>
-                        )}
-                    </div>
-                </div>
-                <span className="text-zinc-500 shrink-0 mt-0.5"><IconChevron open={open} /></span>
-            </button>
+            <div className="flex items-start gap-3 px-4 py-3.5">
+                {/* Checkbox — solo visible en modo selección */}
+                {modoSeleccion && (
+                    <span className={`mt-0.5 shrink-0 w-4 h-4 rounded border-2 flex items-center justify-center transition-all duration-150
+                        ${seleccionado ? 'bg-sky-500 border-sky-500' : 'border-zinc-500 bg-transparent'}`}
+                    >
+                        {seleccionado && <IconCheck />}
+                    </span>
+                )}
 
-            {/* Cuerpo expandible */}
-            {open && (
+                {/* Contenido — funciona como botón solo fuera del modo selección */}
+                <button
+                    onClick={modoSeleccion ? undefined : () => setOpen(o => !o)}
+                    disabled={modoSeleccion}
+                    className="flex-1 flex items-start justify-between gap-3 text-left min-w-0"
+                >
+                    <div className="flex items-start gap-2.5 min-w-0">
+                        <span className="mt-0.5 text-sky-500 shrink-0"><IconBook /></span>
+                        <div className="min-w-0">
+                            <p className="text-sm font-semibold text-zinc-100 truncate leading-snug">
+                                {cursoLocal.nombre ?? <span className="text-zinc-600 italic">Sin nombre</span>}
+                            </p>
+                            {duracion != null && (
+                                <p className="flex items-center gap-1 text-xs text-zinc-500 mt-0.5">
+                                    <IconClock /> {duracion} hrs
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                    {!modoSeleccion && <span className="text-zinc-500 shrink-0 mt-0.5"><IconChevron open={open} /></span>}
+                </button>
+            </div>
+
+            {/* Panel expandible — oculto en modo selección */}
+            {!modoSeleccion && open && (
                 <div className="border-t border-zinc-800 px-4 pt-3 pb-4 flex flex-col gap-3">
-                    {/* Campos */}
-                    <div className="rounded-lg bg-zinc-800/40 px-3 py-1">
+                    <div className="rounded-xl bg-zinc-800/40 px-3 py-1">
                         {Object.entries(cursoLocal).map(([key, value]) => {
                             if (key.toLowerCase().includes('id')) return null
                             return (
@@ -168,7 +267,6 @@ const CursoCard = ({ curso, setCursosState }: { curso: curso; setCursosState: Re
                         })}
                     </div>
 
-                    {/* Acciones */}
                     <div className="flex gap-2 mt-1">
                         <button
                             onClick={guardarCambios}
@@ -192,18 +290,8 @@ const CursoCard = ({ curso, setCursosState }: { curso: curso; setCursosState: Re
                             </button>
                         ) : (
                             <div className="flex gap-1">
-                                <button
-                                    onClick={handleDelete}
-                                    className="px-3 py-2 rounded-lg text-xs font-semibold bg-red-600 hover:bg-red-500 text-white cursor-pointer transition-all"
-                                >
-                                    Confirmar
-                                </button>
-                                <button
-                                    onClick={() => setConfirmDelete(false)}
-                                    className="px-3 py-2 rounded-lg text-xs font-semibold text-zinc-400 hover:text-white border border-zinc-700 hover:border-zinc-500 cursor-pointer transition-all"
-                                >
-                                    Cancelar
-                                </button>
+                                <button onClick={handleDelete} className="px-3 py-2 rounded-lg text-xs font-semibold bg-red-600 hover:bg-red-500 text-white cursor-pointer transition-all">Confirmar</button>
+                                <button onClick={() => setConfirmDelete(false)} className="px-3 py-2 rounded-lg text-xs font-semibold text-zinc-400 hover:text-white border border-zinc-700 hover:border-zinc-500 cursor-pointer transition-all">Cancelar</button>
                             </div>
                         )}
                     </div>
@@ -222,7 +310,49 @@ export default ({ cursos, idSuscriptor, setCursos }: {
 }) => {
     const [mensajeBoton, setMensajeBoton] = useState<string | null>(null)
     const [busqueda, setBusqueda] = useState('')
+    const [orden, setOrden] = useState<OrdenCurso>('nombre_asc')
 
+    // ── Estado de selección bulk ──────────────────────────────────────────────
+    const [modoSeleccion, setModoSeleccion] = useState(false)
+    const [seleccionados, setSeleccionados] = useState<Set<number>>(new Set())
+    const [confirmBulk, setConfirmBulk] = useState(false)
+    const [eliminandoBulk, setEliminandoBulk] = useState(false)
+
+    const activarModoSeleccion = () => {
+        setModoSeleccion(true)
+        setSeleccionados(new Set())
+        setConfirmBulk(false)
+    }
+
+    const cancelarModoSeleccion = () => {
+        setModoSeleccion(false)
+        setSeleccionados(new Set())
+        setConfirmBulk(false)
+    }
+
+    const toggleSeleccion = (id: number) => {
+        setSeleccionados(prev => {
+            const next = new Set(prev)
+            next.has(id) ? next.delete(id) : next.add(id)
+            return next
+        })
+    }
+
+    const handleEliminarBulk = async () => {
+        if (seleccionados.size === 0) return
+        setEliminandoBulk(true)
+        try {
+            await borrarCursosAsyncBulk([...seleccionados])
+            setCursos(prev => prev.filter(c => !seleccionados.has(c.curso_id!)))
+            cancelarModoSeleccion()
+        } catch (e) {
+            console.log(e)
+        } finally {
+            setEliminandoBulk(false)
+        }
+    }
+
+    // ── Excel mapper ──────────────────────────────────────────────────────────
     const { datosImportados, setMapeo, cargarArchivo, construirResultado } =
         useExcelMapper<curso>(async (cursosExcel) => {
             const res = await crearCursosDeSuscriptorAsync(idSuscriptor, cursosExcel.filter(c => Object.values(c).some(Boolean)))
@@ -251,6 +381,7 @@ export default ({ cursos, idSuscriptor, setCursos }: {
         }
     }
 
+    // ── Filtrado y ordenamiento ───────────────────────────────────────────────
     const q = busqueda.toLowerCase()
     const cursosFiltrados = cursos.filter(c =>
         (c.nombre ?? '').toLowerCase().includes(q) ||
@@ -259,83 +390,143 @@ export default ({ cursos, idSuscriptor, setCursos }: {
         String(c.duracion ?? '').includes(q)
     )
 
+    const cursosOrdenados = [...cursosFiltrados].sort((a, b) => {
+        switch (orden) {
+            case 'nombre_asc':    return (a.nombre ?? '').localeCompare(b.nombre ?? '', 'es', { sensitivity: 'base' })
+            case 'nombre_desc':   return (b.nombre ?? '').localeCompare(a.nombre ?? '', 'es', { sensitivity: 'base' })
+            case 'duracion_desc': return (b.duracion ?? 0) - (a.duracion ?? 0)
+            case 'duracion_asc':  return (a.duracion ?? 0) - (b.duracion ?? 0)
+        }
+    })
+
     return (
         <div className="flex flex-col gap-6">
+
             {/* ── Header ── */}
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-3">
                 <div>
                     <h2 className="text-2xl font-bold text-white tracking-tight">Cursos</h2>
                     <p className="text-sm text-zinc-500 mt-0.5">
-                        {cursosFiltrados.length} de {cursos.length} cursos
+                        {cursosOrdenados.length} de {cursos.length} cursos
+                        {modoSeleccion && seleccionados.size > 0 && (
+                            <span className="ml-2 text-sky-400 font-semibold">· {seleccionados.size} seleccionado{seleccionados.size !== 1 ? 's' : ''}</span>
+                        )}
                     </p>
                 </div>
-                <button
-                    onClick={handleAddButton}
-                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold transition-all shadow-lg shadow-emerald-900/30 cursor-pointer"
-                >
-                    <IconPlus />
-                    {mensajeBoton ?? 'Nuevo curso'}
-                </button>
+
+                <div className="flex items-center gap-2 flex-wrap">
+                    {!modoSeleccion && (
+                        <SortSelect value={orden} onChange={setOrden} opciones={OPCIONES_ORDEN_CURSOS} />
+                    )}
+
+                    {modoSeleccion ? (
+                        <>
+                            {seleccionados.size > 0 && !confirmBulk && (
+                                <button
+                                    onClick={() => setConfirmBulk(true)}
+                                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white text-sm font-semibold transition-all cursor-pointer shadow-lg shadow-red-900/30"
+                                >
+                                    <IconTrash />
+                                    Eliminar ({seleccionados.size})
+                                </button>
+                            )}
+
+                            {confirmBulk && (
+                                <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-zinc-800 border border-red-800">
+                                    <span className="text-xs text-zinc-300">¿Eliminar {seleccionados.size} curso{seleccionados.size !== 1 ? 's' : ''}?</span>
+                                    <button
+                                        onClick={handleEliminarBulk}
+                                        disabled={eliminandoBulk}
+                                        className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-600 hover:bg-red-500 text-white cursor-pointer transition-all disabled:opacity-60"
+                                    >
+                                        {eliminandoBulk ? 'Eliminando…' : 'Sí, eliminar'}
+                                    </button>
+                                    <button
+                                        onClick={() => setConfirmBulk(false)}
+                                        className="px-3 py-1.5 rounded-lg text-xs font-semibold text-zinc-400 hover:text-white border border-zinc-700 hover:border-zinc-500 cursor-pointer transition-all"
+                                    >
+                                        Cancelar
+                                    </button>
+                                </div>
+                            )}
+
+                            <button
+                                onClick={cancelarModoSeleccion}
+                                className="px-4 py-2 rounded-xl text-sm font-semibold text-zinc-300 border border-zinc-600 hover:border-zinc-400 hover:text-white transition-all cursor-pointer"
+                            >
+                                Cancelar selección
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            <button
+                                onClick={activarModoSeleccion}
+                                className="px-4 py-2 rounded-xl text-sm font-semibold text-zinc-400 border border-zinc-700 hover:border-zinc-500 hover:text-zinc-200 transition-all cursor-pointer"
+                            >
+                                Seleccionar
+                            </button>
+                            <button
+                                onClick={handleAddButton}
+                                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold transition-all shadow-lg shadow-emerald-900/30 cursor-pointer"
+                            >
+                                <IconPlus />
+                                {mensajeBoton ?? 'Nuevo curso'}
+                            </button>
+                        </>
+                    )}
+                </div>
             </div>
 
             {/* ── Importación Excel ── */}
-            {datosImportados ? (
-                <div className="rounded-2xl border border-zinc-700 bg-zinc-900 p-6 flex flex-col gap-5">
-                    <div>
-                        <h3 className="text-base font-semibold text-zinc-100">Relacionar columnas</h3>
-                        <p className="text-xs text-zinc-500 mt-0.5">{datosImportados.filas.length} fila(s) encontradas · Cursos sin duración numérica serán ignorados</p>
+            {!modoSeleccion && (
+                datosImportados ? (
+                    <div className="rounded-2xl border border-zinc-700 bg-zinc-900 p-6 flex flex-col gap-5">
+                        <div>
+                            <h3 className="text-base font-semibold text-zinc-100">Relacionar columnas</h3>
+                            <p className="text-xs text-zinc-500 mt-0.5">{datosImportados.filas.length} fila(s) encontradas · Cursos sin duración numérica serán ignorados</p>
+                        </div>
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                            {(['nombre', 'duracion', 'resumen', 'temario'] as const).map(campo => (
+                                <div key={campo} className="flex flex-col gap-1.5">
+                                    <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+                                        {FIELD_LABELS[campo] ?? campo}
+                                    </span>
+                                    <Example
+                                        opciones={datosImportados.cabeceras}
+                                        callbackOnSelect={(opcion) => setMapeo(last => ({ ...last, [campo]: opcion }))}
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                        <button
+                            onClick={() => {
+                                construirResultado((fila, m) => ({
+                                    nombre:   fila[m.nombre]   ? String(fila[m.nombre]).trim()                          : undefined,
+                                    duracion: fila[m.duracion] && !isNaN(Number(fila[m.duracion])) ? Number(fila[m.duracion]) : undefined,
+                                    resumen:  fila[m.resumen]  ? String(fila[m.resumen]).trim()                         : undefined,
+                                    temario:  fila[m.temario]  ? String(fila[m.temario]).trim()                         : undefined,
+                                }))
+                            }}
+                            className="self-start flex items-center gap-2 px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-sm font-semibold transition-all cursor-pointer shadow-lg shadow-sky-900/30"
+                        >
+                            Crear cursos
+                        </button>
                     </div>
-
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                        {(['nombre', 'duracion', 'resumen', 'temario'] as const).map(campo => (
-                            <div key={campo} className="flex flex-col gap-1.5">
-                                <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
-                                    {FIELD_LABELS[campo] ?? campo}
-                                </span>
-                                <Example
-                                    opciones={datosImportados.cabeceras}
-                                    callbackOnSelect={(opcion) => setMapeo(last => ({ ...last, [campo]: opcion }))}
-                                />
-                            </div>
-                        ))}
-                    </div>
-
-                    <button
-                        onClick={() => {
-                            construirResultado((fila, m) => ({
-                                nombre: fila[m.nombre] ? String(fila[m.nombre]).trim() : undefined,
-                                duracion: fila[m.duracion] && !isNaN(Number(fila[m.duracion])) ? Number(fila[m.duracion]) : undefined,
-                                resumen: fila[m.resumen] ? String(fila[m.resumen]).trim() : undefined,
-                                temario: fila[m.temario] ? String(fila[m.temario]).trim() : undefined,
-                            }))
-                        }}
-                        className="self-start flex items-center gap-2 px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-sm font-semibold transition-all cursor-pointer shadow-lg shadow-sky-900/30"
-                    >
-                        Crear cursos
-                    </button>
-                </div>
-            ) : (
-                /* ── Upload de archivo ── */
-                <label className="flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-zinc-700 hover:border-zinc-500 bg-zinc-900/50 hover:bg-zinc-900 transition-all px-6 py-10 cursor-pointer group">
-                    <span className="text-zinc-500 group-hover:text-zinc-300 transition-colors"><IconUpload /></span>
-                    <div className="text-center">
-                        <p className="text-sm font-medium text-zinc-300">Importar desde Excel</p>
-                        <p className="text-xs text-zinc-600 mt-0.5">Arrastra un archivo .xlsx o .xls, o haz clic para seleccionar</p>
-                    </div>
-                    <input
-                        type="file"
-                        accept=".xlsx,.xls"
-                        className="hidden"
-                        onChange={(e) => { const f = e.target.files?.[0]; if (f) cargarArchivo(f) }}
-                    />
-                </label>
+                ) : (
+                    <label className="flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-zinc-700 hover:border-zinc-500 bg-zinc-900/50 hover:bg-zinc-900 transition-all px-6 py-10 cursor-pointer group">
+                        <span className="text-zinc-500 group-hover:text-zinc-300 transition-colors"><IconUpload /></span>
+                        <div className="text-center">
+                            <p className="text-sm font-medium text-zinc-300">Importar desde Excel</p>
+                            <p className="text-xs text-zinc-600 mt-0.5">Arrastra un archivo .xlsx o .xls, o haz clic para seleccionar</p>
+                        </div>
+                        <input type="file" accept=".xlsx,.xls" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) cargarArchivo(f) }} />
+                    </label>
+                )
             )}
 
             {/* ── Buscador ── */}
             <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none">
-                    <IconSearch />
-                </span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none"><IconSearch /></span>
                 <input
                     type="text"
                     placeholder="Buscar por nombre, duración, resumen o temario…"
@@ -344,28 +535,28 @@ export default ({ cursos, idSuscriptor, setCursos }: {
                     className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-sm text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition"
                 />
                 {busqueda && (
-                    <button
-                        onClick={() => setBusqueda('')}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition text-xs cursor-pointer"
-                    >✕</button>
+                    <button onClick={() => setBusqueda('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition text-xs cursor-pointer">✕</button>
                 )}
             </div>
 
             {/* ── Grid de cards ── */}
-            {cursosFiltrados.length === 0 ? (
+            {cursosOrdenados.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 text-center">
                     <span className="text-4xl mb-3">📚</span>
-                    <p className="text-zinc-400 font-medium">
-                        {busqueda ? 'Sin resultados para esa búsqueda' : 'Aún no hay cursos'}
-                    </p>
-                    <p className="text-zinc-600 text-sm mt-1">
-                        {busqueda ? 'Intenta con otro término' : 'Crea el primero con el botón de arriba'}
-                    </p>
+                    <p className="text-zinc-400 font-medium">{busqueda ? 'Sin resultados para esa búsqueda' : 'Aún no hay cursos'}</p>
+                    <p className="text-zinc-600 text-sm mt-1">{busqueda ? 'Intenta con otro término' : 'Crea el primero con el botón de arriba'}</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {cursosFiltrados.map(curso => (
-                        <CursoCard key={curso.curso_id} curso={curso} setCursosState={setCursos} />
+                    {cursosOrdenados.map(curso => (
+                        <CursoCard
+                            key={curso.curso_id}
+                            curso={curso}
+                            setCursosState={setCursos}
+                            modoSeleccion={modoSeleccion}
+                            seleccionado={seleccionados.has(curso.curso_id!)}
+                            onToggleSeleccion={toggleSeleccion}
+                        />
                     ))}
                 </div>
             )}

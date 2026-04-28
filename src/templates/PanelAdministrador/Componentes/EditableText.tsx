@@ -2,10 +2,12 @@ import { useEffect, useState } from "react"
 
 export default function EditableText({
     text,
-    onChange
+    onChange,
+    className = ""
 }: {
     text: string | number,
-    onChange: (value: string) => void
+    onChange: (value: string) => void,
+    className?: string
 }) {
     const [draft, setDraft] = useState(String(text ?? ''))
 
@@ -18,27 +20,28 @@ export default function EditableText({
         String(text ?? '').includes('\n') ||
         draft.length > 80
 
+    const baseClass = `
+        mt-1
+        block
+        w-full
+        rounded
+        border
+        border-slate-600
+        bg-slate-900/60
+        px-2
+        py-1
+        text-left
+        outline-none
+        ${className}
+    `
+
     if (isLongText) {
         return (
             <textarea
                 value={draft}
                 dir="ltr"
                 rows={3}
-                className="
-                    mt-1
-                    block
-                    w-full
-                    rounded
-                    border
-                    border-slate-600
-                    bg-slate-900/60
-                    px-2
-                    py-1
-                    text-left
-                    align-top
-                    outline-none
-                    resize-y
-                "
+                className={`${baseClass} align-top resize-y`}
                 onChange={(e) => {
                     const value = e.target.value
                     setDraft(value)
@@ -53,19 +56,7 @@ export default function EditableText({
             type="text"
             value={draft}
             dir="ltr"
-            className="
-                inline-block
-                min-w-[12rem]
-                max-w-full
-                rounded
-                border
-                border-slate-600
-                bg-slate-900/60
-                px-2
-                py-1
-                text-left
-                outline-none
-            "
+            className={`${baseClass} inline-block min-w-[12rem] max-w-full`}
             onChange={(e) => {
                 const value = e.target.value
                 setDraft(value)

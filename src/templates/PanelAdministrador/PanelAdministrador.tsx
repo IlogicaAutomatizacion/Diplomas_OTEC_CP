@@ -16,6 +16,8 @@ import Usuarios from './Ventanas/Usuarios/Usuarios'
 import Parametros from './Ventanas/Parametros'
 import ReportesCursos from './Ventanas/Reportescursos'
 
+import { useSusbcriptonStore } from './Stores/SubscriptionContextStore'
+
 type ids = 2 | 3
 
 const map: Record<ids, any> = {
@@ -61,8 +63,16 @@ export default () => {
 
     const { nombreEmpresa } = useParams()
 
+    const setCurrentSubscription = useSusbcriptonStore((x) => x.setCurrentSusbscription)
+
     useEffect(() => {
-        if (identificadoresSuscriptor) setLogo(identificadoresSuscriptor.id)
+        if (identificadoresSuscriptor) {
+            setLogo(identificadoresSuscriptor.id)
+
+            setCurrentSubscription(identificadoresSuscriptor.id)
+        }
+
+        return () => setCurrentSubscription(null)
     }, [identificadoresSuscriptor])
 
     useEffect(() => {

@@ -26,6 +26,8 @@ import Cliente from './templates/Encuestas/EncuestasSatisfaccion/Cliente'
 import Usuario from './templates/Encuestas/EncuestasSatisfaccion/Usuario'
 import PanelAdministradores from './templates/PanelAdministrador/PanelAdministradores'
 
+import { useSusbcriptonStore } from './templates/PanelAdministrador/Stores/SubscriptionContextStore'
+
 const originalFetch = window.fetch;
 
 const publicPagePathMatchers = [
@@ -76,6 +78,11 @@ window.fetch = async (
 
   if (shouldAttachAuth) {
     headers.set('Authorization', `Bearer ${token}`);
+
+    const { currentSusbscription } = useSusbcriptonStore.getState()
+    if (currentSusbscription) {
+      headers.set('X-CurrentSubscription-Id', String(currentSusbscription))
+    }
   }
 
   const res: any = await originalFetch(input, {

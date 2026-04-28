@@ -168,3 +168,23 @@ export async function descargarCotizacionAsync(curso_armado_id: number) {
 
     URL.revokeObjectURL(url)
 }
+
+// @Roles("ADMINISTRADOREMPRESA")
+export async function borrarCursosArmadosAsyncBulk(cursoArmadoIds: number[]) {
+    const res = await fetch(`${backend}/curso-armado/bulk`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ ids: cursoArmadoIds })
+    })
+
+    const toJson = await res.json()
+
+    if (!res.ok) {
+        throw new Error('No se pudieron borrar los cursos armados.')
+    }
+
+    return toJson
+}

@@ -98,3 +98,22 @@ export async function crearCursoAsync(cuerpo?: curso) {
 
     return toJson
 }
+
+// @Roles("ADMINISTRADOREMPRESA")
+export async function borrarCursosAsyncBulk(cursoIds: number[]) {
+    const res = await fetch(`${backend}/cursos/bulk`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ ids: cursoIds })
+    })
+
+    const toJson = await res.json()
+
+    if (!res.ok) {
+        throw new Error('No se pudieron borrar los cursos.')
+    }
+
+    return toJson
+}

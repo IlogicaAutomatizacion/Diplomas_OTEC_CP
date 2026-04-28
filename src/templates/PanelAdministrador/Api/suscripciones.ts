@@ -481,3 +481,48 @@ export async function actualizarParametrosDeSuscriptorAsync(
 
     return res.json()
 }
+
+
+export async function editarUsuarioDeSuscriptorAsync(
+    id_suscripcion: number,
+    id_usuario: number,
+    propiedad: string,
+    nuevoValor: string | number
+): Promise<usuario> {
+    const res = await fetch(`${backend}/suscriptores/usuarios/${id_suscripcion}/${id_usuario}`, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ [propiedad]: nuevoValor })
+    })
+
+    if (!res.ok) {
+        const problem = await res.json().catch(() => null)
+        throw new Error(problem?.message ?? 'Hubo un problema al editar el usuario.')
+    }
+
+    return res.json()
+}
+
+export async function editarEmpresaDeSuscriptorAsync(
+    id_suscripcion: number,
+    id_empresa: number,
+    propiedad: string,
+    nuevoValor: string | number
+): Promise<empresa> {
+    const res = await fetch(`${backend}/suscriptores/empresas/${id_suscripcion}/${id_empresa}`, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ [propiedad]: nuevoValor })
+    })
+
+    if (!res.ok) {
+        const problem = await res.json().catch(() => null)
+        throw new Error(problem?.message ?? 'Hubo un problema al editar la empresa.')
+    }
+
+    return res.json()
+}

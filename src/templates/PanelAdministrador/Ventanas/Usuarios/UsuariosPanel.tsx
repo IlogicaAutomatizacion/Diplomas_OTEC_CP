@@ -12,7 +12,7 @@ import {
 import type { empresa } from "../../Api/empresas"
 import { agregarRolAUsuarioAsync, eliminarRolPorIdDeUsuarioAsync, obtenerRolesDeUsuarioAsync, type rolEnum } from "../../Api/roles"
 import { agregarEmpresaVinculadaAsync, eliminarEmpresaVinculadaPorIdsAsync } from "../../Api/empresasVinculadas"
-import { desvincularUsuarioDeSuscriptorAsync } from "../../Api/suscripciones"
+import { desvincularUsuarioDeSuscriptorAsync, editarUsuarioDeSuscriptorAsync } from "../../Api/suscripciones"
 import EditableText from "../../Componentes/EditableText"
 import { Example } from "../../Componentes/DropdownMenu"
 import { b2Url, b2UsuarioBucket } from "../../../../vars"
@@ -110,7 +110,7 @@ export default ({
         })
 
     async function guardarCambios() {
-        if (!usuarioLocal.id || !hayCambios) return
+        if (!usuarioLocal.id || !hayCambios || !idSuscriptor) return
 
         setGuardando(true)
 
@@ -130,7 +130,8 @@ export default ({
                     value === usuarioGuardado[key]
                 ) continue
 
-                await actualizarPropiedadDeUsuarioAsync(
+                await editarUsuarioDeSuscriptorAsync(
+                    idSuscriptor,
                     usuarioLocal.id,
                     key,
                     String(value ?? '').trim()
@@ -190,8 +191,15 @@ export default ({
         ['ALUMNO', 'Alumno'],
         ['EMPRESA', 'Empresa'],
         ...(rolesUsuarioActual.includes('ADMINISTRADOR')
-            ? [['ADMINISTRADOR', 'Administrador'] as const]
+            ? [
+                ['ADMINISTRADOR', 'Administrador'] as const,
+            ]
             : []),
+        ...(rolesUsuarioActual.includes('ADMINISTRADOREMPRESA') || rolesUsuarioActual.includes('ADMINISTRADOR'))
+            ? [
+                ['ADMINISTRADOREMPRESA', 'Administrador Empresa'] as const
+            ]
+            : [],
     ] as const
 
     return (
@@ -263,8 +271,8 @@ export default ({
                                     className="accent-blue-500"
                                 />
                                 <span className={`text-sm px-3 py-1 rounded-full border transition ${activo
-                                        ? 'bg-blue-900/50 border-blue-700/60 text-blue-300'
-                                        : 'border-slate-700/60 text-slate-400'
+                                    ? 'bg-blue-900/50 border-blue-700/60 text-blue-300'
+                                    : 'border-slate-700/60 text-slate-400'
                                     }`}>
                                     {label}
                                 </span>

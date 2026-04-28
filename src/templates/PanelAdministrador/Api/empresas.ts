@@ -115,3 +115,22 @@ export async function obtenerUsuariosVinculadosAEmpresaPorUsuarioIdAsync() {
 
     return toJson
 }
+
+// @Roles("ADMINISTRADOREMPRESA")
+export async function borrarEmpresasAsyncBulk(empresaIds: number[]) {
+    const res = await fetch(`${backend}/empresas/bulk`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ ids: empresaIds })
+    })
+
+    const toJson = await res.json()
+
+    if (!res.ok) {
+        throw new Error('No se pudieron borrar las empresas.')
+    }
+
+    return toJson
+}
