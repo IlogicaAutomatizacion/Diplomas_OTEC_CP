@@ -55,8 +55,8 @@ const IconCheck = () => (
 
 const CAMPOS: { key: keyof usuario; label: string }[] = [
     { key: 'nombre',       label: 'Nombre'          },
-    { key: 'correo',       label: 'Correo'           },
-    { key: 'fono_fax',     label: 'Teléfono / Fax'  },
+    { key: 'email',        label: 'Correo'          },
+    { key: 'telefono',     label: 'Teléfono'        },
     { key: 'direccion',    label: 'Dirección'        },
     { key: 'rut',          label: 'RUT'              },
     { key: 'especialidad', label: 'Especialidad'     },

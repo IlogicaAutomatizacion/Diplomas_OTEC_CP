@@ -1,7 +1,6 @@
 {/*UsuariosPanel*/ }
 
 import {
-    actualizarPropiedadDeUsuarioAsync,
     borrarUsuarioAsync,
     eliminarFirmaAsync,
     eliminarFotoDePerfilAsync,

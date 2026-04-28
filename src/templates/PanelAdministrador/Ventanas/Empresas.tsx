@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import EditableText from "../Componentes/EditableText"
-import { actualizarPropiedadDeEmpresaAsync, borrarEmpresaAsync, borrarEmpresasAsyncBulk, type empresa } from "../Api/empresas"
+import { borrarEmpresaAsync, borrarEmpresasAsyncBulk, type empresa } from "../Api/empresas"
 import { crearEmpresaDeSuscriptorAsync, crearEmpresasDeSuscriptorAsync, editarEmpresaDeSuscriptorAsync, obtenerEmpresasDeSuscriptorAsync } from "../Api/suscripciones"
 import { useExcelMapper } from "../Componentes/SeccionadorSapa"
 import { Example } from "../Componentes/DropdownMenu"
@@ -135,7 +135,6 @@ const EmpresaCard = ({
     onVinculacionChange,
     id_suscriptor,
     usuarios,
-    setUsuarios,
     modoSeleccion,
     seleccionado,
     onToggleSeleccion,
