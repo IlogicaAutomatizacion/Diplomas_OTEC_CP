@@ -411,7 +411,7 @@ export default function ArmarCursoPanelRegistros({
 
             {/* Asistencias */}
             <Card>
-                <SubTitle>Asistencias de estudiantes</SubTitle>
+                <SubTitle>Estudiantes</SubTitle>
                 <TablaAsistenciasEstudiantes inscripciones={inscripciones} />
             </Card>
         </section>
