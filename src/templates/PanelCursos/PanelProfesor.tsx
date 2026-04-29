@@ -1,7 +1,7 @@
-import { useEffect, useState, type SetStateAction } from "react"
+import { useEffect, useState } from "react"
 import { obtenerCursosParaPanelProfesor, type PanelProfesor } from "../PanelAdministrador/Api/usuarios"
 import { convertirFecha } from "./Panel"
-import { actualizarPropiedadDeCursoArmadoAsync, actualizarPropiedadDeCursoArmadoComoProfesorAsync, checarSiPuedeFinalizar, type cursoArmado } from "../PanelAdministrador/Api/cursos-armados"
+import { actualizarPropiedadDeCursoArmadoComoProfesorAsync, checarSiPuedeFinalizar, type cursoArmado } from "../PanelAdministrador/Api/cursos-armados"
 import { editarInscripcionComoProfesorAsync, type inscripcion } from "../PanelAdministrador/Api/inscripciones"
 
 // ─── Fila de alumno ───────────────────────────────────────────────────────────
