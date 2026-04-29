@@ -1,6 +1,6 @@
 import barraSuperior from '../../../assets/Formarte/barraSuperior.png'
 import barraInferior from '../../../assets/Formarte/barraInferior.png'
-import estellaLogo from '../../../assets/Formarte/EstrellaLogo.png'
+import estellaLogo from '../../../assets/Formarte/estrellaLogo.png'
 import type { CursoConAlumno } from '../../PanelAdministrador/Api/cursos-armados'
 import { b2Url, b2UsuarioBucket, frontend } from '../../../vars'
 
