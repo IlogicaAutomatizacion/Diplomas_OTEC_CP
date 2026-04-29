@@ -24,6 +24,7 @@ export interface cursoArmado {
     profesor?: usuario,
     vendedor?: usuario,
     valorUnitario: number,
+    cotizado?: boolean,
     lugar_de_realizacion: string,
     notas_cotizacion: string,
     alumnosCotizados: number,
@@ -187,4 +188,25 @@ export async function borrarCursosArmadosAsyncBulk(cursoArmadoIds: number[]) {
     }
 
     return toJson
+}
+
+export async function actualizarPropiedadDeCursoArmadoComoProfesorAsync(
+    cursoId: number,
+    propiedad: 'en_clase' | 'estado',
+    nuevoValor: string | boolean
+) {
+    const res = await fetch(`${backend}/curso-armado/curso-profesor/${cursoId}`, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ [propiedad]: nuevoValor }),
+    })
+
+    if (!res.ok) {
+        const problem = await res.json().catch(() => null)
+        throw new Error(problem?.message ?? 'Hubo un problema al editar el curso.')
+    }
+
+    return res.json()
 }

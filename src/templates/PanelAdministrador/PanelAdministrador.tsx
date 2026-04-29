@@ -8,102 +8,96 @@ import type { curso } from './Api/cursos'
 import type { usuario } from './Api/usuarios'
 import type { empresa } from './Api/empresas'
 import { useParams } from 'react-router-dom'
-import { obtenerCursosDeSuscriptorAsync, obtenerEmpresasDeSuscriptorAsync, obtenerIdentificadoresDeSuscripcionPorNombreDeEmpresaAsync, obtenerUsuariosDeSuscriptorAsync } from './Api/suscripciones'
+import {
+    obtenerCursosDeSuscriptorAsync,
+    obtenerEmpresasDeSuscriptorAsync,
+    obtenerIdentificadoresDeSuscripcionPorNombreDeEmpresaAsync,
+    obtenerParametrosDeSuscriptorAsync,
+    obtenerUsuariosDeSuscriptorAsync,
+} from './Api/suscripciones'
 
-import FormarteLogo from '../../Diseño/Formarte/FormarteLogo'
-import CPLogo from '../../Diseño/CP/CPLogo'
 import Usuarios from './Ventanas/Usuarios/Usuarios'
 import Parametros from './Ventanas/Parametros'
 import ReportesCursos from './Ventanas/Reportescursos'
 
 import { useSusbcriptonStore } from './Stores/SubscriptionContextStore'
-
-type ids = 2 | 3
-
-const map: Record<ids, any> = {
-    2: FormarteLogo,
-    3: CPLogo
-}
-
-const ObtenerLogo = ({ id }: { id: ids }) => {
-    const Logo = map[id]
-    return <Logo />
-}
+import { b2Url, b2UsuarioBucket } from '../../vars'
 
 type Seccion = 'armar' | 'usuarios' | 'empresas' | 'cursos' | 'parametros' | 'reportes'
 
 const NAV_ITEMS: { key: Seccion; label: string }[] = [
-
     { key: 'parametros', label: 'Parámetros' },
     { key: 'armar', label: 'Gestionar cursos' },
     { key: 'usuarios', label: 'Usuarios' },
     { key: 'empresas', label: 'Empresas' },
     { key: 'cursos', label: 'Cursos' },
     { key: 'reportes', label: 'Reportes de cursos' },
-
 ]
 
-export default () => {
+export default function PanelAdministrador() {
     const [cursos, setCursos] = useState<curso[]>([])
     const [usuarios, setUsuarios] = useState<usuario[]>([])
     const [empresas, setEmpresas] = useState<empresa[]>([])
     const [cursosArmados, setCursosArmados] = useState<cursoArmado[]>([])
-
     const [mensaje, setMensaje] = useState<string | null>('Cargando...')
-
-    const [identificadoresSuscriptor, setIdentificadoresSuscriptor] = useState<{ id: ids, uuidSuscriptor: string } | null>(null)
-
     const [seccion, setSeccion] = useState<Seccion>('armar')
-
-    const [logo, setLogo] = useState<ids | null>(null)
     const [usuarioSeleccionadoId, setUsuarioSeleccionadoId] = useState<number | null>(null)
-
     const [refreshKeyUsuarios, setRefreshKeyUsuarios] = useState(0)
     const [refreshKeyEmpresas, setRefreshKeyEmpresas] = useState(0)
+    const [identificadoresSuscriptor, setIdentificadoresSuscriptor] = useState<{
+        id: number
+        uuidSuscriptor: string
+    } | null>(null)
+    const [logoKey, setLogoKey] = useState<string | null>(null)
 
     const { nombreEmpresa } = useParams()
-
     const setCurrentSubscription = useSusbcriptonStore((x) => x.setCurrentSusbscription)
 
     useEffect(() => {
-        if (identificadoresSuscriptor) {
-            setLogo(identificadoresSuscriptor.id)
-
-            setCurrentSubscription(identificadoresSuscriptor.id)
-        }
-
+        if (!identificadoresSuscriptor) return
+        setCurrentSubscription(identificadoresSuscriptor.id)
         return () => setCurrentSubscription(null)
     }, [identificadoresSuscriptor])
 
     useEffect(() => {
-        (async () => {
-            if (!identificadoresSuscriptor) return
-            try {
-                const u = await obtenerUsuariosDeSuscriptorAsync(identificadoresSuscriptor.id)
-                setUsuarios(u)
-            } catch { }
-        })()
+        if (!identificadoresSuscriptor) return
+            ; (async () => {
+                try {
+                    const u = await obtenerUsuariosDeSuscriptorAsync(identificadoresSuscriptor.id)
+                    setUsuarios(u)
+                } catch { }
+            })()
     }, [identificadoresSuscriptor])
 
     useEffect(() => {
-        (async () => {
-            if (!identificadoresSuscriptor) return
-            try {
-                const c = await obtenerCursosDeSuscriptorAsync(identificadoresSuscriptor.id)
-                console.log(c)
-                setCursos(c)
-            } catch { }
-        })()
+        if (!identificadoresSuscriptor) return
+            ; (async () => {
+                try {
+                    const c = await obtenerCursosDeSuscriptorAsync(identificadoresSuscriptor.id)
+                    setCursos(c)
+                } catch { }
+            })()
     }, [identificadoresSuscriptor])
 
     useEffect(() => {
-        ; (async () => {
-            if (!identificadoresSuscriptor) return
-            try {
-                const e = await obtenerEmpresasDeSuscriptorAsync(identificadoresSuscriptor.id)
-                setEmpresas(e)
-            } catch { }
-        })()
+        if (!identificadoresSuscriptor) return
+            ; (async () => {
+                try {
+                    const e = await obtenerEmpresasDeSuscriptorAsync(identificadoresSuscriptor.id)
+                    setEmpresas(e)
+                } catch { }
+            })()
+    }, [identificadoresSuscriptor])
+
+    // Carga el logo en cuanto se conoce el suscriptor, sin esperar a entrar a Parámetros
+    useEffect(() => {
+        if (!identificadoresSuscriptor) return
+            ; (async () => {
+                try {
+                    const parametros = await obtenerParametrosDeSuscriptorAsync(identificadoresSuscriptor.id)
+                    setLogoKey(parametros.logo)
+                } catch { }
+            })()
     }, [identificadoresSuscriptor])
 
     useEffect(() => {
@@ -111,9 +105,8 @@ export default () => {
             ; (async () => {
                 try {
                     const identificadores = await obtenerIdentificadoresDeSuscripcionPorNombreDeEmpresaAsync(nombreEmpresa)
-                    setIdentificadoresSuscriptor(identificadores as { id: ids; uuidSuscriptor: string })
+                    setIdentificadoresSuscriptor(identificadores)
                 } catch (e) {
-                    console.log(String(e))
                     setMensaje('No se encontró la empresa.')
                 }
             })()
@@ -131,12 +124,19 @@ export default () => {
 
     return identificadoresSuscriptor ? (
         <div className="min-h-screen w-full bg-[#131516] flex justify-center">
-            {logo ? <ObtenerLogo id={logo} /> : null}
+
+            {/* Logo dinámico desde B2 */}
+            {logoKey && (
+                <img
+                    src={`https://${b2UsuarioBucket}.${b2Url}/${logoKey}`}
+                    alt="Logo"
+                    className="fixed top-3 right-4 h-10 sm:h-14 max-w-[140px] sm:max-w-[200px] object-contain z-50 drop-shadow-lg"
+                />
+            )}
 
             <div className="w-full max-w-7xl px-4 py-6 flex flex-col items-center text-white">
                 <h1 className="text-4xl font-semibold text-center">Administrador</h1>
 
-                {/* Nav */}
                 <nav className="flex gap-2 mt-10 flex-wrap justify-center">
                     {NAV_ITEMS.map(({ key, label }) => (
                         <button
@@ -164,7 +164,6 @@ export default () => {
                         />
                     )}
 
-
                     {seccion === 'armar' && (
                         <ArmarCursos
                             uuidSuscriptor={identificadoresSuscriptor.uuidSuscriptor}
@@ -176,7 +175,6 @@ export default () => {
                             setCursosArmados={setCursosArmados}
                         />
                     )}
-
 
                     {seccion === 'usuarios' && (
                         <Usuarios
@@ -221,6 +219,7 @@ export default () => {
                         <Parametros
                             idSuscriptor={identificadoresSuscriptor.id}
                             usuarios={usuarios}
+                            onLogoChange={setLogoKey}  // 👈 sincroniza el logo al header
                         />
                     )}
                 </div>

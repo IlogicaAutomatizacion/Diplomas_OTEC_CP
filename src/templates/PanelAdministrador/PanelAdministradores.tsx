@@ -143,7 +143,7 @@ export default function PanelAdministradores() {
     const opcionesUsuarios = usuarios
         .filter((usuario) => usuario.id)
         .map((usuario) => ({
-            nombre: usuario.nombre?.trim() || usuario.email?.trim() || usuario.rut?.trim() || `Usuario #${usuario.id}`,
+            nombre: usuario.nombre?.trim() || usuario.correo?.trim() || usuario.rut?.trim() || `Usuario #${usuario.id}`,
             opcion: usuario,
         }))
 

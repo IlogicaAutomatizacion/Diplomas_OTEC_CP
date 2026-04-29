@@ -45,6 +45,7 @@ export function CotizacionSection({
     cursos,
     empresas,
     usuarios,
+    cambiarEstadoCotizacion,
     hayCambiosCotizacion,
     guardandoCotizacion,
     hayFormatoDeCotizacion,
@@ -74,11 +75,17 @@ export function CotizacionSection({
     onSubirFormatoCotizacion: (file: File) => Promise<void>,
     onEliminarFormatoCotizacion: () => Promise<void>,
     onDescargarCotizacion: () => Promise<void>,
-    onMandarCotizacion: () => Promise<void>
+    onMandarCotizacion: () => Promise<void>,
+    cambiarEstadoCotizacion: (cotizado: boolean) => Promise<void>
 }) {
     return (
         <section className="flex flex-col gap-6">
             <SectionTitle>Cotización</SectionTitle>
+            <div className="flex justify-center items-center">
+                <span className={`px-4 py-1 rounded-full text-xs font-bold tracking-widest border uppercase ${cursoArmadoLocal.cotizado ? "text-blue-400 bg-blue-950 border-fuchsia-700' " : "text-red-400 bg-red-950 border-red-700' "}`}>
+                    {cursoArmadoLocal.cotizado ? "COTIZADO" : "NO COTIZADO"}
+                </span>
+            </div>
 
             <Card>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -238,6 +245,15 @@ export function CotizacionSection({
                             Descargando...
                         </span>
                     ) : '⬇ Descargar cotización'}
+                </button>
+
+                <button
+                    onClick={() => {
+                        cambiarEstadoCotizacion(!cursoArmadoLocal?.cotizado)
+                    }}
+                    className={`flex-1 py-2.5 px-6 rounded-lg ${cursoArmadoLocal.cotizado ? "bg-red-600 hover:bg-red-500" : "bg-fuchsia-600 hover:bg-fuchsia-500"} text-white text-sm font-semibold transition shadow-lg shadow-emerald-900/30 cursor-pointer`}
+                >
+                    {cursoArmadoLocal.cotizado ? "X Desmarcar como cotizado" : '✓ Marcar como cotizado'}
                 </button>
 
                 {cotizacionEnviadaCorrectamente ? (

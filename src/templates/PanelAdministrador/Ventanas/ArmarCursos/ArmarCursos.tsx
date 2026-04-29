@@ -18,8 +18,12 @@ type OrdenCursoArmado =
     | 'nombre_asc' | 'nombre_desc'
     | 'alumnos_desc' | 'alumnos_asc'
     | 'estado_asc' | 'estado_desc'
+    | 'id_asc' | 'id_desc'
+    | 'cotizado_asc' | 'cotizado_desc'
 
 const OPCIONES_ORDEN: { label: string; value: OrdenCursoArmado }[] = [
+    { label: 'ID menor→mayor', value: 'id_asc' },
+    { label: 'ID mayor→menor', value: 'id_desc' },
     { label: 'Inicio más reciente', value: 'fecha_inicio_desc' },
     { label: 'Inicio más antiguo', value: 'fecha_inicio_asc' },
     { label: 'Fin más reciente', value: 'fecha_fin_desc' },
@@ -30,6 +34,8 @@ const OPCIONES_ORDEN: { label: string; value: OrdenCursoArmado }[] = [
     { label: 'Menos alumnos', value: 'alumnos_asc' },
     { label: 'Estado A→Z', value: 'estado_asc' },
     { label: 'Estado Z→A', value: 'estado_desc' },
+    { label: 'Cotizados primero', value: 'cotizado_desc' },
+    { label: 'No cotizados primero', value: 'cotizado_asc' },
 ]
 
 // ─── Helpers de ordenamiento ──────────────────────────────────────────────────
@@ -39,6 +45,8 @@ const ESTADO_ORDEN: Record<string, number> = { ACTIVO: 0, INACTIVO: 1, FINALIZAD
 function ordenarCursosArmados(lista: cursoArmado[], orden: OrdenCursoArmado): cursoArmado[] {
     return [...lista].sort((a, b) => {
         switch (orden) {
+            case 'id_asc': return (a.curso_armado_id ?? 0) - (b.curso_armado_id ?? 0)
+            case 'id_desc': return (b.curso_armado_id ?? 0) - (a.curso_armado_id ?? 0)
             case 'fecha_inicio_asc': return (a.fecha_inicio ?? '').localeCompare(b.fecha_inicio ?? '')
             case 'fecha_inicio_desc': return (b.fecha_inicio ?? '').localeCompare(a.fecha_inicio ?? '')
             case 'fecha_fin_asc': return (a.fecha_finalizacion ?? '').localeCompare(b.fecha_finalizacion ?? '')
@@ -49,6 +57,8 @@ function ordenarCursosArmados(lista: cursoArmado[], orden: OrdenCursoArmado): cu
             case 'alumnos_asc': return (a.alumnosCotizados ?? 0) - (b.alumnosCotizados ?? 0)
             case 'estado_asc': return (ESTADO_ORDEN[a.estado ?? ''] ?? 99) - (ESTADO_ORDEN[b.estado ?? ''] ?? 99)
             case 'estado_desc': return (ESTADO_ORDEN[b.estado ?? ''] ?? 99) - (ESTADO_ORDEN[a.estado ?? ''] ?? 99)
+            case 'cotizado_desc': return (b.cotizado ? 1 : 0) - (a.cotizado ? 1 : 0)
+            case 'cotizado_asc': return (a.cotizado ? 1 : 0) - (b.cotizado ? 1 : 0)
         }
     })
 }
@@ -178,7 +188,7 @@ export default ({
 }) => {
     const [mensajeBoton, setMensajeBoton] = useState<string | null>(null)
     const [busqueda, setBusqueda] = useState('')
-    const [orden, setOrden] = useState<OrdenCursoArmado>('fecha_inicio_desc')
+    const [orden, setOrden] = useState<OrdenCursoArmado>('id_desc')
     const [cursoArmadoAVisualizar, setCursoArmadoAVisualizar] = useState<cursoArmado | null>(null)
     const { setError } = useContext(ErrorContext)!
     const currentSusbscription = useSusbcriptonStore((x) => x.currentSusbscription)
@@ -253,6 +263,7 @@ export default ({
     const q = busqueda.toLowerCase().trim()
     const cursosFiltrados = cursosArmados.filter(ca =>
         !q ||
+        String(ca.curso_armado_id ?? '').includes(q) ||
         ca.curso?.nombre?.toLowerCase().includes(q) ||
         ca.empresa?.nombre?.toLowerCase().includes(q)
     )
@@ -361,7 +372,7 @@ export default ({
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none"><IconSearch /></span>
                 <input
                     type="text"
-                    placeholder="Buscar por nombre de curso o empresa…"
+                    placeholder="Buscar por ID, nombre de curso o empresa…"
                     value={busqueda}
                     onChange={e => setBusqueda(e.target.value)}
                     className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-sm text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition"

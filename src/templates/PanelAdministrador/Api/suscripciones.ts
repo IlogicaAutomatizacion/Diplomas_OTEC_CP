@@ -21,12 +21,13 @@ export type parametrosSuscriptor = {
     certificador: usuario | null,
     inicio_contador_certificados: number
     contador_cotizaciones: number
+    logo: string | null  // 👈 agregar esto
 }
 
 export type vinculacionUsuarioSuscriptorAdmin = {
     message: string
     id_suscriptor: number
-    usuario: Pick<usuario, 'id' | 'nombre' | 'email' | 'rut'>
+    usuario: Pick<usuario, 'id' | 'nombre' | 'correo' | 'rut'>
 }
 
 export type desvinculacionUsuarioSuscriptor = {
@@ -526,3 +527,39 @@ export async function editarEmpresaDeSuscriptorAsync(
 
     return res.json()
 }
+
+export async function subirLogoSuscriptorAsync(
+    id_suscripcion: number,
+    logo: File
+): Promise<{ logo: string }> {
+    const formData = new FormData()
+    formData.append('logo', logo)
+
+    const res = await fetch(`${backend}/suscriptores/logo/${id_suscripcion}`, {
+        method: 'POST',
+        body: formData,
+    })
+
+    if (!res.ok) {
+        const problem = await res.json().catch(() => null)
+        throw new Error(problem?.message ?? 'Hubo un problema al subir el logo.')
+    }
+
+    return res.json()
+}
+
+export async function eliminarLogoSuscriptorAsync(
+    id_suscripcion: number
+): Promise<{ message: string }> {
+    const res = await fetch(`${backend}/suscriptores/logo/${id_suscripcion}`, {
+        method: 'DELETE',
+    })
+
+    if (!res.ok) {
+        const problem = await res.json().catch(() => null)
+        throw new Error(problem?.message ?? 'Hubo un problema al eliminar el logo.')
+    }
+
+    return res.json()
+}
+

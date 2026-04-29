@@ -1,7 +1,7 @@
 import { useEffect, useState, type SetStateAction } from "react"
 import { obtenerInscripcionesDeAlumno, type inscripcionesParaPanelAlumno, type inscripcionParaPanelAlumno } from "../PanelAdministrador/Api/usuarios"
 import { convertirFecha } from "./Panel"
-import { editarInscripcionAsync, type inscripcion } from "../PanelAdministrador/Api/inscripciones"
+import { marcarAsistenciaComoAlumnoAsync, type inscripcion } from "../PanelAdministrador/Api/inscripciones"
 
 const AlumnoCard = ({ inscripcion, setInscripciones }: { inscripcion: inscripcionParaPanelAlumno, setInscripciones: React.Dispatch<SetStateAction<inscripcionesParaPanelAlumno | null>> }) => {
 
@@ -20,17 +20,16 @@ const AlumnoCard = ({ inscripcion, setInscripciones }: { inscripcion: inscripcio
     }, [inscripcionLocal])
 
     async function handlerMarcarAsistencia() {
-        if (!inscripcion?.idinscripcion) { return }
+        if (!inscripcion?.idinscripcion) return
 
         try {
-            console.log('uh')
-            const inscripcionActualizada: inscripcion = await editarInscripcionAsync(inscripcion.idinscripcion, {
-                asistencia_marcada: true
+            const inscripcionActualizada: inscripcion = await marcarAsistenciaComoAlumnoAsync(inscripcion.idinscripcion)
+            setInscripcionLocal({
+                ...inscripcionLocal,
+                asistenciamarcada: inscripcionActualizada.asistencia_marcada
             })
-            console.log(inscripcionActualizada)
-            setInscripcionLocal({ ...inscripcionLocal, asistenciamarcada: inscripcionActualizada.asistencia_marcada })
         } catch (e) {
-            console.log(e)
+            console.error(e)
         }
     }
 

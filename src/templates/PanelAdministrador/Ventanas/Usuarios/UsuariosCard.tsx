@@ -1,4 +1,4 @@
-{/* UsuariosCard */}
+{/* UsuariosCard */ }
 
 import type { usuario } from "../../Api/usuarios"
 
@@ -16,7 +16,7 @@ export default ({
     setUsuarioSeleccionadoId: React.Dispatch<React.SetStateAction<number | null>>
 }) => {
     const inicial = (usuario.nombre ?? '?')[0].toUpperCase()
-    const metaDatos = [usuario.especialidad, usuario.email].filter(Boolean)
+    const metaDatos = [usuario.id && `ID #${usuario.id}`,usuario.correo, usuario.especialidad ].filter(Boolean)
 
     return (
         <button

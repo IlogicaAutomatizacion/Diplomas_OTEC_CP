@@ -1,9 +1,11 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { b2Url, b2UsuarioBucket } from "../../../vars"
 import type { usuario } from "../Api/usuarios"
 import {
     actualizarParametrosDeSuscriptorAsync,
+    eliminarLogoSuscriptorAsync,
     obtenerParametrosDeSuscriptorAsync,
+    subirLogoSuscriptorAsync,
     type parametrosSuscriptor,
 } from "../Api/suscripciones"
 import { Example } from "../Componentes/DropdownMenu"
@@ -11,53 +13,60 @@ import { Example } from "../Componentes/DropdownMenu"
 type ParametrosProps = {
     idSuscriptor: number
     usuarios: usuario[]
+    onLogoChange?: (logoKey: string | null) => void
 }
 
 const parametrosVacios: parametrosSuscriptor = {
     certificador: null,
     inicio_contador_certificados: 0,
     contador_cotizaciones: 0,
+    logo: null,
 }
 
-export default function Parametros({ idSuscriptor, usuarios }: ParametrosProps) {
+export default function Parametros({ idSuscriptor, usuarios, onLogoChange }: ParametrosProps) {
     const [parametrosGuardados, setParametrosGuardados] = useState<parametrosSuscriptor>(parametrosVacios)
     const [parametrosEditados, setParametrosEditados] = useState<parametrosSuscriptor>(parametrosVacios)
     const [cargando, setCargando] = useState(true)
     const [guardando, setGuardando] = useState(false)
     const [mensaje, setMensaje] = useState<string | null>(null)
 
+    const [logoKey, setLogoKey] = useState<string | null>(null)
+    const [logoPreview, setLogoPreview] = useState<string | null>(null)
+    const [logoFile, setLogoFile] = useState<File | null>(null)
+    const [subiendoLogo, setSubiendoLogo] = useState(false)
+    const [mensajeLogo, setMensajeLogo] = useState<string | null>(null)
+    const inputLogoRef = useRef<HTMLInputElement>(null)
+
     useEffect(() => {
         let activo = true
 
-        ; (async () => {
-            setCargando(true)
-            setMensaje(null)
+            ; (async () => {
+                setCargando(true)
+                setMensaje(null)
 
-            try {
-                const parametros = await obtenerParametrosDeSuscriptorAsync(idSuscriptor)
+                try {
+                    const parametros = await obtenerParametrosDeSuscriptorAsync(idSuscriptor)
+                    if (!activo) return
 
-                if (!activo) return
+                    setParametrosGuardados(parametros)
+                    setParametrosEditados(parametros)
+                    setLogoKey(parametros.logo)
+                    onLogoChange?.(parametros.logo)
+                } catch (e) {
+                    if (!activo) return
+                    setMensaje(e instanceof Error ? e.message : 'No se pudieron cargar los parametros.')
+                } finally {
+                    if (activo) setCargando(false)
+                }
+            })()
 
-                setParametrosGuardados(parametros)
-                setParametrosEditados(parametros)
-            } catch (e) {
-                if (!activo) return
-
-                setMensaje(e instanceof Error ? e.message : 'No se pudieron cargar los parametros.')
-            } finally {
-                if (activo) setCargando(false)
-            }
-        })()
-
-        return () => {
-            activo = false
-        }
+        return () => { activo = false }
     }, [idSuscriptor])
 
     const opcionesUsuarios = useMemo(() => {
-        return usuarios.map(usuario => ({
-            nombre: usuario.nombre ?? `Usuario ${usuario.id}`,
-            opcion: usuario
+        return usuarios.map(u => ({
+            nombre: u.nombre ?? `Usuario ${u.id}`,
+            opcion: u,
         }))
     }, [usuarios])
 
@@ -68,7 +77,6 @@ export default function Parametros({ idSuscriptor, usuarios }: ParametrosProps) 
 
     async function guardarCambios() {
         if (!hayCambios || guardando) return
-
         setGuardando(true)
         setMensaje(null)
 
@@ -89,6 +97,59 @@ export default function Parametros({ idSuscriptor, usuarios }: ParametrosProps) 
         }
     }
 
+    function onLogoSeleccionado(e: React.ChangeEvent<HTMLInputElement>) {
+        const file = e.target.files?.[0]
+        if (!file) return
+        setLogoFile(file)
+        setLogoPreview(URL.createObjectURL(file))
+        setMensajeLogo(null)
+    }
+
+    async function subirLogo() {
+        if (!logoFile || subiendoLogo) return
+        setSubiendoLogo(true)
+        setMensajeLogo(null)
+
+        try {
+            const { logo } = await subirLogoSuscriptorAsync(idSuscriptor, logoFile)
+            setLogoKey(logo)
+            setLogoCacheBuster(Date.now())  // 👈 fuerza re-fetch
+            onLogoChange?.(logo)
+            setLogoFile(null)
+            setLogoPreview(null)
+            if (inputLogoRef.current) inputLogoRef.current.value = ''
+            setMensajeLogo('Logo guardado correctamente.')
+        } catch (e) {
+            setMensajeLogo(e instanceof Error ? e.message : 'No se pudo subir el logo.')
+        } finally {
+            setSubiendoLogo(false)
+        }
+    }
+
+    async function eliminarLogo() {
+        if (subiendoLogo) return
+        setSubiendoLogo(true)
+        setMensajeLogo(null)
+
+        try {
+            await eliminarLogoSuscriptorAsync(idSuscriptor)
+            setLogoKey(null)
+            onLogoChange?.(null)
+            setLogoPreview(null)
+            setLogoFile(null)
+            if (inputLogoRef.current) inputLogoRef.current.value = ''
+            setMensajeLogo('Logo eliminado correctamente.')
+        } catch (e) {
+            setMensajeLogo(e instanceof Error ? e.message : 'No se pudo eliminar el logo.')
+        } finally {
+            setSubiendoLogo(false)
+        }
+    }
+
+    const [logoCacheBuster, setLogoCacheBuster] = useState(() => Date.now())
+
+    const logoUrl = logoPreview ?? (logoKey ? `https://${b2UsuarioBucket}.${b2Url}/${logoKey}?t=${logoCacheBuster}` : null)
+
     if (cargando) {
         return <p className="text-center opacity-80">Cargando parametros...</p>
     }
@@ -102,6 +163,61 @@ export default function Parametros({ idSuscriptor, usuarios }: ParametrosProps) 
                 </p>
             </div>
 
+            {/* ── LOGO ── */}
+            {/* ── LOGO ── */}
+            <div className="border border-white/10 rounded-xl p-4 flex flex-col gap-4">
+                <h3 className="text-lg font-semibold">Logo</h3>
+
+                <div className="w-full flex items-center justify-center bg-slate-900/60 rounded-xl border border-white/10 p-4 min-h-40">
+                    {logoUrl ? (
+                        <img
+                            src={logoUrl}
+                            alt="Logo del suscriptor"
+                            className="max-h-40 max-w-full object-contain"
+                        />
+                    ) : (
+                        <span className="text-sm opacity-50">Sin logo</span>
+                    )}
+                </div>
+
+                <div className="flex flex-wrap gap-2 items-center">
+                    <input
+                        ref={inputLogoRef}
+                        type="file"
+                        accept=".jpg,.jpeg,.png,.webp"
+                        onChange={onLogoSeleccionado}
+                        className="text-sm file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:bg-slate-700 file:text-white hover:file:bg-slate-600 file:cursor-pointer"
+                    />
+
+                    {logoFile && (
+                        <button
+                            type="button"
+                            onClick={subirLogo}
+                            disabled={subiendoLogo}
+                            className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-600 disabled:cursor-not-allowed rounded text-sm font-medium"
+                        >
+                            {subiendoLogo ? 'Subiendo...' : 'Confirmar subida'}
+                        </button>
+                    )}
+
+                    {logoKey && !logoFile && (
+                        <button
+                            type="button"
+                            onClick={eliminarLogo}
+                            disabled={subiendoLogo}
+                            className="px-3 py-1.5 bg-red-700 hover:bg-red-600 disabled:bg-slate-600 disabled:cursor-not-allowed rounded text-sm font-medium"
+                        >
+                            {subiendoLogo ? 'Eliminando...' : 'Eliminar logo'}
+                        </button>
+                    )}
+                </div>
+
+                {mensajeLogo && (
+                    <p className="text-sm opacity-80">{mensajeLogo}</p>
+                )}
+            </div>
+
+            {/* ── PARÁMETROS ── */}
             <div className="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-6">
                 <div className="border border-white/10 rounded-xl p-4 flex flex-col gap-4">
                     <div className="flex flex-col gap-2">
@@ -111,22 +227,14 @@ export default function Parametros({ idSuscriptor, usuarios }: ParametrosProps) 
                             seleccionado={parametrosEditados.certificador?.nombre ?? null}
                             titulo={parametrosEditados.certificador?.nombre ?? 'Seleccionar usuario'}
                             callbackOnSelect={(usuarioSeleccionado) => {
-                                setParametrosEditados(last => ({
-                                    ...last,
-                                    certificador: usuarioSeleccionado
-                                }))
+                                setParametrosEditados(last => ({ ...last, certificador: usuarioSeleccionado }))
                             }}
                         />
                     </div>
 
                     <button
                         type="button"
-                        onClick={() => {
-                            setParametrosEditados(last => ({
-                                ...last,
-                                certificador: null
-                            }))
-                        }}
+                        onClick={() => setParametrosEditados(last => ({ ...last, certificador: null }))}
                         className="w-fit px-3 py-2 bg-slate-700 hover:bg-slate-600 rounded text-sm"
                     >
                         Limpiar certificador
@@ -138,16 +246,13 @@ export default function Parametros({ idSuscriptor, usuarios }: ParametrosProps) 
                             type="number"
                             min={0}
                             value={parametrosEditados.inicio_contador_certificados}
-                            onChange={(e) => {
-                                setParametrosEditados(last => ({
-                                    ...last,
-                                    inicio_contador_certificados: Math.max(0, Number(e.target.value) || 0)
-                                }))
-                            }}
+                            onChange={(e) => setParametrosEditados(last => ({
+                                ...last,
+                                inicio_contador_certificados: Math.max(0, Number(e.target.value) || 0)
+                            }))}
                             className="w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-600"
                         />
                     </label>
-
                     <p className="text-sm opacity-75">
                         Si aqui pones <strong>100</strong>, el siguiente certificado quedara contado desde el 101.
                     </p>
@@ -158,23 +263,20 @@ export default function Parametros({ idSuscriptor, usuarios }: ParametrosProps) 
                             type="number"
                             min={0}
                             value={parametrosEditados.contador_cotizaciones}
-                            onChange={(e) => {
-                                setParametrosEditados(last => ({
-                                    ...last,
-                                    contador_cotizaciones: Math.max(0, Number(e.target.value) || 0)
-                                }))
-                            }}
+                            onChange={(e) => setParametrosEditados(last => ({
+                                ...last,
+                                contador_cotizaciones: Math.max(0, Number(e.target.value) || 0)
+                            }))}
                             className="w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-600"
                         />
                     </label>
-
                     <p className="text-sm opacity-75">
                         Si aqui pones <strong>100</strong>, la siguiente cotizacion usara el 101.
                     </p>
                 </div>
 
                 <div className="border border-white/10 rounded-xl p-4 flex flex-col gap-4">
-                    <h3 className="text-lg font-semibold">Vista previa</h3>
+                    <h3 className="text-lg font-semibold">Vista previa certificador</h3>
 
                     {parametrosEditados.certificador?.firma ? (
                         <img

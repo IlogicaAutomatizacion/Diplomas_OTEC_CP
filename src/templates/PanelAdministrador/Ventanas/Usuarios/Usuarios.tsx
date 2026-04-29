@@ -11,9 +11,11 @@ import UsuariosCard from "./UsuariosCard"
 
 // ─── Tipos de ordenamiento ────────────────────────────────────────────────────
 
-type OrdenUsuario = 'nombre_asc' | 'nombre_desc'
+type OrdenUsuario = 'nombre_asc' | 'nombre_desc' | 'id_asc' | 'id_desc'
 
 const OPCIONES_ORDEN_USUARIOS: { label: string; value: OrdenUsuario }[] = [
+    { label: 'ID menor→mayor', value: 'id_asc' },
+    { label: 'ID mayor→menor', value: 'id_desc' },
     { label: 'Nombre A→Z', value: 'nombre_asc'  },
     { label: 'Nombre Z→A', value: 'nombre_desc' },
 ]
@@ -55,7 +57,7 @@ const IconCheck = () => (
 
 const CAMPOS: { key: keyof usuario; label: string }[] = [
     { key: 'nombre',       label: 'Nombre'          },
-    { key: 'email',        label: 'Correo'          },
+    { key: 'correo',       label: 'Correo'          },
     { key: 'telefono',     label: 'Teléfono'        },
     { key: 'direccion',    label: 'Dirección'        },
     { key: 'rut',          label: 'RUT'              },
@@ -164,7 +166,7 @@ export default ({
 }) => {
     const [mensajeBoton, setMensajeBoton] = useState<string | null>(null)
     const [busqueda, setBusqueda] = useState('')
-    const [orden, setOrden] = useState<OrdenUsuario>('nombre_asc')
+    const [orden, setOrden] = useState<OrdenUsuario>('id_desc')
     const usuarioAVisualizar = usuarios.find(u => u.id === usuarioSeleccionadoId) ?? null
 
     // ── Estado de selección bulk ──────────────────────────────────────────────
@@ -245,15 +247,20 @@ export default ({
     const q = busqueda.toLowerCase()
     const usuariosFiltrados = usuarios.filter(u =>
         (u.nombre ?? '').toLowerCase().includes(q) ||
+        String(u.id ?? '').includes(q) ||
         (u.rut ?? '').toLowerCase().includes(q) ||
-        (u.email ?? '').toLowerCase().includes(q) ||
+        (u.correo ?? '').toLowerCase().includes(q) ||
         (u.especialidad ?? '').toLowerCase().includes(q) ||
         (u.direccion ?? '').toLowerCase().includes(q)
     )
 
     const usuariosOrdenados = [...usuariosFiltrados].sort((a, b) => {
-        if (orden === 'nombre_desc') return (b.nombre ?? '').localeCompare(a.nombre ?? '', 'es', { sensitivity: 'base' })
-        return (a.nombre ?? '').localeCompare(b.nombre ?? '', 'es', { sensitivity: 'base' })
+        switch (orden) {
+            case 'id_asc': return (a.id ?? 0) - (b.id ?? 0)
+            case 'id_desc': return (b.id ?? 0) - (a.id ?? 0)
+            case 'nombre_desc': return (b.nombre ?? '').localeCompare(a.nombre ?? '', 'es', { sensitivity: 'base' })
+            default: return (a.nombre ?? '').localeCompare(b.nombre ?? '', 'es', { sensitivity: 'base' })
+        }
     })
 
     // ── Panel de detalle ──────────────────────────────────────────────────────
@@ -407,7 +414,7 @@ export default ({
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none"><IconSearch /></span>
                 <input
                     type="text"
-                    placeholder="Buscar por nombre, RUT, correo, especialidad…"
+                    placeholder="Buscar por ID, nombre, RUT, correo, especialidad…"
                     value={busqueda}
                     onChange={e => setBusqueda(e.target.value)}
                     className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-sm text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"

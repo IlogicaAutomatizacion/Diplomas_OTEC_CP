@@ -15,6 +15,7 @@ type Filtros = {
     fechaFinalizacion: string
     fechaFinalizacionOrden: OrdenFecha
     estado: Estado | ''
+    cotizado: 'cotizado' | 'no_cotizado' | ''
     usuarioId: number | ''
     cursoId: number | ''
     empresaId: number | ''
@@ -26,14 +27,15 @@ const FILTROS_INICIALES: Filtros = {
     fechaFinalizacion: '',
     fechaFinalizacionOrden: 'asc',
     estado: '',
+    cotizado: '',
     usuarioId: '',
     cursoId: '',
     empresaId: '',
 }
 
 const ESTADO_CONFIG: Record<Estado, { label: string; color: string; dot: string }> = {
-    ACTIVO:     { label: 'Activo',     color: 'text-emerald-400 bg-emerald-950 border-emerald-700', dot: 'bg-emerald-400' },
-    INACTIVO:   { label: 'Inactivo',   color: 'text-red-400 bg-red-950 border-red-700',             dot: 'bg-red-400'     },
+    ACTIVO: { label: 'Activo', color: 'text-emerald-400 bg-emerald-950 border-emerald-700', dot: 'bg-emerald-400' },
+    INACTIVO: { label: 'Inactivo', color: 'text-red-400 bg-red-950 border-red-700', dot: 'bg-red-400' },
     FINALIZADO: { label: 'Finalizado', color: 'text-fuchsia-400 bg-fuchsia-950 border-fuchsia-700', dot: 'bg-fuchsia-400' },
 }
 
@@ -163,6 +165,12 @@ export default function ReportesCursos({
         if (filtros.estado)
             lista = lista.filter(c => c.estado === filtros.estado)
 
+        if (filtros.cotizado) {
+            lista = lista.filter(c =>
+                filtros.cotizado === 'cotizado' ? c.cotizado : !c.cotizado
+            )
+        }
+
         if (filtros.usuarioId !== '')
             lista = lista.filter(c =>
                 c.profesor?.id === filtros.usuarioId ||
@@ -200,6 +208,9 @@ export default function ReportesCursos({
 
     if (filtros.estado)
         activeChips.push({ label: `Estado: ${ESTADO_CONFIG[filtros.estado].label}`, clear: () => set('estado', '') })
+
+    if (filtros.cotizado)
+        activeChips.push({ label: `Cotizado: ${filtros.cotizado === 'cotizado' ? 'Sí' : 'No'}`, clear: () => set('cotizado', '') })
 
     if (filtros.usuarioId !== '') {
         const u = usuarios.find(u => u.id === filtros.usuarioId)
@@ -301,6 +312,16 @@ export default function ReportesCursos({
                             </SelectFiltro>
                         </div>
 
+                        {/* Cotizado */}
+                        <div className="flex flex-col gap-1">
+                            <FieldLabel>Cotizado</FieldLabel>
+                            <SelectFiltro value={filtros.cotizado} onChange={v => set('cotizado', v as 'cotizado' | 'no_cotizado' | '')}>
+                                <option value="">Todos</option>
+                                <option value="cotizado">Cotizados</option>
+                                <option value="no_cotizado">No cotizados</option>
+                            </SelectFiltro>
+                        </div>
+
                         {/* Empresa */}
                         <div className="flex flex-col gap-1">
                             <FieldLabel>Empresa</FieldLabel>
@@ -367,7 +388,7 @@ export default function ReportesCursos({
                         <table className="w-full text-sm border-collapse">
                             <thead>
                                 <tr className="bg-zinc-800 border-b border-zinc-700">
-                                    {['Curso', 'Empresa', 'Profesor', 'Inicio', 'Finalización', 'Estado', 'Alumnos'].map(h => (
+                                    {['Curso', 'Empresa', 'Profesor', 'Inicio', 'Finalización', 'Alumnos', 'Estado', "Cotizado"].map(h => (
                                         <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 whitespace-nowrap">
                                             {h}
                                         </th>
@@ -386,20 +407,28 @@ export default function ReportesCursos({
                                         <td className="px-4 py-3 text-zinc-300 whitespace-nowrap">
                                             {c.profesor?.nombre ?? <span className="text-zinc-600">—</span>}
                                         </td>
+
                                         <td className="px-4 py-3 text-zinc-400 whitespace-nowrap font-mono text-xs">
                                             {c.fecha_inicio ?? <span className="text-zinc-600">—</span>}
                                         </td>
                                         <td className="px-4 py-3 text-zinc-400 whitespace-nowrap font-mono text-xs">
                                             {c.fecha_finalizacion ?? <span className="text-zinc-600">—</span>}
                                         </td>
-                                        <td className="px-4 py-3">
-                                            <EstadoBadge estado={c.estado} />
-                                        </td>
                                         <td className="px-4 py-3 text-center">
                                             <span className="px-2.5 py-0.5 rounded-full bg-zinc-800 border border-zinc-700 text-zinc-300 text-xs font-semibold">
                                                 {c.inscripciones.length}
                                             </span>
                                         </td>
+                                        <td className="px-4 py-3">
+                                            <EstadoBadge estado={c.estado} />
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${c.cotizado ? 'text-blue-400 bg-blue-950 border-blue-700' : 'text-gray-400 bg-gray-950 border-gray-700'}`}>
+                                                <span className={`w-1.5 h-1.5 rounded-full ${c.cotizado ? 'bg-blue-400' : 'bg-gray-400'}`} />
+                                                {c.cotizado ? 'COTIZADO' : 'NO COTIZADO'}
+                                            </span>
+                                        </td>
+
                                     </tr>
                                 ))}
                             </tbody>

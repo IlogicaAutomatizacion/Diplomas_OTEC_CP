@@ -151,3 +151,43 @@ export async function eliminarRespuestasEncuestaAsync(
 
     return res.json();
 }
+
+export async function editarInscripcionComoProfesorAsync(
+    id_inscripcion: number,
+    data: {
+        asistencias?: number;
+        calificacion?: number;
+        teorica?: number;
+    }
+) {
+    const res = await fetch(`${backend}/curso-armado/curso-inscripcion/${id_inscripcion}`, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+    });
+
+    if (!res.ok) {
+        const problem = await res.json().catch(() => null)
+        throw new Error(problem?.message ?? 'Hubo un problema al editar la inscripción.');
+    }
+
+    return res.json();
+} 
+
+export async function marcarAsistenciaComoAlumnoAsync(id_inscripcion: number): Promise<inscripcion> {
+    const res = await fetch(`${backend}/inscripciones/${id_inscripcion}/marcarAsistencia`, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    })
+
+    if (!res.ok) {
+        const problem = await res.json().catch(() => null)
+        throw new Error(problem?.message ?? 'Hubo un problema al marcar la asistencia.')
+    }
+
+    return res.json()
+}

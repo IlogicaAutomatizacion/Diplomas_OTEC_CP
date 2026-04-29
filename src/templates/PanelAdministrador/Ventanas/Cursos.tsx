@@ -7,9 +7,11 @@ import { useExcelMapper } from "../Componentes/SeccionadorSapa"
 
 // ─── Tipos de ordenamiento ────────────────────────────────────────────────────
 
-type OrdenCurso = 'nombre_asc' | 'nombre_desc' | 'duracion_desc' | 'duracion_asc'
+type OrdenCurso = 'nombre_asc' | 'nombre_desc' | 'duracion_desc' | 'duracion_asc' | 'id_asc' | 'id_desc'
 
 const OPCIONES_ORDEN_CURSOS: { label: string; value: OrdenCurso }[] = [
+    { label: 'ID menor→mayor',       value: 'id_asc'        },
+    { label: 'ID mayor→menor',       value: 'id_desc'       },
     { label: 'Nombre A→Z',           value: 'nombre_asc'    },
     { label: 'Nombre Z→A',           value: 'nombre_desc'   },
     { label: 'Duración mayor→menor', value: 'duracion_desc' },
@@ -236,6 +238,7 @@ const CursoCard = ({
                             <p className="text-sm font-semibold text-zinc-100 truncate leading-snug">
                                 {cursoLocal.nombre ?? <span className="text-zinc-600 italic">Sin nombre</span>}
                             </p>
+                            <p className="text-xs text-zinc-500 mt-0.5">ID #{cursoLocal.curso_id}</p>
                             {duracion != null && (
                                 <p className="flex items-center gap-1 text-xs text-zinc-500 mt-0.5">
                                     <IconClock /> {duracion} hrs
@@ -310,7 +313,7 @@ export default ({ cursos, idSuscriptor, setCursos }: {
 }) => {
     const [mensajeBoton, setMensajeBoton] = useState<string | null>(null)
     const [busqueda, setBusqueda] = useState('')
-    const [orden, setOrden] = useState<OrdenCurso>('nombre_asc')
+    const [orden, setOrden] = useState<OrdenCurso>('id_desc')
 
     // ── Estado de selección bulk ──────────────────────────────────────────────
     const [modoSeleccion, setModoSeleccion] = useState(false)
@@ -385,6 +388,7 @@ export default ({ cursos, idSuscriptor, setCursos }: {
     const q = busqueda.toLowerCase()
     const cursosFiltrados = cursos.filter(c =>
         (c.nombre ?? '').toLowerCase().includes(q) ||
+        String(c.curso_id ?? '').includes(q) ||
         (c.resumen ?? '').toLowerCase().includes(q) ||
         (c.temario ?? '').toLowerCase().includes(q) ||
         String(c.duracion ?? '').includes(q)
@@ -392,10 +396,12 @@ export default ({ cursos, idSuscriptor, setCursos }: {
 
     const cursosOrdenados = [...cursosFiltrados].sort((a, b) => {
         switch (orden) {
-            case 'nombre_asc':    return (a.nombre ?? '').localeCompare(b.nombre ?? '', 'es', { sensitivity: 'base' })
-            case 'nombre_desc':   return (b.nombre ?? '').localeCompare(a.nombre ?? '', 'es', { sensitivity: 'base' })
+            case 'id_asc': return (a.curso_id ?? 0) - (b.curso_id ?? 0)
+            case 'id_desc': return (b.curso_id ?? 0) - (a.curso_id ?? 0)
+            case 'nombre_desc': return (b.nombre ?? '').localeCompare(a.nombre ?? '', 'es', { sensitivity: 'base' })
             case 'duracion_desc': return (b.duracion ?? 0) - (a.duracion ?? 0)
-            case 'duracion_asc':  return (a.duracion ?? 0) - (b.duracion ?? 0)
+            case 'duracion_asc': return (a.duracion ?? 0) - (b.duracion ?? 0)
+            default: return (a.nombre ?? '').localeCompare(b.nombre ?? '', 'es', { sensitivity: 'base' })
         }
     })
 
@@ -529,7 +535,7 @@ export default ({ cursos, idSuscriptor, setCursos }: {
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none"><IconSearch /></span>
                 <input
                     type="text"
-                    placeholder="Buscar por nombre, duración, resumen o temario…"
+                    placeholder="Buscar por ID, nombre, duración, resumen o temario…"
                     value={busqueda}
                     onChange={e => setBusqueda(e.target.value)}
                     className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-sm text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition"

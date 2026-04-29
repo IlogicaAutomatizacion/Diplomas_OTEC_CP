@@ -9,7 +9,7 @@ export interface usuario {
     id?: number,
     rut?: string,
     nombre?: string,
-    email?: string,
+    correo?: string,
     empresa?: string,
     token?: string,
     direccion?: string | null,

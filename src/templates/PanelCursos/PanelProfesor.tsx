@@ -1,298 +1,280 @@
 import { useEffect, useState, type SetStateAction } from "react"
 import { obtenerCursosParaPanelProfesor, type PanelProfesor } from "../PanelAdministrador/Api/usuarios"
 import { convertirFecha } from "./Panel"
-import { actualizarPropiedadDeCursoArmadoAsync, checarSiPuedeFinalizar, type cursoArmado } from "../PanelAdministrador/Api/cursos-armados"
-import { editarInscripcionAsync, type inscripcion } from "../PanelAdministrador/Api/inscripciones"
+import { actualizarPropiedadDeCursoArmadoAsync, actualizarPropiedadDeCursoArmadoComoProfesorAsync, checarSiPuedeFinalizar, type cursoArmado } from "../PanelAdministrador/Api/cursos-armados"
+import { editarInscripcionComoProfesorAsync, type inscripcion } from "../PanelAdministrador/Api/inscripciones"
 
-const ProfesorCard = ({ curso, setPanel }: { curso: cursoArmado, setPanel: React.Dispatch<SetStateAction<PanelProfesor | null>> }) => {
+// ─── Fila de alumno ───────────────────────────────────────────────────────────
 
+type FilaAlumnoProps = {
+    inscripcion: inscripcion
+    deshabilitado: boolean
+}
+
+function FilaAlumno({ inscripcion, deshabilitado }: FilaAlumnoProps) {
+    const [asistencias, setAsistencias] = useState(inscripcion.asistencias ?? 0)
+    const [calificacion, setCalificacion] = useState(inscripcion.calificacion ?? 0)
+    const [teorica, setTeorica] = useState(inscripcion.teorica ?? 0)  // 👈
+    const [guardando, setGuardando] = useState(false)
+    const [mensaje, setMensaje] = useState<string | null>(null)
+
+    const asistenciasOriginales = inscripcion.asistencias ?? 0
+    const calificacionOriginal = inscripcion.calificacion ?? 0
+    const teoricaOriginal = inscripcion.teorica ?? 0  // 👈
+
+    const hayCambios =
+        asistencias !== asistenciasOriginales ||
+        calificacion !== calificacionOriginal ||
+        teorica !== teoricaOriginal  // 👈
+
+    async function guardar() {
+        if (!inscripcion.id_inscripcion || !hayCambios || guardando) return
+        setGuardando(true)
+        setMensaje(null)
+
+        try {
+            await editarInscripcionComoProfesorAsync(inscripcion.id_inscripcion, {
+                asistencias,
+                calificacion,
+                teorica,  // 👈
+            })
+            setMensaje('Guardado.')
+        } catch (e) {
+            setMensaje(e instanceof Error ? e.message : 'Error al guardar.')
+            setAsistencias(asistenciasOriginales)
+            setCalificacion(calificacionOriginal)
+            setTeorica(teoricaOriginal)  // 👈
+        } finally {
+            setGuardando(false)
+        }
+    }
+
+    return (
+        <div className="bg-black/30 rounded-xl p-3 flex flex-col gap-2">
+            <p className="text-sm font-medium text-white/80 text-center">
+                {inscripcion.usuario?.nombre}
+            </p>
+
+            <div className="grid grid-cols-3 gap-2">  {/* 👈 3 columnas */}
+                <label className="flex flex-col gap-1">
+                    <span className="text-xs text-white/50">Asistencias</span>
+                    <input
+                        type="number"
+                        min={0}
+                        disabled={deshabilitado}
+                        value={asistencias}
+                        onChange={(e) => setAsistencias(Math.max(0, Number(e.target.value) || 0))}
+                        className="bg-slate-800 border border-slate-700 rounded-lg px-2 py-1.5 text-sm text-white disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                </label>
+
+                <label className="flex flex-col gap-1">
+                    <span className="text-xs text-white/50">Cal. práctica</span>
+                    <input
+                        type="number"
+                        min={0}
+                        disabled={deshabilitado}
+                        value={calificacion}
+                        onChange={(e) => setCalificacion(Math.max(0, Number(e.target.value) || 0))}
+                        className="bg-slate-800 border border-slate-700 rounded-lg px-2 py-1.5 text-sm text-white disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                </label>
+
+                <label className="flex flex-col gap-1">  {/* 👈 nuevo */}
+                    <span className="text-xs text-white/50">Cal. teórica</span>
+                    <input
+                        type="number"
+                        min={0}
+                        disabled={deshabilitado}
+                        value={teorica}
+                        onChange={(e) => setTeorica(Math.max(0, Number(e.target.value) || 0))}
+                        className="bg-slate-800 border border-slate-700 rounded-lg px-2 py-1.5 text-sm text-white disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                </label>
+            </div>
+
+            <div className="flex items-center justify-between gap-2 min-h-6">
+                {mensaje && (
+                    <p className="text-xs opacity-70">{mensaje}</p>
+                )}
+                <button
+                    type="button"
+                    onClick={guardar}
+                    disabled={!hayCambios || guardando || deshabilitado}
+                    className="ml-auto px-3 py-1.5 rounded-lg text-xs font-medium
+                        bg-blue-600 hover:bg-blue-500
+                        disabled:bg-slate-700 disabled:text-white/30 disabled:cursor-not-allowed
+                        transition-colors"
+                >
+                    {guardando ? 'Guardando...' : 'Guardar'}
+                </button>
+            </div>
+        </div>
+    )
+}
+
+// ─── Card de curso ────────────────────────────────────────────────────────────
+
+const ProfesorCard = ({ curso }: { curso: cursoArmado }) => {
     const [cursoLocal, setCursoLocal] = useState(curso)
-
-    const [inscripciones, setInscripciones] = useState(curso.inscripciones)
-
-    const [puedeFinalizar, setPuedeFinalizar] = useState<boolean>(false)
+    const [puedeFinalizar, setPuedeFinalizar] = useState(false)
 
     useEffect(() => {
-        (async () => {
-            const result = await checarSiPuedeFinalizar(curso.curso_armado_id)
-
-
-            setPuedeFinalizar(result)
+        ; (async () => {
+            try {
+                const result = await checarSiPuedeFinalizar(curso.curso_armado_id)
+                setPuedeFinalizar(result)
+            } catch { }
         })()
-    }, [curso])
-
-    useEffect(() => {
-        setCursoLocal(last => {
-            return { ...last, inscripciones }
-        })
-    }, [inscripciones])
+    }, [curso.curso_armado_id])
 
     async function handleBotonAsistencias(activar: boolean) {
         try {
-            const cursoArmadoActualizado: cursoArmado = await actualizarPropiedadDeCursoArmadoAsync(cursoLocal.curso_armado_id, 'en_clase', activar)
-
-
-            setCursoLocal(cursoArmadoActualizado)
+            const actualizado: cursoArmado = await actualizarPropiedadDeCursoArmadoComoProfesorAsync(
+                cursoLocal.curso_armado_id, 'en_clase', activar
+            )
+            setCursoLocal(actualizado)
         } catch (e) {
-            console.log(e)
+            console.error(e)
         }
     }
 
     async function handlerFinalizar() {
         try {
-            const cursoArmadoActualizado: cursoArmado = await actualizarPropiedadDeCursoArmadoAsync(cursoLocal.curso_armado_id, 'estado', 'FINALIZADO')
-
-            console.log(cursoArmadoActualizado)
-
-            setCursoLocal(cursoArmadoActualizado)
+            const actualizado: cursoArmado = await actualizarPropiedadDeCursoArmadoComoProfesorAsync(
+                cursoLocal.curso_armado_id, 'estado', 'FINALIZADO'
+            )
+            setCursoLocal(actualizado)
         } catch (e) {
-            console.log(e)
+            console.error(e)
         }
-
     }
-    // useEffect(() => {
-    //     setPanel(last => {
-    //         if (!last) { return last }
 
-    //         return {
-    //             ...last, cursosArmados: last?.cursosArmados.map(cursoArmado => {
-    //                 return cursoArmado.curso_armado_id === curso.curso_armado_id ? cursoLocal : cursoArmado
-    //             })
-    //         }
-    //     })
-    // }, [cursoLocal])
+    const cursoActivo = cursoLocal.estado === 'ACTIVO'
 
-    return <div
-        key={curso.curso_armado_id}
-        className="bg-[#1c1f21] border border-white/10 rounded-2xl p-5 flex flex-col shadow-lg hover:scale-[1.02] transition"
-    >
-        {/* Título */}
-        <h2 className="text-xl font-semibold text-center">
-            {cursoLocal.curso?.nombre}
-        </h2>
+    return (
+        <div className="bg-[#1c1f21] border border-white/10 rounded-2xl p-5 flex flex-col gap-4 shadow-lg">
 
-        <div className="flex justify-center mt-2 flex-col gap-y-2 items-center">
-            <span className={`px-3 py-1 text-sm rounded-full ${cursoLocal.en_clase ? 'bg-green-500/20 text-green-400'
-                : 'bg-slate-500/20 text-slate-400'}`}>
-                {cursoLocal.en_clase ? 'EN CLASE' : 'NO HAY CLASE ACTIVA'}
-            </span>
+            <h2 className="text-xl font-semibold text-center">
+                {cursoLocal.curso?.nombre}
+            </h2>
 
-            <span className={`px-3 py-1 text-sm rounded-full ${cursoLocal.estado === 'ACTIVO' ? 'bg-green-500/20 text-green-400'
-                : cursoLocal.estado === 'INACTIVO' ? 'bg-slate-500/20 text-slate-400' :
-                    cursoLocal.estado === 'FINALIZADO' ? 'bg-blue-500/20 text-blue-400' : null
-                }`}>
-                {cursoLocal.estado}
-            </span>
-        </div>
-
-        {/* Info rápida */}
-        <div className="mt-4 text-sm bg-black/20 rounded-xl p-3 space-y-1 ">
-            <p>
-                <span className="text-white/60">Duración:</span>{" "}
-                <span className="text-green-400">
-                    {cursoLocal.curso?.duracion} hrs
+            <div className="flex justify-center flex-wrap gap-2">
+                <span className={`px-3 py-1 text-sm rounded-full ${cursoLocal.en_clase
+                    ? 'bg-green-500/20 text-green-400'
+                    : 'bg-slate-500/20 text-slate-400'}`}>
+                    {cursoLocal.en_clase ? 'EN CLASE' : 'SIN CLASE ACTIVA'}
                 </span>
-            </p>
-
-            <p>
-                <span className="text-white/60">Inicio:</span>{" "}
-                <span className="text-green-400">
-                    {convertirFecha(cursoLocal.fecha_inicio)}
+                <span className={`px-3 py-1 text-sm rounded-full ${cursoLocal.estado === 'ACTIVO' ? 'bg-green-500/20 text-green-400' :
+                        cursoLocal.estado === 'INACTIVO' ? 'bg-slate-500/20 text-slate-400' :
+                            'bg-blue-500/20 text-blue-400'}`}>
+                    {cursoLocal.estado}
                 </span>
-            </p>
-            <p>
-                <span className="text-white/60">Finaliza:</span>{" "}
-                <span className="text-green-400">
-                    {convertirFecha(cursoLocal.fecha_finalizacion)}
-                </span>
-            </p>
-        </div>
-
-        {<div className="mt-4 bg-black/20 rounded-xl p-3 flex-1 flex flex-col text-center max-h-70 overflow-y-auto">
-            <h3 className="text-blue-400 font-semibold mb-2">
-                Alumnos
-            </h3>
-
-            <div className="grid grid-cols-3 gap-2">
-                <p className="text-sm bg-black/40 rounded-xl p-3 text-white/80  max-h-60 whitespace-pre-line">
-                    Nombre
-                </p>
-                <p className="text-sm bg-black/40 rounded-xl p-3 text-white/80 max-h-60 whitespace-pre-line">
-                    Asistencias
-                </p>
-                <p className="text-sm bg-black/40 rounded-xl p-3 text-white/80  max-h-60 whitespace-pre-line">
-                    Calificacion
-                </p>
-                {
-                    inscripciones.map(inscripcion => {
-                        if (!inscripcion?.usuario) { return }
-
-                        return <>
-                            <p className="text-sm bg-slate-500/20 text-slate-400 border rounded-2xl p-1 max-h-60 whitespace-pre-line">
-                                {inscripcion.usuario.nombre}
-                            </p>
-                            <input disabled={
-                                cursoLocal.estado !== 'ACTIVO' ? true : false
-                            } onBlur={async (e) => {
-                                if (!inscripcion?.id_inscripcion) { return }
-                                try {
-                                    if (isNaN(parseFloat(e.target.value))) { throw new Error('Las asistencias no son válidas.') }
-
-                                    const inscripcionF = curso.inscripciones.find(inscripcionF => {
-                                        return inscripcionF.id_inscripcion === inscripcion.id_inscripcion
-                                    })
-
-                                    if (inscripcionF?.asistencias === inscripcion.asistencias) { console.log('Son iguales'); return }
-
-
-                                    await editarInscripcionAsync(inscripcion.id_inscripcion, { asistencias: parseInt(e.target.value) })
-
-                                    setPanel(last => {
-                                        if (!last) { return last }
-
-                                        return {
-                                            ...last, cursosArmados: last?.cursosArmados.map(cursoArmado => {
-                                                return cursoArmado.curso_armado_id === curso.curso_armado_id ? cursoLocal : cursoArmado
-                                            })
-                                        }
-                                    })
-                                } catch (e) {
-                                    setInscripciones(curso.inscripciones)
-                                }
-                            }} onChange={(e) => {
-                                setInscripciones((last) => {
-                                    return last.map(inscripcionM => {
-                                        if (isNaN(parseFloat(e.target.value))) { return inscripcionM }
-
-                                        const inscripcionActualizada: inscripcion = { ...inscripcionM, asistencias: parseFloat(e.target.value) }
-
-                                        return inscripcionM.id_inscripcion === inscripcion.id_inscripcion ? inscripcionActualizada : inscripcionM
-                                    })
-                                })
-                            }} type="number" defaultValue={cursoLocal.estado === 'ACTIVO' ? inscripcion.asistencias : undefined} placeholder={cursoLocal.estado !== 'ACTIVO' ? String(inscripcion.asistencias) : undefined} className="border rounded-2xl p-1" />
-
-
-                            <input disabled={
-                                cursoLocal.estado !== 'ACTIVO' ? true : false
-                            } type="number" defaultValue={cursoLocal.estado === 'ACTIVO' ? inscripcion.calificacion : undefined} placeholder={cursoLocal.estado !== 'ACTIVO' ? String(inscripcion.calificacion) : undefined}
-                                onBlur={async (e) => {
-                                    if (!inscripcion?.id_inscripcion) { return }
-
-                                    try {
-                                        if (isNaN(parseFloat(e.target.value))) { throw new Error('La calificación no es válida.') }
-
-                                        const inscripcionF = curso.inscripciones.find(inscripcionF => {
-                                            return inscripcionF.id_inscripcion === inscripcion.id_inscripcion
-                                        })
-
-                                        if (inscripcionF?.calificacion === inscripcion.calificacion) { console.log('Son iguales'); return }
-
-
-                                        await editarInscripcionAsync(inscripcion.id_inscripcion, { calificacion: parseFloat(e.target.value) })
-
-                                        setPanel(last => {
-                                            if (!last) { return last }
-
-                                            return {
-                                                ...last, cursosArmados: last?.cursosArmados.map(cursoArmado => {
-                                                    return cursoArmado.curso_armado_id === curso.curso_armado_id ? cursoLocal : cursoArmado
-                                                })
-                                            }
-                                        })
-                                    } catch (e) {
-                                        setInscripciones(curso.inscripciones)
-                                    }
-                                }} onChange={(e) => {
-                                    setInscripciones((last) => {
-                                        return last.map(inscripcionM => {
-                                            if (isNaN(parseFloat(e.target.value))) { return inscripcionM }
-
-                                            const inscripcionActualizada: inscripcion = { ...inscripcionM, calificacion: parseFloat(e.target.value) }
-
-                                            return inscripcionM.id_inscripcion === inscripcion.id_inscripcion ? inscripcionActualizada : inscripcionM
-                                        })
-                                    })
-                                }} className="border rounded-2xl p-1" />
-                        </>
-                    })
-                }
             </div>
 
-        </div>}
+            <div className="text-sm bg-black/20 rounded-xl p-3 space-y-1">
+                <p><span className="text-white/60">Duración:</span>{' '}
+                    <span className="text-green-400">{cursoLocal.curso?.duracion} hrs</span></p>
+                <p><span className="text-white/60">Inicio:</span>{' '}
+                    <span className="text-green-400">{convertirFecha(cursoLocal.fecha_inicio)}</span></p>
+                <p><span className="text-white/60">Finaliza:</span>{' '}
+                    <span className="text-green-400">{convertirFecha(cursoLocal.fecha_finalizacion)}</span></p>
+            </div>
 
+            {/* Alumnos */}
+            <div className="bg-black/20 rounded-xl p-3 flex flex-col gap-3 max-h-96 overflow-y-auto">
+                <h3 className="text-blue-400 font-semibold text-center">Alumnos</h3>
 
-        <div className="mt-5 flex flex-col gap-y-2">
+                {cursoLocal.inscripciones?.length ? (
+                    cursoLocal.inscripciones.map(insc => (
+                        insc?.usuario && (
+                            <FilaAlumno
+                                key={insc.id_inscripcion}
+                                inscripcion={insc}
+                                deshabilitado={!cursoActivo}
+                            />
+                        )
+                    ))
+                ) : (
+                    <p className="text-sm text-white/40 text-center">Sin alumnos inscritos.</p>
+                )}
+            </div>
 
-            <button onClick={async () => {
-                if (cursoLocal.estado !== 'ACTIVO') { return }
+            {/* Botones */}
+            <div className="flex flex-col gap-2">
+                <button
+                    type="button"
+                    onClick={() => cursoActivo && handleBotonAsistencias(!cursoLocal.en_clase)}
+                    className={`w-full py-3 rounded-xl font-medium transition-colors
+                        ${!cursoActivo
+                            ? 'bg-slate-500/40 text-slate-400/90 cursor-not-allowed'
+                            : cursoLocal.en_clase
+                                ? 'bg-red-500/40 text-red-400 hover:bg-red-500/60 cursor-pointer'
+                                : 'bg-green-500/20 text-green-400 hover:bg-green-500/30 cursor-pointer'
+                        }`}
+                >
+                    {!cursoActivo
+                        ? cursoLocal.estado === 'FINALIZADO' ? 'Curso finalizado' : 'Curso inactivo'
+                        : cursoLocal.en_clase ? 'Terminar clase' : 'Iniciar nueva clase'}
+                </button>
 
-                handleBotonAsistencias(!cursoLocal.en_clase)
-            }} className={`w-full py-3 rounded-xl cursor-pointer 
-                              ${!cursoLocal.en_clase && cursoLocal.estado === 'ACTIVO' ? 'bg-green-500/20 text-green-400 transition-colors duration-200 cursor-pointer' : null}
-                              ${cursoLocal.estado !== 'ACTIVO' ? 'bg-slate-500/40 text-slate-400/90 transition-colors duration-200 cursor-not-allowed' : null}
-                              ${cursoLocal.estado === 'ACTIVO' && cursoLocal.en_clase ? 'bg-red-500/40 text-red-400/90 transition-colors duration-200 cursor-pointer' : null}
-                 `}
-            >
-                {!cursoLocal.en_clase && cursoLocal.estado === 'ACTIVO' ? 'Iniciar nueva clase' : cursoLocal.estado === 'FINALIZADO' ? 'Curso finalizado' : cursoLocal.estado === 'INACTIVO' ? 'Curso inactivo' : 'Terminar clase'}
-            </button>
-
-
-            <button onClick={async () => {
-                if (cursoLocal.estado !== 'ACTIVO' || cursoLocal.en_clase && puedeFinalizar) { return }
-
-                handlerFinalizar()
-            }} className={`w-full py-3 transition-colors duration-200 rounded-xl cursor-pointer 
-                ${cursoLocal.estado !== 'ACTIVO' || cursoLocal.en_clase || !puedeFinalizar ? 'bg-slate-500/40 text-slate-400/90 cursor-not-allowed' : 'bg-red-500/40 text-red-400/90 cursor-pointer'} `}
-            >
-                {'Finalizar curso'}
-            </button>
+                <button
+                    type="button"
+                    onClick={() => {
+                        if (cursoActivo && !cursoLocal.en_clase && puedeFinalizar) {
+                            handlerFinalizar()
+                        }
+                    }}
+                    className={`w-full py-3 rounded-xl font-medium transition-colors
+                        ${cursoActivo && !cursoLocal.en_clase && puedeFinalizar
+                            ? 'bg-red-500/40 text-red-400 hover:bg-red-500/60 cursor-pointer'
+                            : 'bg-slate-500/40 text-slate-400/90 cursor-not-allowed'
+                        }`}
+                >
+                    Finalizar curso
+                </button>
+            </div>
         </div>
-    </div >
+    )
 }
 
-export default () => {
+// ─── Panel principal ──────────────────────────────────────────────────────────
+
+export default function PanelProfesor() {
     const [panel, setPanel] = useState<PanelProfesor | null>(null)
     const [mensaje, setMensaje] = useState<string | null>('Cargando...')
 
-
     useEffect(() => {
-        (async () => {
+        ; (async () => {
             try {
-                const panel = await obtenerCursosParaPanelProfesor();
-
-                console.log(panel)
-                setPanel(panel);
-                setMensaje(null);
+                const data = await obtenerCursosParaPanelProfesor()
+                setPanel(data)
+                setMensaje(null)
             } catch (er: any) {
-                console.log(er)
-
-                setMensaje(er?.message ?? 'Error al obtener los cursos.');
+                setMensaje(er?.message ?? 'Error al obtener los cursos.')
             }
-        })();
-    }, []);
+        })()
+    }, [])
 
+    return (
+        <div>
+            {mensaje ? (
+                <p className="text-white/60 text-xl">{mensaje}</p>
+            ) : panel ? (
+                <>
+                    <div className="text-center mb-10">
+                        <p className="text-xl text-white/60">Profesor</p>
+                        <h1 className="text-4xl font-bold">{panel.nombre}</h1>
+                        <h2 className="text-2xl mt-3 text-blue-400">Mis cursos</h2>
+                    </div>
 
-    useEffect(() => {
-        setMensaje(null)
-    }, [panel])
-
-    return <div>
-        {
-            mensaje ? <p className="text-white/60 text-xl">{mensaje}</p> : panel ? <>
-                {/* Encabezado */}
-                <div className="text-center mb-10">
-                    <p className="text-xl text-white/60">Profesor</p>
-                    <h1 className="text-4xl font-bold">{panel.nombre}</h1>
-                    <h2 className="text-2xl mt-3 text-blue-400">Mis cursos</h2>
-                </div>
-
-                {/* Grid cursos */}
-                <div className="grid gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3" >
-                    {panel?.cursosArmados?.map((curso) => (
-                        <ProfesorCard key={curso.curso_armado_id} setPanel={setPanel} curso={curso} />
-                    ))}
-                </div>
-            </> : null
-        }
-    </div>
+                    <div className="grid gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+                        {panel.cursosArmados?.map(curso => (
+                            <ProfesorCard key={curso.curso_armado_id} curso={curso} />
+                        ))}
+                    </div>
+                </>
+            ) : null}
+        </div>
+    )
 }

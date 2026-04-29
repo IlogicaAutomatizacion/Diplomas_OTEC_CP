@@ -17,9 +17,11 @@ export type vinculacion = {
 
 // ─── Tipos de ordenamiento ────────────────────────────────────────────────────
 
-type OrdenEmpresa = 'nombre_asc' | 'nombre_desc'
+type OrdenEmpresa = 'nombre_asc' | 'nombre_desc' | 'id_asc' | 'id_desc'
 
 const OPCIONES_ORDEN_EMPRESAS: { label: string; value: OrdenEmpresa }[] = [
+    { label: 'ID menor→mayor', value: 'id_asc'  },
+    { label: 'ID mayor→menor', value: 'id_desc' },
     { label: 'Nombre A→Z', value: 'nombre_asc'  },
     { label: 'Nombre Z→A', value: 'nombre_desc' },
 ]
@@ -256,6 +258,7 @@ const EmpresaCard = ({
                             <p className="text-sm font-semibold text-zinc-100 truncate leading-snug">
                                 {empresaLocal.nombre ?? <span className="text-zinc-600 italic">Sin nombre</span>}
                             </p>
+                            <p className="text-xs text-zinc-500 mt-0.5">ID #{empresaLocal.id_empresa}</p>
                             {empresaLocal.rut && (
                                 <p className="text-xs text-zinc-500 mt-0.5 font-mono">{empresaLocal.rut}</p>
                             )}
@@ -412,7 +415,7 @@ export default ({
 }) => {
     const [mensajeBoton, setMensajeBoton] = useState<string | null>(null)
     const [busqueda, setBusqueda] = useState('')
-    const [orden, setOrden] = useState<OrdenEmpresa>('nombre_asc')
+    const [orden, setOrden] = useState<OrdenEmpresa>('id_desc')
 
     // ── Estado de selección bulk ──────────────────────────────────────────────
     const [modoSeleccion, setModoSeleccion] = useState(false)
@@ -492,12 +495,17 @@ export default ({
     const q = busqueda.toLowerCase()
     const empresasFiltradas = empresas.filter(e =>
         (e.nombre ?? '').toLowerCase().includes(q) ||
+        String(e.id_empresa ?? '').includes(q) ||
         (e.rut ?? '').toLowerCase().includes(q)
     )
 
     const empresasOrdenadas = [...empresasFiltradas].sort((a, b) => {
-        if (orden === 'nombre_desc') return (b.nombre ?? '').localeCompare(a.nombre ?? '', 'es', { sensitivity: 'base' })
-        return (a.nombre ?? '').localeCompare(b.nombre ?? '', 'es', { sensitivity: 'base' })
+        switch (orden) {
+            case 'id_asc': return (a.id_empresa ?? 0) - (b.id_empresa ?? 0)
+            case 'id_desc': return (b.id_empresa ?? 0) - (a.id_empresa ?? 0)
+            case 'nombre_desc': return (b.nombre ?? '').localeCompare(a.nombre ?? '', 'es', { sensitivity: 'base' })
+            default: return (a.nombre ?? '').localeCompare(b.nombre ?? '', 'es', { sensitivity: 'base' })
+        }
     })
 
     return (
@@ -630,7 +638,7 @@ export default ({
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none"><IconSearch /></span>
                 <input
                     type="text"
-                    placeholder="Buscar por nombre o RUT…"
+                    placeholder="Buscar por ID, nombre o RUT…"
                     value={busqueda}
                     onChange={e => setBusqueda(e.target.value)}
                     className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-sm text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition"

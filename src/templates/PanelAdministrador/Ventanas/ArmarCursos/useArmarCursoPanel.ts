@@ -111,6 +111,8 @@ export function useArmarCursoPanel({
     useEffect(() => {
         if (!cotizacionEnviadaCorrectamente) return
 
+        editarEstadoDeCotizacion(true)
+        
         const timeoutId = window.setTimeout(() => {
             setCotizacionEnviadaCorrectamente(false)
         }, 2000)
@@ -130,7 +132,7 @@ export function useArmarCursoPanel({
 
     async function guardarParametro(
         nombreParametro: keyof cursoArmado,
-        nuevoValor: string | number
+        nuevoValor: string | number | boolean
     ) {
         await actualizarPropiedadDeCursoArmadoAsync(
             cursoArmadoLocal.curso_armado_id,
@@ -395,6 +397,31 @@ export function useArmarCursoPanel({
         }
     }
 
+    const editarEstadoDeCotizacion = async (cotizado: boolean) => {
+        if (cursoArmadoLocal.cotizado === cotizado) return
+
+        const estadoAnterior = cursoArmadoLocal.cotizado
+
+        setCursoArmadoLocal(prev => ({
+            ...prev,
+            cotizado
+        }))
+
+        try {
+            await guardarParametro('cotizado', cotizado)
+            setCursoArmadoGuardado(prev => ({
+                ...prev,
+                cotizado
+            }))
+        } catch (e) {
+            console.log(e)
+            setCursoArmadoLocal(prev => ({
+                ...prev,
+                cotizado: estadoAnterior
+            }))
+        }
+    }
+
     const mandarEncuestasDeSatisfaccionHandler = async () => {
         if (enviandoEncuestasDeSatisfaccion) return
 
@@ -444,6 +471,7 @@ export function useArmarCursoPanel({
         descargarCotizacion: descargarCotizacionHandler,
         mandarCotizacion: mandarCotizacionHandler,
         cambiarEstado,
+        editarEstadoDeCotizacion,
         mandarEncuestasDeSatisfaccion: mandarEncuestasDeSatisfaccionHandler
     }
 }

@@ -43,6 +43,7 @@ export default function ArmarCursoPanel({
                 Volver a la lista de cursos armados
             </button>
 
+            <p className="text-slate-600/80">Curso armado ID #{cursoArmado.curso_armado_id}</p>
             {/* El panel principal ahora solo compone secciones y delega la lógica al hook local. */}
             <CotizacionSection
                 idSuscriptor={idSuscriptor}
@@ -62,6 +63,7 @@ export default function ArmarCursoPanel({
                 onEliminarFormatoCotizacion={panel.eliminarFormatoCotizacion}
                 onDescargarCotizacion={panel.descargarCotizacion}
                 onMandarCotizacion={panel.mandarCotizacion}
+                cambiarEstadoCotizacion={panel.editarEstadoDeCotizacion}
             />
 
             <InicioCursoSection
