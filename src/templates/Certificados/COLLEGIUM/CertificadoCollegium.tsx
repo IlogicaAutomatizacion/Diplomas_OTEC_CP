@@ -1,6 +1,6 @@
 import barraSuperior from '../../../assets/Formarte/barraSuperior.png'
 import barraInferior from '../../../assets/Formarte/barraInferior.png'
-import estellaLogo from '../../../assets/Formarte/strellaLogo.png'
+import estellaLogo from '../../../assets/Formarte/estrellaLogo.png'
 
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
