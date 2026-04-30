@@ -10,12 +10,12 @@ import { useExcelMapper } from "../Componentes/SeccionadorSapa"
 type OrdenCurso = 'nombre_asc' | 'nombre_desc' | 'duracion_desc' | 'duracion_asc' | 'id_asc' | 'id_desc'
 
 const OPCIONES_ORDEN_CURSOS: { label: string; value: OrdenCurso }[] = [
-    { label: 'ID menor→mayor',       value: 'id_asc'        },
-    { label: 'ID mayor→menor',       value: 'id_desc'       },
-    { label: 'Nombre A→Z',           value: 'nombre_asc'    },
-    { label: 'Nombre Z→A',           value: 'nombre_desc'   },
+    { label: 'ID menor→mayor', value: 'id_asc' },
+    { label: 'ID mayor→menor', value: 'id_desc' },
+    { label: 'Nombre A→Z', value: 'nombre_asc' },
+    { label: 'Nombre Z→A', value: 'nombre_desc' },
     { label: 'Duración mayor→menor', value: 'duracion_desc' },
-    { label: 'Duración menor→mayor', value: 'duracion_asc'  },
+    { label: 'Duración menor→mayor', value: 'duracion_asc' },
 ]
 
 // ─── Íconos SVG inline ────────────────────────────────────────────────────────
@@ -63,7 +63,7 @@ const IconUpload = () => (
 )
 const IconSort = () => (
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <line x1="3" y1="6"  x2="21" y2="6"  /><line x1="3" y1="12" x2="15" y2="12" /><line x1="3" y1="18" x2="9"  y2="18" />
+        <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="15" y2="12" /><line x1="3" y1="18" x2="9" y2="18" />
     </svg>
 )
 const IconCheck = () => (
@@ -238,7 +238,7 @@ const CursoCard = ({
                             <p className="text-sm font-semibold text-zinc-100 truncate leading-snug">
                                 {cursoLocal.nombre ?? <span className="text-zinc-600 italic">Sin nombre</span>}
                             </p>
-                            <p className="text-xs text-zinc-500 mt-0.5">ID #{cursoLocal.curso_id}</p>
+                            <p className="text-xs text-zinc-500 mt-0.5">ID #{cursoLocal.indice_suscriptor}</p>
                             {duracion != null && (
                                 <p className="flex items-center gap-1 text-xs text-zinc-500 mt-0.5">
                                     <IconClock /> {duracion} hrs
@@ -256,6 +256,8 @@ const CursoCard = ({
                     <div className="rounded-xl bg-zinc-800/40 px-3 py-1">
                         {Object.entries(cursoLocal).map(([key, value]) => {
                             if (key.toLowerCase().includes('id')) return null
+                            if (key === 'indice_suscriptor') return null  // 👈
+
                             return (
                                 <FieldRow
                                     key={key}
@@ -359,7 +361,7 @@ export default ({ cursos, idSuscriptor, setCursos }: {
     const { datosImportados, setMapeo, cargarArchivo, construirResultado } =
         useExcelMapper<curso>(async (cursosExcel) => {
             const res = await crearCursosDeSuscriptorAsync(idSuscriptor, cursosExcel.filter(c => Object.values(c).some(Boolean)))
-            setCursos(res)
+            setCursos(last => [...last, ...res])  // 👈 agrega en lugar de reemplazar
         })
 
     useEffect(() => {
@@ -388,7 +390,7 @@ export default ({ cursos, idSuscriptor, setCursos }: {
     const q = busqueda.toLowerCase()
     const cursosFiltrados = cursos.filter(c =>
         (c.nombre ?? '').toLowerCase().includes(q) ||
-        String(c.curso_id ?? '').includes(q) ||
+        String(c.indice_suscriptor ?? '').includes(q) ||
         (c.resumen ?? '').toLowerCase().includes(q) ||
         (c.temario ?? '').toLowerCase().includes(q) ||
         String(c.duracion ?? '').includes(q)
@@ -396,8 +398,8 @@ export default ({ cursos, idSuscriptor, setCursos }: {
 
     const cursosOrdenados = [...cursosFiltrados].sort((a, b) => {
         switch (orden) {
-            case 'id_asc': return (a.curso_id ?? 0) - (b.curso_id ?? 0)
-            case 'id_desc': return (b.curso_id ?? 0) - (a.curso_id ?? 0)
+            case 'id_asc': return (a.indice_suscriptor ?? 0) - (b.indice_suscriptor ?? 0)
+            case 'id_desc': return (b.indice_suscriptor ?? 0) - (a.indice_suscriptor ?? 0)
             case 'nombre_desc': return (b.nombre ?? '').localeCompare(a.nombre ?? '', 'es', { sensitivity: 'base' })
             case 'duracion_desc': return (b.duracion ?? 0) - (a.duracion ?? 0)
             case 'duracion_asc': return (a.duracion ?? 0) - (b.duracion ?? 0)
@@ -507,10 +509,10 @@ export default ({ cursos, idSuscriptor, setCursos }: {
                         <button
                             onClick={() => {
                                 construirResultado((fila, m) => ({
-                                    nombre:   fila[m.nombre]   ? String(fila[m.nombre]).trim()                          : undefined,
+                                    nombre: fila[m.nombre] ? String(fila[m.nombre]).trim() : undefined,
                                     duracion: fila[m.duracion] && !isNaN(Number(fila[m.duracion])) ? Number(fila[m.duracion]) : undefined,
-                                    resumen:  fila[m.resumen]  ? String(fila[m.resumen]).trim()                         : undefined,
-                                    temario:  fila[m.temario]  ? String(fila[m.temario]).trim()                         : undefined,
+                                    resumen: fila[m.resumen] ? String(fila[m.resumen]).trim() : undefined,
+                                    temario: fila[m.temario] ? String(fila[m.temario]).trim() : undefined,
                                 }))
                             }}
                             className="self-start flex items-center gap-2 px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-sm font-semibold transition-all cursor-pointer shadow-lg shadow-sky-900/30"

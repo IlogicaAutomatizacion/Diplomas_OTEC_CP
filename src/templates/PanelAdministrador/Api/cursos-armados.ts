@@ -16,7 +16,9 @@ export interface CursoConAlumno extends cursoArmado {
 }
 
 export interface cursoArmado {
+    indice_suscriptor?: number,
     curso_armado_id: number,
+    id_suscripcion_curso_armado?: number,
     fecha_inicio?: string,
     fecha_finalizacion?: string,
     estado?: 'ACTIVO' | 'INACTIVO' | 'FINALIZADO'

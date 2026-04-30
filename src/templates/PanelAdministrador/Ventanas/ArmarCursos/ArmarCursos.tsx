@@ -45,8 +45,8 @@ const ESTADO_ORDEN: Record<string, number> = { ACTIVO: 0, INACTIVO: 1, FINALIZAD
 function ordenarCursosArmados(lista: cursoArmado[], orden: OrdenCursoArmado): cursoArmado[] {
     return [...lista].sort((a, b) => {
         switch (orden) {
-            case 'id_asc': return (a.curso_armado_id ?? 0) - (b.curso_armado_id ?? 0)
-            case 'id_desc': return (b.curso_armado_id ?? 0) - (a.curso_armado_id ?? 0)
+            case 'id_asc': return (a.indice_suscriptor ?? 0) - (b.indice_suscriptor ?? 0)
+            case 'id_desc': return (b.indice_suscriptor ?? 0) - (a.indice_suscriptor ?? 0)
             case 'fecha_inicio_asc': return (a.fecha_inicio ?? '').localeCompare(b.fecha_inicio ?? '')
             case 'fecha_inicio_desc': return (b.fecha_inicio ?? '').localeCompare(a.fecha_inicio ?? '')
             case 'fecha_fin_asc': return (a.fecha_finalizacion ?? '').localeCompare(b.fecha_finalizacion ?? '')
@@ -263,7 +263,7 @@ export default ({
     const q = busqueda.toLowerCase().trim()
     const cursosFiltrados = cursosArmados.filter(ca =>
         !q ||
-        String(ca.curso_armado_id ?? '').includes(q) ||
+        String(ca.indice_suscriptor ?? '').includes(q) ||
         ca.curso?.nombre?.toLowerCase().includes(q) ||
         ca.empresa?.nombre?.toLowerCase().includes(q)
     )

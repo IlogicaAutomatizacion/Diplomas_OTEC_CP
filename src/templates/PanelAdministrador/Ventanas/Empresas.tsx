@@ -20,9 +20,9 @@ export type vinculacion = {
 type OrdenEmpresa = 'nombre_asc' | 'nombre_desc' | 'id_asc' | 'id_desc'
 
 const OPCIONES_ORDEN_EMPRESAS: { label: string; value: OrdenEmpresa }[] = [
-    { label: 'ID menor→mayor', value: 'id_asc'  },
+    { label: 'ID menor→mayor', value: 'id_asc' },
     { label: 'ID mayor→menor', value: 'id_desc' },
-    { label: 'Nombre A→Z', value: 'nombre_asc'  },
+    { label: 'Nombre A→Z', value: 'nombre_asc' },
     { label: 'Nombre Z→A', value: 'nombre_desc' },
 ]
 
@@ -76,7 +76,7 @@ const IconX = () => (
 )
 const IconSort = () => (
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <line x1="3" y1="6"  x2="21" y2="6"  /><line x1="3" y1="12" x2="15" y2="12" /><line x1="3" y1="18" x2="9"  y2="18" />
+        <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="15" y2="12" /><line x1="3" y1="18" x2="9" y2="18" />
     </svg>
 )
 const IconCheck = () => (
@@ -161,7 +161,7 @@ const EmpresaCard = ({
     const [activeTab, setActiveTab] = useState<'datos' | 'usuarios'>('datos')
 
     useEffect(() => {
-        ;(async () => {
+        ; (async () => {
             if (!empresaLocal?.id_empresa) return
             const data = await obtenerUsuariosVinculadosAEmpresaPorIdEmpresaAsync({ empresa_id: empresaLocal.id_empresa })
             setUsuariosVinculados(data)
@@ -258,7 +258,7 @@ const EmpresaCard = ({
                             <p className="text-sm font-semibold text-zinc-100 truncate leading-snug">
                                 {empresaLocal.nombre ?? <span className="text-zinc-600 italic">Sin nombre</span>}
                             </p>
-                            <p className="text-xs text-zinc-500 mt-0.5">ID #{empresaLocal.id_empresa}</p>
+                            <p className="text-xs text-zinc-500 mt-0.5">ID #{empresaLocal.indice_suscriptor}</p>
                             {empresaLocal.rut && (
                                 <p className="text-xs text-zinc-500 mt-0.5 font-mono">{empresaLocal.rut}</p>
                             )}
@@ -304,6 +304,7 @@ const EmpresaCard = ({
                             <div className="rounded-lg bg-zinc-800/40 px-3 py-1">
                                 {Object.entries(empresaLocal).map(([key, value]) => {
                                     if (key.toLowerCase().includes('id')) return null
+                                    if (key === 'indice_suscriptor') return null  // 👈
                                     return (
                                         <FieldRow
                                             key={key}
@@ -363,7 +364,7 @@ const EmpresaCard = ({
                                         if (!usuario || !empresaLocal?.id_empresa) return
                                         agregarUsuario(usuario, empresaLocal.id_empresa)
                                     }}
-                                    opciones={usuarios.map(u => ({ nombre: u.nombre, opcion: u }))}
+                                    opciones={usuarios.map(u => ({ nombre: `${u.nombre}   #${u?.indice_suscriptor}`, opcion: u }))}
                                 />
                             </div>
 
@@ -470,7 +471,7 @@ export default ({
         })
 
     useEffect(() => {
-        ;(async () => {
+        ; (async () => {
             try {
                 const data = await obtenerEmpresasDeSuscriptorAsync(idSuscriptor)
                 setEmpresas(data)
@@ -495,14 +496,14 @@ export default ({
     const q = busqueda.toLowerCase()
     const empresasFiltradas = empresas.filter(e =>
         (e.nombre ?? '').toLowerCase().includes(q) ||
-        String(e.id_empresa ?? '').includes(q) ||
+        String(e.indice_suscriptor ?? '').includes(q) ||
         (e.rut ?? '').toLowerCase().includes(q)
     )
 
     const empresasOrdenadas = [...empresasFiltradas].sort((a, b) => {
         switch (orden) {
-            case 'id_asc': return (a.id_empresa ?? 0) - (b.id_empresa ?? 0)
-            case 'id_desc': return (b.id_empresa ?? 0) - (a.id_empresa ?? 0)
+            case 'id_asc': return (a.indice_suscriptor ?? 0) - (b.indice_suscriptor ?? 0)
+            case 'id_desc': return (b.indice_suscriptor ?? 0) - (a.indice_suscriptor ?? 0)
             case 'nombre_desc': return (b.nombre ?? '').localeCompare(a.nombre ?? '', 'es', { sensitivity: 'base' })
             default: return (a.nombre ?? '').localeCompare(b.nombre ?? '', 'es', { sensitivity: 'base' })
         }
@@ -612,7 +613,7 @@ export default ({
                         <button
                             onClick={() => {
                                 construirResultado((fila, m) => ({
-                                    rut:    fila[m.rut]    ? String(fila[m.rut]).trim()    : undefined,
+                                    rut: fila[m.rut] ? String(fila[m.rut]).trim() : undefined,
                                     nombre: fila[m.nombre] ? String(fila[m.nombre]).trim() : undefined,
                                 }))
                             }}

@@ -1,7 +1,10 @@
 import { backend } from "../../../vars"
 
 export interface curso {
+    indice_suscriptor?: number,
+
     curso_id?: number,
+    id_suscripcion_curso?: number,
     nombre?: string,
     duracion?: number,
     resumen?: string,

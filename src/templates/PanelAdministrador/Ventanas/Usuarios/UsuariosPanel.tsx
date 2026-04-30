@@ -218,7 +218,9 @@ export default ({
                 </div>
                 <div>
                     <p className="font-medium text-base">{usuarioLocal.nombre ?? 'Sin nombre'}</p>
-                    <p className="text-xs text-slate-500">ID #{usuarioLocal.id}</p>
+                    <p className="text-xs text-slate-500">ID #{usuarioLocal.indice_suscriptor}</p>
+                    <p className="text-xs text-slate-500">ID global: {usuarioLocal.token?.replace(/-/g, '').slice(0, 12)}</p>
+
                 </div>
                 <div className="ml-auto">
                     <button
@@ -239,7 +241,10 @@ export default ({
                         if (['id', 'firma', 'foto_perfil'].includes(key) ||
                             key.toLowerCase().includes('token') ||
                             key.toLowerCase().includes('roles') ||
-                            key.toLowerCase().includes('vinculadas')) return null
+                            key.toLowerCase().includes('vinculadas') ||
+                            key === 'indice_suscriptor' ||
+                            key === "id_suscripcion_usuario" // 👈
+                        ) return null
                         return (
                             <div key={key} className="flex flex-col gap-1">
                                 <span className="text-xs text-slate-500">{key}</span>

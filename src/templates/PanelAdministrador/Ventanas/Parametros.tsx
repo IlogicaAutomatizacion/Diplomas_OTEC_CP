@@ -223,7 +223,12 @@ export default function Parametros({ idSuscriptor, usuarios, onLogoChange }: Par
                     <div className="flex flex-col gap-2">
                         <span className="text-sm opacity-75">Certificador</span>
                         <Example
-                            opciones={opcionesUsuarios}
+                            opciones={opcionesUsuarios.map(opcion => {
+                                return {
+                                    nombre: `${opcion.nombre}   #${opcion.opcion.indice_suscriptor}`,
+                                    opcion: opcion.opcion
+                                }
+                            })}
                             seleccionado={parametrosEditados.certificador?.nombre ?? null}
                             titulo={parametrosEditados.certificador?.nombre ?? 'Seleccionar usuario'}
                             callbackOnSelect={(usuarioSeleccionado) => {

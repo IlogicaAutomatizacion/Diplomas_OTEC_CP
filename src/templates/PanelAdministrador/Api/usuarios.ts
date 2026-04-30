@@ -6,7 +6,9 @@ import type { inscripcion } from "./inscripciones"
 import type { rolEnum } from "./roles"
 
 export interface usuario {
+    indice_suscriptor?: number,
     id?: number,
+    id_suscripcion_usuario?: number,
     rut?: string,
     nombre?: string,
     correo?: string,

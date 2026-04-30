@@ -2,7 +2,10 @@ import { backend } from "../../../vars"
 import type { cursoArmado } from "./cursos-armados"
 
 export interface empresa {
+    indice_suscriptor?: number,
+
     id_empresa?: number,
+    id_suscripcion_empresa?: number,
     rut?: string,
     nombre?: string,
     email?: string,

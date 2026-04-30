@@ -228,7 +228,12 @@ export default function PanelAdministradores() {
                                         titulo={vinculandoId === suscripcion.id_suscriptor ? 'Vinculando...' : 'Seleccionar usuario'}
                                         noCambiarNombreAlSeleccionar={true}
                                         callbackOnSelect={(opcion) => handleVincularUsuario(suscripcion.id_suscriptor, opcion)}
-                                        opciones={opcionesUsuarios}
+                                        opciones={opcionesUsuarios.map(opcion => {
+                                            return {
+                                                nombre: `${opcion.nombre}   ${opcion?.opcion?.token?.replace(/-/g, '').slice(0, 12)}`,
+                                                opcion: opcion.opcion
+                                            }
+                                        })}
                                     />
                                     {mensajesVinculacion[suscripcion.id_suscriptor] ? (
                                         <p className="text-xs text-white/60">

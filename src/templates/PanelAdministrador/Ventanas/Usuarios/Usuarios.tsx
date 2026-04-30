@@ -247,7 +247,7 @@ export default ({
     const q = busqueda.toLowerCase()
     const usuariosFiltrados = usuarios.filter(u =>
         (u.nombre ?? '').toLowerCase().includes(q) ||
-        String(u.id ?? '').includes(q) ||
+        String(u.indice_suscriptor ?? '').includes(q) ||
         (u.rut ?? '').toLowerCase().includes(q) ||
         (u.correo ?? '').toLowerCase().includes(q) ||
         (u.especialidad ?? '').toLowerCase().includes(q) ||
@@ -256,8 +256,8 @@ export default ({
 
     const usuariosOrdenados = [...usuariosFiltrados].sort((a, b) => {
         switch (orden) {
-            case 'id_asc': return (a.id ?? 0) - (b.id ?? 0)
-            case 'id_desc': return (b.id ?? 0) - (a.id ?? 0)
+            case 'id_asc': return (a.indice_suscriptor ?? 0) - (b.indice_suscriptor ?? 0)
+            case 'id_desc': return (b.indice_suscriptor ?? 0) - (a.indice_suscriptor ?? 0)
             case 'nombre_desc': return (b.nombre ?? '').localeCompare(a.nombre ?? '', 'es', { sensitivity: 'base' })
             default: return (a.nombre ?? '').localeCompare(b.nombre ?? '', 'es', { sensitivity: 'base' })
         }

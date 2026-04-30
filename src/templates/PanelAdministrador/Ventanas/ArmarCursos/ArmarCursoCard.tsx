@@ -89,7 +89,7 @@ const CursoArmadoCard = ({
                 <p className="text-sm font-semibold text-zinc-100 truncate leading-snug">
                     {cursoArmado.curso?.nombre ?? <span className="italic text-zinc-600">Sin nombre</span>}
                 </p>
-                <p className="text-xs text-zinc-500 mt-0.5">ID #{cursoArmado.curso_armado_id}</p>
+                <p className="text-xs text-zinc-500 mt-0.5">ID #{cursoArmado.indice_suscriptor}</p>
 
                 <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                     {cursoArmado.empresa?.nombre && (

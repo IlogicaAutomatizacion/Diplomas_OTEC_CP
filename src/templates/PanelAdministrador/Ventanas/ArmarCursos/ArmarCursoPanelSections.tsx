@@ -121,7 +121,7 @@ export function CotizacionSection({
                             callbackOnSelect={(contacto) => {
                                 setCursoArmadoLocal(prev => ({ ...prev, contactoDeCotizacion: contacto }))
                             }}
-                            opciones={usuarios.map(usuario => ({ nombre: usuario.nombre, opcion: usuario }))}
+                            opciones={usuarios.map(usuario => ({ nombre: `${usuario.nombre} #${usuario.indice_suscriptor}`, opcion: usuario }))}
                         />
                     </div>
 
@@ -132,7 +132,7 @@ export function CotizacionSection({
                             callbackOnSelect={(contacto) => {
                                 setCursoArmadoLocal(prev => ({ ...prev, vendedor: contacto }))
                             }}
-                            opciones={usuarios.map(usuario => ({ nombre: usuario.nombre, opcion: usuario }))}
+                            opciones={usuarios.map(usuario => ({ nombre: `${usuario.nombre} #${usuario.indice_suscriptor}`, opcion: usuario }))}
                         />
                     </div>
 
@@ -346,7 +346,7 @@ export function InicioCursoSection({
                         <Example
                             seleccionado={cursoArmadoLocal.profesor?.nombre}
                             callbackOnSelect={(profesor) => setCursoArmadoLocal(prev => ({ ...prev, profesor }))}
-                            opciones={usuarios.map(usuario => ({ nombre: usuario.nombre, opcion: usuario }))}
+                            opciones={usuarios.map(usuario => ({nombre: `${usuario.nombre} #${usuario.indice_suscriptor}`, opcion: usuario }))}
                         />
                     </div>
 
@@ -463,7 +463,7 @@ export function InscripcionesSection({
                     callbackOnSelect={(usuarioSeleccionado) => {
                         if (usuarioSeleccionado) void onInscribirAlumno(usuarioSeleccionado)
                     }}
-                    opciones={usuarios.map(usuario => ({ nombre: usuario.nombre, opcion: usuario }))}
+                    opciones={usuarios.map(usuario => ({ nombre: `${usuario.nombre} #${usuario.indice_suscriptor}`, opcion: usuario }))}
                 />
             </div>
 

@@ -16,7 +16,7 @@ export default ({
     setUsuarioSeleccionadoId: React.Dispatch<React.SetStateAction<number | null>>
 }) => {
     const inicial = (usuario.nombre ?? '?')[0].toUpperCase()
-    const metaDatos = [usuario.id && `ID #${usuario.id}`,usuario.correo, usuario.especialidad ].filter(Boolean)
+    const metaDatos = [usuario.id_suscripcion_usuario && `ID #${usuario.indice_suscriptor}`, usuario.correo, usuario.especialidad].filter(Boolean)
 
     return (
         <button
