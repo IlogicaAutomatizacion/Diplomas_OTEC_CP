@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
     crearSuscripcionAdminAsync,
@@ -9,6 +9,7 @@ import {
 } from "./Api/suscripciones";
 import { obtenerUsuariosAsync, type usuario } from "./Api/usuarios";
 import { Example } from "./Componentes/DropdownMenu";
+import { useAdminRealtime } from "../../realtime";
 
 type FormState = {
     nombre: string,
@@ -37,7 +38,7 @@ export default function PanelAdministradores() {
     const [vinculandoId, setVinculandoId] = useState<number | null>(null)
     const [mensajesVinculacion, setMensajesVinculacion] = useState<Record<number, string>>({})
 
-    async function cargarSuscripciones() {
+    const cargarSuscripciones = useCallback(async () => {
         try {
             const res = await obtenerTodasLasSuscripcionesAsync()
             setSuscripciones(res)
@@ -45,9 +46,9 @@ export default function PanelAdministradores() {
         } catch (e) {
             setMensaje(e instanceof Error ? e.message : 'No se pudieron cargar las suscripciones.')
         }
-    }
+    }, [])
 
-    async function cargarUsuarios() {
+    const cargarUsuarios = useCallback(async () => {
         try {
             const res = await obtenerUsuariosAsync()
             setUsuarios(res)
@@ -58,12 +59,18 @@ export default function PanelAdministradores() {
                     : 'No se pudo cargar la lista de usuarios.'
             )
         }
-    }
+    }, [])
 
     useEffect(() => {
         cargarSuscripciones()
         cargarUsuarios()
-    }, [])
+    }, [cargarSuscripciones, cargarUsuarios])
+
+    const handleAdminRealtime = useCallback(() => {
+        Promise.all([cargarSuscripciones(), cargarUsuarios()]).catch(() => null)
+    }, [cargarSuscripciones, cargarUsuarios])
+
+    useAdminRealtime(handleAdminRealtime)
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault()

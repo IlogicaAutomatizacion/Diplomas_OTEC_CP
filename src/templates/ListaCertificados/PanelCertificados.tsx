@@ -2,6 +2,9 @@
 import { useEffect, useState } from "react";
 import { obtenerCertificadosDeAlumnoPorIdAsync } from "../PanelAdministrador/Api/certificados";
 import { frontend } from "../../vars";
+import { joinCertificateRealtime, leaveCertificateRealtime, socket, type CertificateRealtimeEvent } from "../../socket";
+import { useUserRealtime } from "../../realtime";
+import type { UserRealtimeEvent } from "../../socket";
 
 export type ListaDeCertificadosValidos = {
     token_usuario: string,
@@ -42,19 +45,44 @@ export default function MisCertificados() {
     const [cursos, setCursos] = useState<ListaDeCertificadosValidos[]>([]);
     const [mensaje, setMensaje] = useState("Cargando certificados...");
 
+    async function cargarCertificados() {
+        try {
+            const res = await obtenerCertificadosDeAlumnoPorIdAsync()
+
+            setCursos(res);
+
+            setMensaje("");
+        } catch (e: any) {
+            setMensaje(e?.message ?? "Hubo un error al cargar certificados");
+        }
+    }
+
     useEffect(() => {
-        (async () => {
-            try {
-                const res = await obtenerCertificadosDeAlumnoPorIdAsync()
-
-                setCursos(res);
-
-                setMensaje("");
-            } catch (e: any) {
-                setMensaje(e?.message ?? "Hubo un error al cargar certificados");
-            }
-        })();
+        cargarCertificados()
     }, []);
+
+    useUserRealtime((event: UserRealtimeEvent) => {
+        if (event.resource !== 'certificados') return
+        void cargarCertificados()
+    })
+
+    useEffect(() => {
+        if (!cursos.length) return
+
+        const tokens = new Set(cursos.map(curso => curso.token_curso))
+        const handleChange = (event: CertificateRealtimeEvent) => {
+            if (!tokens.has(event.tokenCurso)) return
+            cargarCertificados()
+        }
+
+        tokens.forEach(joinCertificateRealtime)
+        socket.on('certificate:changed', handleChange)
+
+        return () => {
+            socket.off('certificate:changed', handleChange)
+            tokens.forEach(leaveCertificateRealtime)
+        }
+    }, [cursos]);
 
     return (
         <div className="min-h-screen w-full bg-[#131516] text-white flex justify-center p-6">

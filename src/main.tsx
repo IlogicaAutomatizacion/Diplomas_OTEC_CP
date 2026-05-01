@@ -1,7 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
 
 //import Certificado from './templates/Certificados/CP/Certificado'
 import PanelAdministrador from './templates/PanelAdministrador/PanelAdministrador'
@@ -25,18 +25,40 @@ import { normalizeErrorMessage } from './Error/normalizeError'
 import Cliente from './templates/Encuestas/EncuestasSatisfaccion/Cliente'
 import Usuario from './templates/Encuestas/EncuestasSatisfaccion/Usuario'
 import PanelAdministradores from './templates/PanelAdministrador/PanelAdministradores'
+import ForgotPasswordPage from './templates/Login/ForgotPassword'
+import ResetPasswordPage from './templates/Login/ResetPassword'
+import PerfilPage from './templates/Perfil/Perfil'
+import InicioPage from './templates/Inicio/Inicio'
 
 import { useSusbcriptonStore } from './templates/PanelAdministrador/Stores/SubscriptionContextStore'
 
 const originalFetch = window.fetch;
 
+function RootIndex() {
+  if (!localStorage.getItem('token')) {
+    return <Navigate to="/login" replace />
+  }
+
+  return <InicioPage />
+}
+
 const publicPagePathMatchers = [
+  '/login',
+  '/activar-cuenta',
+  '/confirmar-activacion',
+  '/forgot-password',
+  '/recuperar-password',
   '/certificados/',
   '/encuestas/satisfaccion-cliente/',
   '/encuestas/satisfaccion-usuario/',
 ];
 
 const publicApiPathMatchers = [
+  '/auth/login',
+  '/auth/activar',
+  '/auth/confirmar-activacion',
+  '/auth/forgot-password',
+  '/auth/reset-password',
   '/formatos-dinamicos/obtenerFormatoEncuestaSatisfaccionCliente/',
   '/formatos-dinamicos/obtenerFormatoEncuestaSatisfaccionUsuario/',
   '/formatos-dinamicos/agregarRespuesta/',
@@ -131,6 +153,16 @@ const router = createBrowserRouter([
     path: '/confirmar-activacion',
     element: <ConfirmarActivacionPage />
   },
+  {
+    errorElement: <ErrorPage />,
+    path: '/forgot-password',
+    element: <ForgotPasswordPage />
+  },
+  {
+    errorElement: <ErrorPage />,
+    path: '/recuperar-password',
+    element: <ResetPasswordPage />
+  },
 
   {
     errorElement: <ErrorPage />,
@@ -155,7 +187,8 @@ const router = createBrowserRouter([
       element: <NotFoundPage />
     }, {
       path: '/',
-      index: true
+      index: true,
+      element: <RootIndex />
     },
 
     {
@@ -190,6 +223,10 @@ const router = createBrowserRouter([
     {
       path: '/panelAdministradores',
       element: <PanelAdministradores />
+    },
+    {
+      path: '/perfil',
+      element: <PerfilPage />
     },
 
     {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, Outlet, useLocation } from "react-router-dom";
+import { Link, Navigate, Outlet, useLocation } from "react-router-dom";
 import { obtenerRolesDeUsuarioAsync, type rolEnum } from "../Api/roles";
 
 type RolesState = rolEnum[] | null
@@ -79,8 +79,9 @@ function Sidebar({ roles }: { roles: RolesState }) {
                     </button>
                 </div>
 
-                {roles ? (
-                    <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-2">
+                    {roles ? (
+                        <>
                         {checarSiTieneRol(roles, ['ADMINISTRADOR']) ? (
                             <SidebarButton
                                 to="/panelAdministradores"
@@ -134,8 +135,16 @@ function Sidebar({ roles }: { roles: RolesState }) {
                                 onClick={() => setAbierta(false)}
                             />
                         ) : null}
-                    </div>
-                ) : null}
+                        </>
+                    ) : null}
+
+                    <SidebarButton
+                        to="/perfil"
+                        icon="U"
+                        label="Perfil"
+                        onClick={() => setAbierta(false)}
+                    />
+                </div>
 
                 <div className="mt-auto text-xs text-white/30 text-center pt-6">
                     ConeXion process 2026
@@ -147,6 +156,10 @@ function Sidebar({ roles }: { roles: RolesState }) {
 
 export default function Layout() {
     const [roles, setRoles] = useState<RolesState>(null)
+
+    if (!localStorage.getItem('token')) {
+        return <Navigate to="/login" replace />
+    }
 
     useEffect(() => {
         ; (async () => {

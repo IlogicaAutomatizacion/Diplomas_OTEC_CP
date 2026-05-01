@@ -1,7 +1,7 @@
 import ArmarCursos from './Ventanas/ArmarCursos/ArmarCursos'
 import Empresas from './Ventanas/Empresas'
 import Cursos from './Ventanas/Cursos'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 import type { cursoArmado } from './Api/cursos-armados'
 import type { curso } from './Api/cursos'
@@ -10,6 +10,7 @@ import type { empresa } from './Api/empresas'
 import { useParams } from 'react-router-dom'
 import {
     obtenerCursosDeSuscriptorAsync,
+    obtenerCursosArmadosDeSuscriptorAsync,
     obtenerEmpresasDeSuscriptorAsync,
     obtenerIdentificadoresDeSuscripcionPorNombreDeEmpresaAsync,
     obtenerParametrosDeSuscriptorAsync,
@@ -22,6 +23,8 @@ import ReportesCursos from './Ventanas/Reportescursos'
 
 import { useSusbcriptonStore } from './Stores/SubscriptionContextStore'
 import { b2Url, b2UsuarioBucket } from '../../vars'
+import { useSubscriptionRealtime } from '../../realtime'
+import type { SubscriptionRealtimeEvent } from '../../socket'
 
 type Seccion = 'armar' | 'usuarios' | 'empresas' | 'cursos' | 'parametros' | 'reportes'
 
@@ -49,6 +52,7 @@ export default function PanelAdministrador() {
         uuidSuscriptor: string
     } | null>(null)
     const [logoKey, setLogoKey] = useState<string | null>(null)
+    const [usuariosConectados, setUsuariosConectados] = useState<{ correo: string }[]>([])
 
     const { nombreEmpresa } = useParams()
     const setCurrentSubscription = useSusbcriptonStore((x) => x.setCurrentSusbscription)
@@ -59,46 +63,106 @@ export default function PanelAdministrador() {
         return () => setCurrentSubscription(null)
     }, [identificadoresSuscriptor])
 
-    useEffect(() => {
+    const cargarUsuarios = useCallback(async () => {
         if (!identificadoresSuscriptor) return
-            ; (async () => {
-                try {
-                    const u = await obtenerUsuariosDeSuscriptorAsync(identificadoresSuscriptor.id)
-                    setUsuarios(u)
-                } catch { }
-            })()
+        const u = await obtenerUsuariosDeSuscriptorAsync(identificadoresSuscriptor.id)
+        setUsuarios(u)
+    }, [identificadoresSuscriptor])
+
+    const cargarCursos = useCallback(async () => {
+        if (!identificadoresSuscriptor) return
+        const c = await obtenerCursosDeSuscriptorAsync(identificadoresSuscriptor.id)
+        setCursos(c)
+    }, [identificadoresSuscriptor])
+
+    const cargarEmpresas = useCallback(async () => {
+        if (!identificadoresSuscriptor) return
+        const e = await obtenerEmpresasDeSuscriptorAsync(identificadoresSuscriptor.id)
+        setEmpresas(e)
+    }, [identificadoresSuscriptor])
+
+    const cargarCursosArmados = useCallback(async () => {
+        if (!identificadoresSuscriptor) return
+        const ca = await obtenerCursosArmadosDeSuscriptorAsync(identificadoresSuscriptor.id)
+        setCursosArmados(ca)
+    }, [identificadoresSuscriptor])
+
+    const cargarParametros = useCallback(async () => {
+        if (!identificadoresSuscriptor) return
+        const parametros = await obtenerParametrosDeSuscriptorAsync(identificadoresSuscriptor.id)
+        setLogoKey(parametros.logo)
     }, [identificadoresSuscriptor])
 
     useEffect(() => {
-        if (!identificadoresSuscriptor) return
-            ; (async () => {
-                try {
-                    const c = await obtenerCursosDeSuscriptorAsync(identificadoresSuscriptor.id)
-                    setCursos(c)
-                } catch { }
-            })()
-    }, [identificadoresSuscriptor])
+        cargarUsuarios().catch(() => null)
+    }, [cargarUsuarios])
 
     useEffect(() => {
-        if (!identificadoresSuscriptor) return
-            ; (async () => {
-                try {
-                    const e = await obtenerEmpresasDeSuscriptorAsync(identificadoresSuscriptor.id)
-                    setEmpresas(e)
-                } catch { }
-            })()
-    }, [identificadoresSuscriptor])
+        cargarCursos().catch(() => null)
+    }, [cargarCursos])
+
+    useEffect(() => {
+        cargarEmpresas().catch(() => null)
+    }, [cargarEmpresas])
+
+    useEffect(() => {
+        cargarCursosArmados().catch(() => null)
+    }, [cargarCursosArmados])
 
     // Carga el logo en cuanto se conoce el suscriptor, sin esperar a entrar a Parámetros
     useEffect(() => {
-        if (!identificadoresSuscriptor) return
-            ; (async () => {
-                try {
-                    const parametros = await obtenerParametrosDeSuscriptorAsync(identificadoresSuscriptor.id)
-                    setLogoKey(parametros.logo)
-                } catch { }
-            })()
-    }, [identificadoresSuscriptor])
+        cargarParametros().catch(() => null)
+    }, [cargarParametros])
+
+    const handleRealtimeChange = useCallback((event: SubscriptionRealtimeEvent) => {
+        const jobs: Promise<unknown>[] = []
+
+        if (event.resource === 'cursosArmados') {
+            if (event.action === 'bulk-deleted' && event.affectedIds?.length) {
+                const ids = new Set(event.affectedIds.map(id => Number(id)))
+                setCursosArmados(prev => prev.filter(curso => curso.curso_armado_id == null || !ids.has(curso.curso_armado_id)))
+            } else if (event.action === 'deleted' && event.entityId != null) {
+                const id = Number(event.entityId)
+                setCursosArmados(prev => prev.filter(curso => curso.curso_armado_id !== id))
+            }
+        }
+
+        if (event.resource === 'usuarios') {
+            if (event.action === 'bulk-deleted' && event.affectedIds?.length) {
+                const ids = new Set(event.affectedIds.map(id => Number(id)))
+                setUsuarios(prev => prev.filter(usuario => usuario.id == null || !ids.has(usuario.id)))
+            } else if (event.action === 'deleted' && event.entityId != null) {
+                const id = Number(event.entityId)
+                setUsuarios(prev => prev.filter(usuario => usuario.id !== id))
+            }
+        }
+
+        if (event.resource === 'usuarios') {
+            jobs.push(cargarUsuarios())
+            setRefreshKeyUsuarios(key => key + 1)
+        }
+        if (event.resource === 'empresas') {
+            jobs.push(cargarEmpresas())
+            setRefreshKeyEmpresas(key => key + 1)
+        }
+        if (event.resource === 'cursos') jobs.push(cargarCursos())
+        if (event.resource === 'cursosArmados' || event.resource === 'inscripciones') jobs.push(cargarCursosArmados())
+        if (event.resource === 'parametros') {
+            jobs.push(cargarParametros())
+        }
+
+        Promise.all(jobs).catch(() => null)
+    }, [cargarCursos, cargarCursosArmados, cargarEmpresas, cargarParametros, cargarUsuarios])
+
+    const handlePresence = useCallback((event: { usuarios: { correo: string }[] }) => {
+        setUsuariosConectados(event.usuarios)
+    }, [])
+
+    useSubscriptionRealtime(
+        identificadoresSuscriptor?.id,
+        handleRealtimeChange,
+        handlePresence,
+    )
 
     useEffect(() => {
         if (!nombreEmpresa) return
@@ -136,6 +200,25 @@ export default function PanelAdministrador() {
 
             <div className="w-full max-w-7xl px-4 py-6 flex flex-col items-center text-white">
                 <h1 className="text-4xl font-semibold text-center">Administrador</h1>
+
+                <section className="mt-5 w-full max-w-3xl rounded-lg border border-zinc-700 bg-zinc-900/70 px-4 py-3">
+                    <div className="flex items-center justify-between gap-3">
+                        <h2 className="text-sm font-semibold text-zinc-200">Usuarios conectados</h2>
+                        <span className="text-xs text-zinc-500">{usuariosConectados.length}</span>
+                    </div>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                        {usuariosConectados.length ? usuariosConectados.map(({ correo }) => (
+                            <span
+                                key={correo}
+                                className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs text-emerald-200"
+                            >
+                                {correo}
+                            </span>
+                        )) : (
+                            <span className="text-xs text-zinc-500">Sin otros usuarios conectados.</span>
+                        )}
+                    </div>
+                </section>
 
                 <nav className="flex gap-2 mt-10 flex-wrap justify-center">
                     {NAV_ITEMS.map(({ key, label }) => (

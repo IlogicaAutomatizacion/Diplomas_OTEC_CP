@@ -19,6 +19,7 @@ export interface usuario {
     foto_perfil?: string | null,
     firma?: string | null,
     telefono?: string | null
+    fono_fax?: string | null
     rolesVinculados?: rolEnum[],
     empresasVinculadas?: EmpresaVinculada[]
 }

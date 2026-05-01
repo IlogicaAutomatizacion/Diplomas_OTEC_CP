@@ -1,9 +1,10 @@
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import CertificadoCP from './CP/CertificadoCP';
 import CertificadoCollegium from './COLLEGIUM/CertificadoCollegium';
 import { obtenerIdDeSuscripcionPorTokenDeCursoArmadoAsync } from '../PanelAdministrador/Api/suscripciones';
+import { useCertificateRealtime } from '../../realtime';
 
 const certificados = {
     3: CertificadoCP,
@@ -28,18 +29,23 @@ export default () => {
     }>()
 
     const [idSuscriptor, setIdSuscriptor] = useState<TipoComponente | null>(null)
+    const [refreshKey, setRefreshKey] = useState(0)
 
     const [msg, setMsg] = useState<string | null>('Obteniendo datos del usuario...')
 
+    const refrescarCertificado = useCallback(() => {
+        setRefreshKey(key => key + 1)
+    }, [])
+
+    useCertificateRealtime(token_curso, refrescarCertificado)
+
 
     useEffect(() => {
-
         if (!token || !token_curso) { return }
 
         const obtener = async () => {
             try {
                 const id_suscriptor = await obtenerIdDeSuscripcionPorTokenDeCursoArmadoAsync(token_curso)
-                console.log(idSuscriptor)
                 setIdSuscriptor(id_suscriptor)
             } catch (e) {
                 console.log(e)
@@ -49,14 +55,14 @@ export default () => {
 
         obtener()
 
-    }, [])
+    }, [token, token_curso])
 
     useEffect(() => {
         console.log(idSuscriptor)
         if (idSuscriptor) {
             setMsg(null)
         }
-    }), [idSuscriptor]
+    }, [idSuscriptor])
 
-    return msg ? <p>{msg}</p> : idSuscriptor ? <Certificado id={idSuscriptor} /> : null
+    return msg ? <p>{msg}</p> : idSuscriptor ? <div key={refreshKey}><Certificado id={idSuscriptor} /></div> : null
 }

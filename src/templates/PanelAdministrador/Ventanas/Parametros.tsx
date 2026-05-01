@@ -9,6 +9,8 @@ import {
     type parametrosSuscriptor,
 } from "../Api/suscripciones"
 import { Example } from "../Componentes/DropdownMenu"
+import { useSubscriptionRealtime } from "../../../realtime"
+import type { SubscriptionRealtimeEvent } from "../../../socket"
 
 type ParametrosProps = {
     idSuscriptor: number
@@ -37,6 +39,23 @@ export default function Parametros({ idSuscriptor, usuarios, onLogoChange }: Par
     const [mensajeLogo, setMensajeLogo] = useState<string | null>(null)
     const inputLogoRef = useRef<HTMLInputElement>(null)
 
+    async function recargarParametros() {
+        setCargando(true)
+        setMensaje(null)
+
+        try {
+            const parametros = await obtenerParametrosDeSuscriptorAsync(idSuscriptor)
+            setParametrosGuardados(parametros)
+            setParametrosEditados(parametros)
+            setLogoKey(parametros.logo)
+            onLogoChange?.(parametros.logo)
+        } catch (e) {
+            setMensaje(e instanceof Error ? e.message : 'No se pudieron cargar los parametros.')
+        } finally {
+            setCargando(false)
+        }
+    }
+
     useEffect(() => {
         let activo = true
 
@@ -62,6 +81,14 @@ export default function Parametros({ idSuscriptor, usuarios, onLogoChange }: Par
 
         return () => { activo = false }
     }, [idSuscriptor])
+
+    useSubscriptionRealtime(
+        idSuscriptor,
+        (event: SubscriptionRealtimeEvent) => {
+            if (event.resource !== 'parametros') return
+            void recargarParametros()
+        },
+    )
 
     const opcionesUsuarios = useMemo(() => {
         return usuarios.map(u => ({

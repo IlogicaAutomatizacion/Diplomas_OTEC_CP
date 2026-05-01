@@ -3,6 +3,8 @@ import { obtenerCursosParaPanelProfesor, type PanelProfesor } from "../PanelAdmi
 import { convertirFecha } from "./Panel"
 import { actualizarPropiedadDeCursoArmadoComoProfesorAsync, checarSiPuedeFinalizar, type cursoArmado } from "../PanelAdministrador/Api/cursos-armados"
 import { editarInscripcionComoProfesorAsync, type inscripcion } from "../PanelAdministrador/Api/inscripciones"
+import { useUserRealtime } from "../../realtime"
+import type { UserRealtimeEvent } from "../../socket"
 
 // ─── Fila de alumno ───────────────────────────────────────────────────────────
 
@@ -17,6 +19,12 @@ function FilaAlumno({ inscripcion, deshabilitado }: FilaAlumnoProps) {
     const [teorica, setTeorica] = useState(inscripcion.teorica ?? 0)  // 👈
     const [guardando, setGuardando] = useState(false)
     const [mensaje, setMensaje] = useState<string | null>(null)
+
+    useEffect(() => {
+        setAsistencias(inscripcion.asistencias ?? 0)
+        setCalificacion(inscripcion.calificacion ?? 0)
+        setTeorica(inscripcion.teorica ?? 0)
+    }, [inscripcion])
 
     const asistenciasOriginales = inscripcion.asistencias ?? 0
     const calificacionOriginal = inscripcion.calificacion ?? 0
@@ -118,6 +126,10 @@ function FilaAlumno({ inscripcion, deshabilitado }: FilaAlumnoProps) {
 const ProfesorCard = ({ curso }: { curso: cursoArmado }) => {
     const [cursoLocal, setCursoLocal] = useState(curso)
     const [puedeFinalizar, setPuedeFinalizar] = useState(false)
+
+    useEffect(() => {
+        setCursoLocal(curso)
+    }, [curso])
 
     useEffect(() => {
         ; (async () => {
@@ -244,17 +256,24 @@ export default function PanelProfesor() {
     const [panel, setPanel] = useState<PanelProfesor | null>(null)
     const [mensaje, setMensaje] = useState<string | null>('Cargando...')
 
+    async function cargarPanel() {
+        try {
+            const data = await obtenerCursosParaPanelProfesor()
+            setPanel(data)
+            setMensaje(null)
+        } catch (er: any) {
+            setMensaje(er?.message ?? 'Error al obtener los cursos.')
+        }
+    }
+
     useEffect(() => {
-        ; (async () => {
-            try {
-                const data = await obtenerCursosParaPanelProfesor()
-                setPanel(data)
-                setMensaje(null)
-            } catch (er: any) {
-                setMensaje(er?.message ?? 'Error al obtener los cursos.')
-            }
-        })()
+        void cargarPanel()
     }, [])
+
+    useUserRealtime((event: UserRealtimeEvent) => {
+        if (event.resource !== 'panelProfesor') return
+        void cargarPanel()
+    })
 
     return (
         <div>

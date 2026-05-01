@@ -155,7 +155,7 @@ const CursoCard = ({
     const numericFields: (keyof curso)[] = ['duracion']
 
     // ✅ Solo reinicializar cuando cambia el ID (nuevo curso montado), no en cada render
-    useEffect(() => { setCursoLocal(curso); setCursoGuardado(curso) }, [curso.curso_id])
+    useEffect(() => { setCursoLocal(curso); setCursoGuardado(curso) }, [curso])
 
     // ✅ ELIMINADO: el useEffect que subía cambios locales al padre en cada keystroke
     // Era el causante de que el filtro/orden se recalculara mientras se editaba,

@@ -169,7 +169,7 @@ const EmpresaCard = ({
     }, [refreshKey])
 
     // ✅ Solo reinicializar cuando cambia el ID (nueva empresa montada), no en cada render
-    useEffect(() => { setEmpresaLocal(empresa); setEmpresaGuardada(empresa) }, [empresa.id_empresa])
+    useEffect(() => { setEmpresaLocal(empresa); setEmpresaGuardada(empresa) }, [empresa])
 
     // ✅ ELIMINADO: el useEffect que subía cambios locales al padre en cada keystroke
     // Era el causante de que el filtro/orden se recalculara mientras se editaba,

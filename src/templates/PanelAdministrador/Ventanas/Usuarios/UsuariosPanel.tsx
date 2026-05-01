@@ -42,7 +42,7 @@ export default ({
     useEffect(() => {
         setUsuarioLocal(usuario)
         setUsuarioGuardado(usuario)
-    }, [usuario.id])
+    }, [usuario])
 
     useEffect(() => {
         ; (async () => {
@@ -55,8 +55,13 @@ export default ({
         })()
     }, [])
 
-    function actualizarUsuario(cambios: Partial<usuario>) {
+    function actualizarUsuarioLocal(cambios: Partial<usuario>) {
         setUsuarioLocal(prev => ({ ...prev, ...cambios }))
+    }
+
+    function aplicarUsuarioPersistido(cambios: Partial<usuario>) {
+        setUsuarioLocal(prev => ({ ...prev, ...cambios }))
+        setUsuarioGuardado(prev => ({ ...prev, ...cambios }))
         setUsuarioState(prev =>
             prev.map(u => u.id === usuario.id ? { ...u, ...cambios } : u)
         )
@@ -138,6 +143,7 @@ export default ({
             }
 
             setUsuarioGuardado(usuarioLocal)
+            setUsuarioState(prev => prev.map(u => u.id === usuarioLocal.id ? usuarioLocal : u))
         } catch (e) {
             console.log(e)
             setUsuarioLocal(usuarioGuardado)
@@ -153,7 +159,7 @@ export default ({
             const roles = checked
                 ? await agregarRolAUsuarioAsync({ usuario_id: usuarioLocal.id, rol_enum: rol })
                 : await eliminarRolPorIdDeUsuarioAsync({ usuario_id: usuarioLocal.id, rol_enum: rol })
-            if (roles) actualizarUsuario({ rolesVinculados: roles })
+            if (roles) aplicarUsuarioPersistido({ rolesVinculados: roles })
         } catch (e) {
             console.log(e)
         }
@@ -164,7 +170,7 @@ export default ({
         try {
             const result = await agregarEmpresaVinculadaAsync({ usuario_id: usuarioLocal.id, empresa_id })
             if (result) {
-                actualizarUsuario({ empresasVinculadas: result })
+                aplicarUsuarioPersistido({ empresasVinculadas: result })
                 onVinculacionChange()
             }
         } catch (e) {
@@ -177,7 +183,7 @@ export default ({
         try {
             const result = await eliminarEmpresaVinculadaPorIdsAsync({ usuario_id: usuarioLocal.id, empresa_id })
             if (result) {
-                actualizarUsuario({ empresasVinculadas: result })
+                aplicarUsuarioPersistido({ empresasVinculadas: result })
                 onVinculacionChange()
             }
         } catch (e) {
@@ -250,7 +256,7 @@ export default ({
                                 <span className="text-xs text-slate-500">{key}</span>
                                 <div className="text-sm px-3 py-1.5 rounded-md border border-slate-700/60 bg-slate-800/60">
                                     <EditableText
-                                        onChange={(v) => actualizarUsuario({ [key]: v.trim() } as Partial<usuario>)}
+                                        onChange={(v) => actualizarUsuarioLocal({ [key]: v.trim() } as Partial<usuario>)}
                                         text={String(value ?? '')}
                                     />
                                 </div>
@@ -323,8 +329,8 @@ export default ({
                 <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">Imágenes</p>
                 <div className="flex flex-wrap gap-8">
                     {[
-                        { label: 'Foto de perfil', field: 'foto_perfil', src: usuarioLocal.foto_perfil, onDelete: () => eliminarFotoDePerfilAsync(usuarioLocal.id!).then(r => r && actualizarUsuario({ foto_perfil: undefined })), onUpload: (f: File) => subirFotoDePerfilAsync(f, usuarioLocal.id!).then(r => actualizarUsuario({ foto_perfil: r.foto_perfil })) },
-                        { label: 'Firma', field: 'firma', src: usuarioLocal.firma, onDelete: () => eliminarFirmaAsync(usuarioLocal.id!).then(r => r && actualizarUsuario({ firma: undefined })), onUpload: (f: File) => subirFirmaAsync(f, usuarioLocal.id!).then(r => actualizarUsuario({ firma: r.firma })) },
+                        { label: 'Foto de perfil', field: 'foto_perfil', src: usuarioLocal.foto_perfil, onDelete: () => eliminarFotoDePerfilAsync(usuarioLocal.id!).then(r => r && aplicarUsuarioPersistido({ foto_perfil: undefined })), onUpload: (f: File) => subirFotoDePerfilAsync(f, usuarioLocal.id!).then(r => aplicarUsuarioPersistido({ foto_perfil: r.foto_perfil })) },
+                        { label: 'Firma', field: 'firma', src: usuarioLocal.firma, onDelete: () => eliminarFirmaAsync(usuarioLocal.id!).then(r => r && aplicarUsuarioPersistido({ firma: undefined })), onUpload: (f: File) => subirFirmaAsync(f, usuarioLocal.id!).then(r => aplicarUsuarioPersistido({ firma: r.firma })) },
                     ].map(({ label, src, onDelete, onUpload }) => (
                         <div key={label} className="flex flex-col gap-2 items-start">
                             <span className="text-xs text-slate-500">{label}</span>

@@ -41,9 +41,26 @@ export function useArmarCursoPanel({
     const [guardandoInicio, setGuardandoInicio] = useState(false)
     const [guardandoInscripciones, setGuardandoInscripciones] = useState(false)
 
+    const actualizarCursoArmadoEnPadre = (cambios: Partial<cursoArmado>) => {
+        setCursosArmadosState(prev =>
+            prev.map(curso =>
+                curso.curso_armado_id === cursoArmadoLocal.curso_armado_id
+                    ? { ...curso, ...cambios }
+                    : curso
+            )
+        )
+    }
+
     const reemplazarCursoArmado = (actualizado: cursoArmado) => {
         setCursoArmadoLocal(actualizado)
         setCursoArmadoGuardado(actualizado)
+        setCursosArmadosState(prev =>
+            prev.map(curso =>
+                curso.curso_armado_id === actualizado.curso_armado_id
+                    ? actualizado
+                    : curso
+            )
+        )
     }
 
     const {
@@ -78,17 +95,7 @@ export function useArmarCursoPanel({
     useEffect(() => {
         setCursoArmadoLocal(cursoArmado)
         setCursoArmadoGuardado(cursoArmado)
-    }, [cursoArmado.curso_armado_id])
-
-    useEffect(() => {
-        setCursosArmadosState(prev =>
-            prev.map(c =>
-                c.curso_armado_id === cursoArmadoLocal.curso_armado_id
-                    ? cursoArmadoLocal
-                    : c
-            )
-        )
-    }, [cursoArmadoLocal, setCursosArmadosState])
+    }, [cursoArmado])
 
     useEffect(() => {
         ; (async () => {
@@ -179,6 +186,7 @@ export function useArmarCursoPanel({
             }
 
             setCursoArmadoGuardado(proximoGuardado)
+            actualizarCursoArmadoEnPadre(proximoGuardado)
         } catch (e) {
             console.log(e)
             setCursoArmadoLocal(cursoArmadoGuardado)
@@ -388,6 +396,7 @@ export function useArmarCursoPanel({
                 ...prev,
                 estado
             }))
+            actualizarCursoArmadoEnPadre({ estado })
         } catch (e) {
             console.log(e)
             setCursoArmadoLocal(prev => ({
@@ -413,6 +422,7 @@ export function useArmarCursoPanel({
                 ...prev,
                 cotizado
             }))
+            actualizarCursoArmadoEnPadre({ cotizado })
         } catch (e) {
             console.log(e)
             setCursoArmadoLocal(prev => ({

@@ -2,10 +2,16 @@ import { useEffect, useState, type SetStateAction } from "react"
 import { obtenerInscripcionesDeAlumno, type inscripcionesParaPanelAlumno, type inscripcionParaPanelAlumno } from "../PanelAdministrador/Api/usuarios"
 import { convertirFecha } from "./Panel"
 import { marcarAsistenciaComoAlumnoAsync, type inscripcion } from "../PanelAdministrador/Api/inscripciones"
+import { useUserRealtime } from "../../realtime"
+import type { UserRealtimeEvent } from "../../socket"
 
 const AlumnoCard = ({ inscripcion, setInscripciones }: { inscripcion: inscripcionParaPanelAlumno, setInscripciones: React.Dispatch<SetStateAction<inscripcionesParaPanelAlumno | null>> }) => {
 
     const [inscripcionLocal, setInscripcionLocal] = useState(inscripcion)
+
+    useEffect(() => {
+        setInscripcionLocal(inscripcion)
+    }, [inscripcion])
 
     useEffect(() => {
         setInscripciones(last => {
@@ -115,24 +121,24 @@ export default () => {
     const [inscripciones, setInscripciones] = useState<inscripcionesParaPanelAlumno | null>(null)
     const [mensaje, setMensaje] = useState<string | null>('Cargando...')
 
+    async function cargarInscripciones() {
+        try {
+            const inscripciones = await obtenerInscripcionesDeAlumno();
+            setInscripciones(inscripciones);
+            setMensaje(null);
+        } catch (er: any) {
+            setMensaje(er?.message ?? 'Error al obtener los cursos.');
+        }
+    }
 
     useEffect(() => {
-
-        (async () => {
-            try {
-
-                const inscripciones = await obtenerInscripcionesDeAlumno();
-
-                console.log(inscripciones)
-                setInscripciones(inscripciones);
-                setMensaje(null);
-            } catch (er: any) {
-                console.log(er)
-
-                setMensaje(er?.message ?? 'Error al obtener los cursos.');
-            }
-        })();
+        void cargarInscripciones();
     }, []);
+
+    useUserRealtime((event: UserRealtimeEvent) => {
+        if (event.resource !== 'panelAlumno') return
+        void cargarInscripciones()
+    })
 
 
     useEffect(() => {

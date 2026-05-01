@@ -247,6 +247,23 @@ export default ({
 
     useEffect(() => { setMensajeBoton(null) }, [cursosArmados])
 
+    useEffect(() => {
+        if (!cursoArmadoAVisualizar?.curso_armado_id) return
+
+        const actualizado = cursosArmados.find(
+            curso => curso.curso_armado_id === cursoArmadoAVisualizar.curso_armado_id
+        )
+
+        if (!actualizado) {
+            setCursoArmadoAVisualizar(null)
+            return
+        }
+
+        if (actualizado !== cursoArmadoAVisualizar) {
+            setCursoArmadoAVisualizar(actualizado)
+        }
+    }, [cursoArmadoAVisualizar, cursosArmados])
+
     const handleAddButton = async () => {
         try {
             setMensajeBoton('Creando…')
