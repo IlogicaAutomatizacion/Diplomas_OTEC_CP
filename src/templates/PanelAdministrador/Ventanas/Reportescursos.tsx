@@ -389,7 +389,7 @@ export default function ReportesCursos({
                             <thead>
                                 <tr className="bg-zinc-800 border-b border-zinc-700">
                                     {['Curso', 'Empresa', 'Profesor', 'Inicio', 'Finalización', 'Alumnos', 'Estado', "Cotizado"].map(h => (
-                                        <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 whitespace-nowrap">
+                                        <th key={h} className={`px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 ${h !== 'Curso' ? 'whitespace-nowrap' : 'min-w-[150px] max-w-[200px]'}`}>
                                             {h}
                                         </th>
                                     ))}
@@ -398,7 +398,7 @@ export default function ReportesCursos({
                             <tbody className="divide-y divide-zinc-800">
                                 {cursosFiltrados.map(c => (
                                     <tr key={c.curso_armado_id} className="hover:bg-zinc-800/50 transition-colors">
-                                        <td className="px-4 py-3 text-zinc-100 font-medium whitespace-nowrap">
+                                        <td className="px-4 py-3 text-zinc-100 font-medium max-w-[200px] truncate" title={c.curso?.nombre ?? ''}>
                                             {c.curso?.nombre ?? <span className="text-zinc-600">—</span>}
                                         </td>
                                         <td className="px-4 py-3 text-zinc-300 whitespace-nowrap">
