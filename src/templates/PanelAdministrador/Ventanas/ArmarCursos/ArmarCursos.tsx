@@ -43,6 +43,7 @@ const OPCIONES_ORDEN: { label: string; value: OrdenCursoArmado }[] = [
 const ESTADO_ORDEN: Record<string, number> = { ACTIVO: 0, INACTIVO: 1, FINALIZADO: 2 }
 
 function ordenarCursosArmados(lista: cursoArmado[], orden: OrdenCursoArmado): cursoArmado[] {
+
     return [...lista].sort((a, b) => {
         switch (orden) {
             case 'id_asc': return (a.indice_suscriptor ?? 0) - (b.indice_suscriptor ?? 0)
@@ -53,8 +54,8 @@ function ordenarCursosArmados(lista: cursoArmado[], orden: OrdenCursoArmado): cu
             case 'fecha_fin_desc': return (b.fecha_finalizacion ?? '').localeCompare(a.fecha_finalizacion ?? '')
             case 'nombre_asc': return (a.curso?.nombre ?? '').localeCompare(b.curso?.nombre ?? '', 'es', { sensitivity: 'base' })
             case 'nombre_desc': return (b.curso?.nombre ?? '').localeCompare(a.curso?.nombre ?? '', 'es', { sensitivity: 'base' })
-            case 'alumnos_desc': return (b.alumnosCotizados ?? 0) - (a.alumnosCotizados ?? 0)
-            case 'alumnos_asc': return (a.alumnosCotizados ?? 0) - (b.alumnosCotizados ?? 0)
+            case 'alumnos_desc': return (b.inscripciones.length?? 0) - (a.inscripciones.length ?? 0)
+            case 'alumnos_asc': return (a.inscripciones.length ?? 0) - (b.inscripciones.length ?? 0)
             case 'estado_asc': return (ESTADO_ORDEN[a.estado ?? ''] ?? 99) - (ESTADO_ORDEN[b.estado ?? ''] ?? 99)
             case 'estado_desc': return (ESTADO_ORDEN[b.estado ?? ''] ?? 99) - (ESTADO_ORDEN[a.estado ?? ''] ?? 99)
             case 'cotizado_desc': return (b.cotizado ? 1 : 0) - (a.cotizado ? 1 : 0)
