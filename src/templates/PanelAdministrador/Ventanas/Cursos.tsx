@@ -4,6 +4,8 @@ import { actualizarPropiedadDeCursoAsync, borrarCursoAsync, borrarCursosAsyncBul
 import { crearCursoDeSuscriptorAsync, crearCursosDeSuscriptorAsync, obtenerCursosDeSuscriptorAsync } from "../Api/suscripciones"
 import { Example } from "../Componentes/DropdownMenu"
 import { useExcelMapper } from "../Componentes/SeccionadorSapa"
+import ImportOmitidosPanel from "../Componentes/ImportOmitidosPanel"
+import { crearReporteOmitidos, normalizarTexto, parseOptionalNumber, tieneDatosImportables, type ImportOmitido } from "../Componentes/importReport"
 
 // ─── Tipos de ordenamiento ────────────────────────────────────────────────────
 
@@ -322,11 +324,17 @@ export default ({ cursos, idSuscriptor, setCursos }: {
     const [seleccionados, setSeleccionados] = useState<Set<number>>(new Set())
     const [confirmBulk, setConfirmBulk] = useState(false)
     const [eliminandoBulk, setEliminandoBulk] = useState(false)
+    const [omitidosImportacion, setOmitidosImportacion] = useState<ImportOmitido[]>([])
 
     const activarModoSeleccion = () => {
         setModoSeleccion(true)
         setSeleccionados(new Set())
         setConfirmBulk(false)
+    }
+
+    const handleCargarArchivo = (file: File) => {
+        setOmitidosImportacion([])
+        void cargarArchivo(file)
     }
 
     const cancelarModoSeleccion = () => {
@@ -360,7 +368,16 @@ export default ({ cursos, idSuscriptor, setCursos }: {
     // ── Excel mapper ──────────────────────────────────────────────────────────
     const { datosImportados, setMapeo, cargarArchivo, construirResultado } =
         useExcelMapper<curso>(async (cursosExcel) => {
-            const res = await crearCursosDeSuscriptorAsync(idSuscriptor, cursosExcel.filter(c => Object.values(c).some(Boolean)))
+            const candidatos = cursosExcel.filter(tieneDatosImportables)
+            const res = await crearCursosDeSuscriptorAsync(idSuscriptor, candidatos)
+            setOmitidosImportacion(crearReporteOmitidos(
+                candidatos,
+                res,
+                curso => normalizarTexto(curso.nombre),
+                curso => curso.nombre || 'Curso sin nombre',
+                () => null,
+                'Ya existia en la suscripcion o estaba duplicado en el archivo.',
+            ))
             setCursos(last => [...last, ...res])  // 👈 agrega en lugar de reemplazar
         })
 
@@ -491,8 +508,11 @@ export default ({ cursos, idSuscriptor, setCursos }: {
                     <div className="rounded-2xl border border-zinc-700 bg-zinc-900 p-6 flex flex-col gap-5">
                         <div>
                             <h3 className="text-base font-semibold text-zinc-100">Relacionar columnas</h3>
-                            <p className="text-xs text-zinc-500 mt-0.5">{datosImportados.filas.length} fila(s) encontradas · Cursos sin duración numérica serán ignorados</p>
+                            <p className="text-xs text-zinc-500 mt-0.5">{datosImportados.filas.length} fila(s) encontradas · La duración es opcional</p>
                         </div>
+                        {omitidosImportacion.length ? (
+                            <ImportOmitidosPanel omitidos={omitidosImportacion} />
+                        ) : null}
                         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                             {(['nombre', 'duracion', 'resumen', 'temario'] as const).map(campo => (
                                 <div key={campo} className="flex flex-col gap-1.5">
@@ -510,7 +530,7 @@ export default ({ cursos, idSuscriptor, setCursos }: {
                             onClick={() => {
                                 construirResultado((fila, m) => ({
                                     nombre: fila[m.nombre] ? String(fila[m.nombre]).trim() : undefined,
-                                    duracion: fila[m.duracion] && !isNaN(Number(fila[m.duracion])) ? Number(fila[m.duracion]) : undefined,
+                                    duracion: parseOptionalNumber(fila[m.duracion]),
                                     resumen: fila[m.resumen] ? String(fila[m.resumen]).trim() : undefined,
                                     temario: fila[m.temario] ? String(fila[m.temario]).trim() : undefined,
                                 }))
@@ -527,12 +547,16 @@ export default ({ cursos, idSuscriptor, setCursos }: {
                             <p className="text-sm font-medium text-zinc-300">Importar desde Excel</p>
                             <p className="text-xs text-zinc-600 mt-0.5">Arrastra un archivo .xlsx o .xls, o haz clic para seleccionar</p>
                         </div>
-                        <input type="file" accept=".xlsx,.xls" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) cargarArchivo(f) }} />
+                        <input type="file" accept=".xlsx,.xls" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleCargarArchivo(f) }} />
                     </label>
                 )
             )}
 
             {/* ── Buscador ── */}
+            {omitidosImportacion.length ? (
+                <ImportOmitidosPanel omitidos={omitidosImportacion} />
+            ) : null}
+
             <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none"><IconSearch /></span>
                 <input

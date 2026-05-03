@@ -17,6 +17,19 @@ import { Example } from "../../Componentes/DropdownMenu"
 import { b2Url, b2UsuarioBucket } from "../../../../vars"
 import { useEffect, useState } from "react"
 
+function esCampoEditable(key: keyof usuario) {
+    const nombre = String(key).toLowerCase()
+
+    return !(
+        nombre === 'id' ||
+        nombre.includes('token') ||
+        nombre.includes('roles') ||
+        nombre.includes('vinculadas') ||
+        nombre === 'firma' ||
+        nombre === 'foto_perfil'
+    )
+}
+
 export default ({
     idSuscriptor,
     usuario,
@@ -40,7 +53,21 @@ export default ({
     const [rolesUsuarioActual, setRolesUsuarioActual] = useState<rolEnum[]>([])
 
     useEffect(() => {
-        setUsuarioLocal(usuario)
+        setUsuarioLocal(prevLocal => {
+            if (prevLocal.id !== usuario.id) return usuario
+
+            const nextUsuarioLocal: usuario = { ...usuario }
+
+            for (const key of Object.keys(prevLocal) as (keyof usuario)[]) {
+                if (!esCampoEditable(key)) continue
+
+                if (prevLocal[key] !== usuarioGuardado[key]) {
+                    ; (nextUsuarioLocal as Record<string, unknown>)[String(key)] = prevLocal[key]
+                }
+            }
+
+            return nextUsuarioLocal
+        })
         setUsuarioGuardado(usuario)
     }, [usuario])
 
@@ -99,16 +126,7 @@ export default ({
 
     const hayCambios = (Object.entries(usuarioLocal) as [keyof usuario, usuario[keyof usuario]][])
         .some(([key, value]) => {
-            const nombre = String(key).toLowerCase()
-
-            if (
-                nombre === 'id' ||
-                nombre.includes('token') ||
-                nombre.includes('roles') ||
-                nombre.includes('vinculadas') ||
-                nombre === 'firma' ||
-                nombre === 'foto_perfil'
-            ) return false
+            if (!esCampoEditable(key)) return false
 
             return value !== usuarioGuardado[key]
         })
@@ -122,17 +140,7 @@ export default ({
             const entries = Object.entries(usuarioLocal) as [keyof usuario, usuario[keyof usuario]][]
 
             for (const [key, value] of entries) {
-                const nombre = String(key).toLowerCase()
-
-                if (
-                    nombre === 'id' ||
-                    nombre.includes('token') ||
-                    nombre.includes('roles') ||
-                    nombre.includes('vinculadas') ||
-                    nombre === 'firma' ||
-                    nombre === 'foto_perfil' ||
-                    value === usuarioGuardado[key]
-                ) continue
+                if (!esCampoEditable(key) || value === usuarioGuardado[key]) continue
 
                 await editarUsuarioDeSuscriptorAsync(
                     idSuscriptor,

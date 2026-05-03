@@ -9,6 +9,7 @@ export type perfilAutenticado = {
         isActive: boolean
     }
     usuario: usuario | null
+    perfiles: usuario[]
     roles: rolEnum[]
 }
 
@@ -42,6 +43,58 @@ export async function cambiarPasswordAsync(currentPassword: string, newPassword:
     }
 
     return data
+}
+
+async function subirArchivoPerfilAsync(
+    usuarioId: number,
+    file: File,
+    tipo: 'foto' | 'firma',
+): Promise<{ foto_perfil?: string, firma?: string }> {
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const res = await fetch(`${backend}/auth/perfil/${usuarioId}/${tipo}`, {
+        method: 'POST',
+        body: formData,
+    })
+
+    const data = await res.json().catch(() => null)
+
+    if (!res.ok) {
+        throw new Error(data?.message ?? `No se pudo subir la ${tipo}.`)
+    }
+
+    return data
+}
+
+async function eliminarArchivoPerfilAsync(usuarioId: number, tipo: 'foto' | 'firma') {
+    const res = await fetch(`${backend}/auth/perfil/${usuarioId}/${tipo}`, {
+        method: 'DELETE',
+    })
+
+    const data = await res.json().catch(() => null)
+
+    if (!res.ok) {
+        throw new Error(data?.message ?? `No se pudo eliminar la ${tipo}.`)
+    }
+
+    return data
+}
+
+export function subirFotoPerfilPropiaAsync(usuarioId: number, file: File) {
+    return subirArchivoPerfilAsync(usuarioId, file, 'foto')
+}
+
+export function subirFirmaPerfilPropiaAsync(usuarioId: number, file: File) {
+    return subirArchivoPerfilAsync(usuarioId, file, 'firma')
+}
+
+export function eliminarFotoPerfilPropiaAsync(usuarioId: number) {
+    return eliminarArchivoPerfilAsync(usuarioId, 'foto')
+}
+
+export function eliminarFirmaPerfilPropiaAsync(usuarioId: number) {
+    return eliminarArchivoPerfilAsync(usuarioId, 'firma')
 }
 
 export function cerrarSesion() {

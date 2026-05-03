@@ -80,6 +80,7 @@ export default function ArmarCursoPanel({
                 cursoArmadoLocal={panel.cursoArmadoLocal}
                 usuarios={usuarios}
                 mensajeInscripciones={panel.mensajeInscripciones}
+                omitidosImportacionInscripciones={panel.omitidosImportacionInscripciones}
                 datosImportados={panel.datosImportados}
                 setMapeo={panel.setMapeo}
                 cargarArchivo={panel.cargarArchivo}

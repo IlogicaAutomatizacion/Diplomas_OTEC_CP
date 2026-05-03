@@ -22,6 +22,12 @@ export interface usuario {
     fono_fax?: string | null
     rolesVinculados?: rolEnum[],
     empresasVinculadas?: EmpresaVinculada[]
+    suscripcionesVinculadas?: {
+        id: number
+        suscriptor_id: number
+        indice_suscriptor?: number
+        nombre_empresa?: string | null
+    }[]
 }
 
 //////
@@ -206,20 +212,16 @@ export async function eliminarFirmaAsync(id_usuario: number) {
 }
 
 // @Roles("ADMINISTRADOREMPRESA")
-export async function borrarUsuariosAsyncBulk(usuarioIds: number[]) {
+export async function borrarUsuariosAsyncBulk(usuarioIds: number[], suscriptorId: number) {
     const res = await fetch(`${backend}/usuarios/bulk`, {
         method: 'DELETE',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ ids: usuarioIds })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: usuarioIds, suscriptorId })
     })
 
     const toJson = await res.json()
 
-    if (!res.ok) {
-        throw new Error('No se pudieron borrar los usuarios.')
-    }
+    if (!res.ok) throw new Error('No se pudieron borrar los usuarios.')
 
     return toJson
 }

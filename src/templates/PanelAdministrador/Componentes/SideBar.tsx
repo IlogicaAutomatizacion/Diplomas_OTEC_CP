@@ -104,7 +104,7 @@ function Sidebar({ roles }: { roles: RolesState }) {
                             <SidebarButton
                                 to="/panelAdminitradorCursos"
                                 icon="C"
-                                label="Administrar cursos"
+                                label="Administración de OTEC"
                                 onClick={() => setAbierta(false)}
                             />
                         ) : null}

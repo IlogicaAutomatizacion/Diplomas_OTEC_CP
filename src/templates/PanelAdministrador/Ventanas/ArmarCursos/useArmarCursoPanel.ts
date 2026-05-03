@@ -6,6 +6,7 @@ import { crearInscripcionAsync, crearInscripcionesAsync, editarInscripcionAsync,
 import type { usuario } from "../../Api/usuarios"
 import { comprobarFormatoDeCotizacion, eliminarFormatoDeCotizacion, subirArchivoParaFormatoDeCotizacion } from "../../Api/suscripciones"
 import { useExcelMapper } from "../../Componentes/SeccionadorSapa"
+import { normalizarRut, parseOptionalNumber, tieneDatosImportables, type ImportOmitido } from "../../Componentes/importReport"
 import type { RespuestaEncuesta } from "../../Componentes/CreadorDeEncuesta"
 import { COTIZACION_FIELDS, INICIO_FIELDS, getRelacionId } from "./armarCursoPanel.utils"
 
@@ -40,6 +41,7 @@ export function useArmarCursoPanel({
     const [guardandoCotizacion, setGuardandoCotizacion] = useState(false)
     const [guardandoInicio, setGuardandoInicio] = useState(false)
     const [guardandoInscripciones, setGuardandoInscripciones] = useState(false)
+    const [omitidosImportacionInscripciones, setOmitidosImportacionInscripciones] = useState<ImportOmitido[]>([])
 
     const actualizarCursoArmadoEnPadre = (cambios: Partial<cursoArmado>) => {
         setCursosArmadosState(prev =>
@@ -69,18 +71,56 @@ export function useArmarCursoPanel({
         cargarArchivo,
         construirResultado
     } = useExcelMapper<inscripcion>(async (inscripcionesExcel) => {
+        const candidatos = inscripcionesExcel.filter(tieneDatosImportables)
+
         try {
             setMensajeInscripciones('Creando inscripciones...')
-
-            const cursoArmadoActualizado = await crearInscripcionesAsync(
-                inscripcionesExcel.filter(inscripcion => inscripcion.rut)
+            const rutsAntes = new Set(
+                cursoArmadoLocal.inscripciones
+                    .map(inscripcion => normalizarRut(inscripcion.usuario?.rut))
+                    .filter(Boolean)
             )
 
+            const cursoArmadoActualizado = await crearInscripcionesAsync(
+                candidatos.filter(inscripcion => inscripcion.rut)
+            )
+
+            const rutsDespues = new Set(
+                cursoArmadoActualizado.inscripciones
+                    .map(inscripcion => normalizarRut(inscripcion.usuario?.rut))
+                    .filter(Boolean)
+            )
+            const rutsCreados = new Set([...rutsDespues].filter(rut => !rutsAntes.has(rut)))
+            const rutsConsumidos = new Set<string>()
+
+            setOmitidosImportacionInscripciones(candidatos.flatMap(inscripcion => {
+                const rut = normalizarRut(inscripcion.rut)
+                const etiqueta = inscripcion.rut || 'Fila sin RUT'
+
+                if (!rut) return [{ etiqueta, motivo: 'RUT vacio o invalido.' }]
+                if (rutsAntes.has(rut)) return [{ etiqueta, motivo: 'El usuario ya estaba inscrito en este curso.' }]
+                if (rutsCreados.has(rut) && !rutsConsumidos.has(rut)) {
+                    rutsConsumidos.add(rut)
+                    return []
+                }
+
+                return [{ etiqueta, motivo: 'No existe un usuario con ese RUT en la suscripcion o estaba duplicado en el archivo.' }]
+            }))
             reemplazarCursoArmado(cursoArmadoActualizado)
+        } catch (e) {
+            setOmitidosImportacionInscripciones(candidatos.map(inscripcion => ({
+                etiqueta: inscripcion.rut || 'Fila sin RUT',
+                motivo: e instanceof Error ? e.message : 'No se pudieron crear las inscripciones.',
+            })))
         } finally {
             setMensajeInscripciones(null)
         }
     })
+
+    const handleCargarArchivo = async (file: File) => {
+        setOmitidosImportacionInscripciones([])
+        await cargarArchivo(file)
+    }
 
     useEffect(() => {
         ; (async () => {
@@ -333,9 +373,9 @@ export function useArmarCursoPanel({
         construirResultado((fila, mapeo) => ({
             cursoArmado: cursoArmadoLocal.curso_armado_id,
             rut: fila[mapeo.rut] ? String(fila[mapeo.rut]).trim() : undefined,
-            asistencias: Number(fila[mapeo.asistencias]) ? Number(fila[mapeo.asistencias]) : undefined,
-            calificacion: Number(fila[mapeo.calificacion]) ? Number(fila[mapeo.calificacion]) : undefined,
-            teorica: Number(fila[mapeo.teorica]) ? Number(fila[mapeo.teorica]) : undefined,
+            asistencias: parseOptionalNumber(fila[mapeo.asistencias]),
+            calificacion: parseOptionalNumber(fila[mapeo.calificacion]),
+            teorica: parseOptionalNumber(fila[mapeo.teorica]),
         }))
     }
 
@@ -450,6 +490,7 @@ export function useArmarCursoPanel({
         respuestasCliente,
         usuariosAbiertos,
         datosImportados,
+        omitidosImportacionInscripciones,
         mensajeInscripciones,
         hayFormatoDeCotizacion,
         hayCambiosCotizacion,
@@ -465,7 +506,7 @@ export function useArmarCursoPanel({
         encuestasDeSatisfaccionEnvidasCorrectamente,
         setCursoArmadoLocal,
         setMapeo,
-        cargarArchivo,
+        cargarArchivo: handleCargarArchivo,
         volverALaLista,
         eliminarCursoArmado,
         guardarCotizacion,

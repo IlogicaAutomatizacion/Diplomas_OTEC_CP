@@ -3,6 +3,7 @@ import {
     joinCertificateRealtime,
     joinAdminRealtime,
     joinSubscriptionRealtime,
+    ensureSocketConnected,
     leaveCertificateRealtime,
     leaveSubscriptionRealtime,
     socket,
@@ -92,10 +93,7 @@ export function useUserRealtime(onChange: (event: UserRealtimeEvent) => void) {
         const token = localStorage.getItem('token')
         if (!token) return
 
-        socket.auth = { token }
-        if (!socket.connected) {
-            socket.connect()
-        }
+        ensureSocketConnected(token)
 
         socket.on('user:changed', onChange)
 

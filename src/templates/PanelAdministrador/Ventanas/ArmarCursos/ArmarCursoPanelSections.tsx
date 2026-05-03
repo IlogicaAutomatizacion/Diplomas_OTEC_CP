@@ -5,6 +5,8 @@ import type { empresa } from "../../Api/empresas"
 import type { inscripcion } from "../../Api/inscripciones"
 import type { usuario } from "../../Api/usuarios"
 import { Example } from "../../Componentes/DropdownMenu"
+import ImportOmitidosPanel from "../../Componentes/ImportOmitidosPanel"
+import type { ImportOmitido } from "../../Componentes/importReport"
 import { COTIZACION_FIELDS, INICIO_FIELDS, parseOptionalNumber } from "./armarCursoPanel.utils"
 
 type DatosImportados = {
@@ -414,6 +416,7 @@ export function InscripcionesSection({
     cursoArmadoLocal,
     usuarios,
     mensajeInscripciones,
+    omitidosImportacionInscripciones,
     datosImportados,
     setMapeo,
     cargarArchivo,
@@ -430,6 +433,7 @@ export function InscripcionesSection({
     cursoArmadoLocal: cursoArmado,
     usuarios: usuario[],
     mensajeInscripciones: string | null,
+    omitidosImportacionInscripciones: ImportOmitido[],
     datosImportados: DatosImportados,
     setMapeo: React.Dispatch<React.SetStateAction<Record<string, string>>>,
     cargarArchivo: (file: File) => Promise<void>,
@@ -523,6 +527,12 @@ export function InscripcionesSection({
                     />
                 </div>
             )}
+
+            {omitidosImportacionInscripciones.length ? (
+                <div className="mt-4">
+                    <ImportOmitidosPanel omitidos={omitidosImportacionInscripciones} />
+                </div>
+            ) : null}
 
             {/* Tabla de inscripciones */}
             {usuariosAbiertos && (

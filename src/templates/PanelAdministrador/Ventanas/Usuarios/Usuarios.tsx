@@ -8,6 +8,8 @@ import { useExcelMapper } from "../../Componentes/SeccionadorSapa"
 import { crearUsuarioDeSuscriptorAsync, crearUsuariosDeSuscriptorAsync, obtenerUsuariosDeSuscriptorAsync } from "../../Api/suscripciones"
 import { Example } from "../../Componentes/DropdownMenu"
 import UsuariosCard from "./UsuariosCard"
+import { crearReporteOmitidos, normalizarRut, normalizarTexto, tieneDatosImportables, type ImportOmitido } from "../../Componentes/importReport"
+import ImportOmitidosPanel from "../../Componentes/ImportOmitidosPanel"
 
 // ─── Tipos de ordenamiento ────────────────────────────────────────────────────
 
@@ -174,11 +176,17 @@ export default ({
     const [seleccionados, setSeleccionados] = useState<Set<number>>(new Set())
     const [confirmBulk, setConfirmBulk] = useState(false)
     const [eliminandoBulk, setEliminandoBulk] = useState(false)
+    const [omitidosImportacion, setOmitidosImportacion] = useState<ImportOmitido[]>([])
 
     const activarModoSeleccion = () => {
         setModoSeleccion(true)
         setSeleccionados(new Set())
         setConfirmBulk(false)
+    }
+
+    const handleCargarArchivo = (file: File) => {
+        setOmitidosImportacion([])
+        void cargarArchivo(file)
     }
 
     const cancelarModoSeleccion = () => {
@@ -199,7 +207,7 @@ export default ({
         if (seleccionados.size === 0) return
         setEliminandoBulk(true)
         try {
-            await borrarUsuariosAsyncBulk([...seleccionados]) // ← tu función de API
+            await borrarUsuariosAsyncBulk([...seleccionados],idSuscriptor) // ← tu función de API
             setUsuarios(prev => prev.filter(u => !seleccionados.has(u.id!)))
             cancelarModoSeleccion()
         } catch (e) {
@@ -217,8 +225,25 @@ export default ({
 
     const { datosImportados, setMapeo, cargarArchivo, construirResultado } =
         useExcelMapper<usuario>(async (usuariosExcel) => {
-            await crearUsuariosDeSuscriptorAsync(idSuscriptor, usuariosExcel.filter(u => Object.values(u).some(Boolean)))
-            await refrescarUsuarios()
+            const candidatos = usuariosExcel.filter(tieneDatosImportables)
+
+            try {
+                const creados = await crearUsuariosDeSuscriptorAsync(idSuscriptor, candidatos)
+                setOmitidosImportacion(crearReporteOmitidos(
+                    candidatos,
+                    creados,
+                    usuario => normalizarRut(usuario.rut) || normalizarTexto(usuario.correo),
+                    usuario => usuario.nombre || usuario.correo || usuario.rut || 'Fila sin identificar',
+                    usuario => usuario.rut && normalizarRut(usuario.rut).length < 7 ? 'RUT invalido o incompleto.' : null,
+                    'Ya existia en la suscripcion o estaba duplicado en el archivo.',
+                ))
+                await refrescarUsuarios()
+            } catch (e) {
+                setOmitidosImportacion(candidatos.map(usuario => ({
+                    etiqueta: usuario.nombre || usuario.correo || usuario.rut || 'Fila sin identificar',
+                    motivo: e instanceof Error ? e.message : 'No se pudo importar.',
+                })))
+            }
         })
 
     useEffect(() => {
@@ -368,6 +393,9 @@ export default ({
                                 {datosImportados.filas.length} fila(s) · Usuarios con correo o RUT duplicado serán omitidos
                             </p>
                         </div>
+                        {omitidosImportacion.length ? (
+                            <ImportOmitidosPanel omitidos={omitidosImportacion} />
+                        ) : null}
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                             {CAMPOS.map(({ key, label }) => (
                                 <div key={key} className="flex flex-col gap-1.5">
@@ -404,10 +432,14 @@ export default ({
                             <p className="text-sm font-medium text-zinc-300">Importar desde Excel</p>
                             <p className="text-xs text-zinc-600 mt-0.5">Arrastra un archivo .xlsx o .xls, o haz clic para seleccionar</p>
                         </div>
-                        <input type="file" accept=".xlsx,.xls" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) cargarArchivo(f) }} />
+                        <input type="file" accept=".xlsx,.xls" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleCargarArchivo(f) }} />
                     </label>
                 )
             )}
+
+            {omitidosImportacion.length ? (
+                <ImportOmitidosPanel omitidos={omitidosImportacion} />
+            ) : null}
 
             {/* Buscador */}
             <div className="relative">

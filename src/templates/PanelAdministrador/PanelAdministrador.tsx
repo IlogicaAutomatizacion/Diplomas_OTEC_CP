@@ -29,7 +29,7 @@ import type { SubscriptionRealtimeEvent } from '../../socket'
 type Seccion = 'armar' | 'usuarios' | 'empresas' | 'cursos' | 'parametros' | 'reportes'
 
 const NAV_ITEMS: { key: Seccion; label: string }[] = [
-    { key: 'parametros', label: 'Parámetros' },
+    { key: 'parametros', label: 'Parametros' },
     { key: 'armar', label: 'Gestionar cursos' },
     { key: 'usuarios', label: 'Usuarios' },
     { key: 'empresas', label: 'Empresas' },
@@ -52,6 +52,7 @@ export default function PanelAdministrador() {
         uuidSuscriptor: string
     } | null>(null)
     const [logoKey, setLogoKey] = useState<string | null>(null)
+    const [logoCacheBuster, setLogoCacheBuster] = useState(() => Date.now())
     const [usuariosConectados, setUsuariosConectados] = useState<{ correo: string }[]>([])
 
     const { nombreEmpresa } = useParams()
@@ -91,6 +92,7 @@ export default function PanelAdministrador() {
         if (!identificadoresSuscriptor) return
         const parametros = await obtenerParametrosDeSuscriptorAsync(identificadoresSuscriptor.id)
         setLogoKey(parametros.logo)
+        setLogoCacheBuster(Date.now())
     }, [identificadoresSuscriptor])
 
     useEffect(() => {
@@ -109,7 +111,7 @@ export default function PanelAdministrador() {
         cargarCursosArmados().catch(() => null)
     }, [cargarCursosArmados])
 
-    // Carga el logo en cuanto se conoce el suscriptor, sin esperar a entrar a Parámetros
+    // Carga el logo en cuanto se conoce el suscriptor, sin esperar a entrar a ParÃ¡metros
     useEffect(() => {
         cargarParametros().catch(() => null)
     }, [cargarParametros])
@@ -186,13 +188,22 @@ export default function PanelAdministrador() {
         if (nueva === 'empresas') setRefreshKeyEmpresas(k => k + 1)
     }
 
+    const handleLogoChange = useCallback((nextLogoKey: string | null) => {
+        setLogoKey(nextLogoKey)
+        setLogoCacheBuster(Date.now())
+    }, [])
+
+    const logoUrl = logoKey
+        ? `https://${b2UsuarioBucket}.${b2Url}/${logoKey}?t=${logoCacheBuster}`
+        : null
+
     return identificadoresSuscriptor ? (
         <div className="min-h-screen w-full bg-[#131516] flex justify-center">
 
-            {/* Logo dinámico desde B2 */}
-            {logoKey && (
+            {/* Logo dinÃ¡mico desde B2 */}
+            {logoUrl && (
                 <img
-                    src={`https://${b2UsuarioBucket}.${b2Url}/${logoKey}`}
+                    src={logoUrl}
                     alt="Logo"
                     className="fixed top-3 right-4 h-10 sm:h-14 max-w-[140px] sm:max-w-[200px] object-contain z-50 drop-shadow-lg"
                 />
@@ -302,7 +313,7 @@ export default function PanelAdministrador() {
                         <Parametros
                             idSuscriptor={identificadoresSuscriptor.id}
                             usuarios={usuarios}
-                            onLogoChange={setLogoKey}  // 👈 sincroniza el logo al header
+                            onLogoChange={handleLogoChange}
                         />
                     )}
                 </div>

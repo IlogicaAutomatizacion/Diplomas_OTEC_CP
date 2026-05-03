@@ -9,11 +9,13 @@ export const socket: Socket = io(backend, {
 const joinedSubscriptions = new Map<number, number>()
 const joinedCertificates = new Map<string, number>()
 let joinedAdminCount = 0
+let connectedToken: string | null = null
 
 socket.on('connect', () => {
     joinedSubscriptions.forEach((count, suscriptorId) => {
         if (count <= 0) return
         socket.emit('subscription:join', { suscriptorId })
+        socket.emit('subscription:presence:request', { suscriptorId })
     })
     joinedCertificates.forEach((count, tokenCurso) => {
         if (count <= 0) return
@@ -73,8 +75,16 @@ export type UserRealtimeEvent = {
 }
 
 export function ensureSocketConnected(token?: string | null) {
-    if (token) {
-        socket.auth = { token }
+    const normalizedToken = token?.trim() || null
+
+    if (socket.connected && normalizedToken && connectedToken !== normalizedToken) {
+        socket.disconnect()
+        connectedToken = null
+    }
+
+    if (normalizedToken) {
+        connectedToken = normalizedToken
+        socket.auth = { token: normalizedToken }
     }
 
     if (!socket.connected) {
@@ -88,6 +98,7 @@ export function joinSubscriptionRealtime(suscriptorId: number) {
     joinedSubscriptions.set(suscriptorId, nextCount)
     if (nextCount > 1) return
     socket.emit('subscription:join', { suscriptorId })
+    socket.emit('subscription:presence:request', { suscriptorId })
 }
 
 export function leaveSubscriptionRealtime(suscriptorId: number) {

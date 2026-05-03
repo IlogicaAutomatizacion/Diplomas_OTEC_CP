@@ -8,6 +8,8 @@ import { useExcelMapper } from "../Componentes/SeccionadorSapa"
 import { Example } from "../Componentes/DropdownMenu"
 import { agregarUsuarioVinculadoConEmpresaAsync, eliminarEmpresaVinculadaPorIdAsync, obtenerUsuariosVinculadosAEmpresaPorIdEmpresaAsync } from "../Api/empresasVinculadas"
 import type { usuario } from "../Api/usuarios"
+import ImportOmitidosPanel from "../Componentes/ImportOmitidosPanel"
+import { crearReporteOmitidos, normalizarRut, normalizarTexto, tieneDatosImportables, type ImportOmitido } from "../Componentes/importReport"
 
 export type vinculacion = {
     vinculacion_id: number
@@ -423,11 +425,17 @@ export default ({
     const [seleccionados, setSeleccionados] = useState<Set<number>>(new Set())
     const [confirmBulk, setConfirmBulk] = useState(false)
     const [eliminandoBulk, setEliminandoBulk] = useState(false)
+    const [omitidosImportacion, setOmitidosImportacion] = useState<ImportOmitido[]>([])
 
     const activarModoSeleccion = () => {
         setModoSeleccion(true)
         setSeleccionados(new Set())
         setConfirmBulk(false)
+    }
+
+    const handleCargarArchivo = (file: File) => {
+        setOmitidosImportacion([])
+        void cargarArchivo(file)
     }
 
     const cancelarModoSeleccion = () => {
@@ -466,8 +474,25 @@ export default ({
 
     const { datosImportados, setMapeo, cargarArchivo, construirResultado } =
         useExcelMapper<empresa>(async (empresasExcel) => {
-            await crearEmpresasDeSuscriptorAsync(idSuscriptor, empresasExcel.filter(e => Object.values(e).some(Boolean)))
-            await refrescarEmpresas()
+            const candidatos = empresasExcel.filter(tieneDatosImportables)
+
+            try {
+                const creadas = await crearEmpresasDeSuscriptorAsync(idSuscriptor, candidatos)
+                setOmitidosImportacion(crearReporteOmitidos(
+                    candidatos,
+                    creadas,
+                    empresa => normalizarRut(empresa.rut) || normalizarTexto(empresa.nombre),
+                    empresa => empresa.nombre || empresa.rut || 'Fila sin identificar',
+                    empresa => empresa.rut && normalizarRut(empresa.rut).length < 7 ? 'RUT invalido o incompleto.' : null,
+                    'Ya existia en la suscripcion o estaba duplicada en el archivo.',
+                ))
+                await refrescarEmpresas()
+            } catch (e) {
+                setOmitidosImportacion(candidatos.map(empresa => ({
+                    etiqueta: empresa.nombre || empresa.rut || 'Fila sin identificar',
+                    motivo: e instanceof Error ? e.message : 'No se pudo importar.',
+                })))
+            }
         })
 
     useEffect(() => {
@@ -597,6 +622,9 @@ export default ({
                                 {datosImportados.filas.length} fila(s) · Empresas con RUT duplicado o datos inválidos serán omitidas
                             </p>
                         </div>
+                        {omitidosImportacion.length ? (
+                            <ImportOmitidosPanel omitidos={omitidosImportacion} />
+                        ) : null}
                         <div className="grid grid-cols-2 gap-4">
                             {(['rut', 'nombre'] as const).map(campo => (
                                 <div key={campo} className="flex flex-col gap-1.5">
@@ -629,12 +657,16 @@ export default ({
                             <p className="text-sm font-medium text-zinc-300">Importar desde Excel</p>
                             <p className="text-xs text-zinc-600 mt-0.5">Arrastra un archivo .xlsx o .xls, o haz clic para seleccionar</p>
                         </div>
-                        <input type="file" accept=".xlsx,.xls" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) cargarArchivo(f) }} />
+                        <input type="file" accept=".xlsx,.xls" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleCargarArchivo(f) }} />
                     </label>
                 )
             )}
 
             {/* ── Buscador ── */}
+            {omitidosImportacion.length ? (
+                <ImportOmitidosPanel omitidos={omitidosImportacion} />
+            ) : null}
+
             <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none"><IconSearch /></span>
                 <input

@@ -19,7 +19,7 @@ export const EmpresaCard = ({ nombre }: empresaVinculadaAUsuario) => {
                 to={`/panelAdminitradorCursos/${nombre}`}
                 className="px-4 py-2 text-sm rounded-lg bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition whitespace-nowrap"
             >
-                Administrar cursos
+                Administración de OTEC
             </Link>
         </div>
     );
