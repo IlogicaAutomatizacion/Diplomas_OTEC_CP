@@ -61,7 +61,7 @@ export default function PerfilPage() {
     if (guardando) return;
 
     if (!currentPassword.trim() || !newPassword.trim()) {
-      setMensaje("Debes completar la contrasena actual y la nueva.");
+      setMensaje("Debes completar la contraseña actual y la nueva.");
       return;
     }
 
@@ -73,7 +73,7 @@ export default function PerfilPage() {
       setNewPassword("");
       setMensaje(res.message);
     } catch (error: any) {
-      setMensaje(error?.message ?? "No se pudo cambiar la contrasena.");
+      setMensaje(error?.message ?? "No se pudo cambiar la contraseña.");
     } finally {
       setGuardando(false);
     }
@@ -268,14 +268,14 @@ export default function PerfilPage() {
               type="password"
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
-              placeholder="Contrasena actual"
+              placeholder="Contraseña actual"
               className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <input
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="Nueva contrasena"
+              placeholder="Nueva contraseña"
               className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -285,7 +285,7 @@ export default function PerfilPage() {
               onClick={handleChangePassword}
               className="rounded-xl bg-blue-600 hover:bg-blue-700 px-5 py-3 font-semibold cursor-pointer"
             >
-              {guardando ? "Guardando..." : "Cambiar contrasena"}
+              {guardando ? "Guardando..." : "Cambiar contraseña"}
             </button>
 
             <button
@@ -298,7 +298,7 @@ export default function PerfilPage() {
 
           <p className="text-sm text-white/60">
             <Link to="/forgot-password" className="text-blue-400 hover:underline">
-              Olvide mi contrasena
+              Olvide mi contraseña
             </Link>
           </p>
 

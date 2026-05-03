@@ -48,7 +48,7 @@ const FIELD_LABELS: Record<string, string> = {
     nombre_contacto: 'nombre de contacto',
     notas_cotizacion: 'notas de cotizacion',
     opciones: 'opciones',
-    password: 'contrasena',
+    password: 'contraseña',
     pregunta_id: 'pregunta',
     preguntas: 'preguntas',
     profesor: 'profesor',

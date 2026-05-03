@@ -84,7 +84,7 @@ export default function LoginPage() {
 
           <input
             type="password"
-            placeholder="Contrasena"
+            placeholder="Contraseña"
             className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -111,7 +111,7 @@ export default function LoginPage() {
 
         <p className="text-center text-white/50 text-sm">
           <Link to="/forgot-password" className="cursor-pointer text-blue-400 hover:underline">
-            ¿Olvidaste tu contrasena?
+            ¿Olvidaste tu contraseña?
           </Link>
         </p>
       </div>

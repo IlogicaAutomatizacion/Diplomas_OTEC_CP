@@ -28,7 +28,7 @@ export default function ResetPasswordPage() {
     }
 
     if (!password.trim()) {
-      setMensaje("La nueva contrasena es obligatoria.");
+      setMensaje("La nueva contraseña es obligatoria.");
       return;
     }
 
@@ -49,13 +49,13 @@ export default function ResetPasswordPage() {
       const data = await res.json().catch(() => null);
 
       if (!res.ok) {
-        throw new Error(data?.message ?? "No se pudo restablecer la contrasena.");
+        throw new Error(data?.message ?? "No se pudo restablecer la contraseña.");
       }
 
       setGuardado(true);
-      setMensaje(data?.message ?? "Contrasena actualizada correctamente.");
+      setMensaje(data?.message ?? "Contraseña actualizada correctamente.");
     } catch (error: any) {
-      setMensaje(error?.message ?? "No se pudo restablecer la contrasena.");
+      setMensaje(error?.message ?? "No se pudo restablecer la contraseña.");
     } finally {
       setCargando(false);
     }
@@ -64,15 +64,15 @@ export default function ResetPasswordPage() {
   return (
     <div className="min-h-screen bg-[#131516] text-white flex items-center justify-center p-6">
       <div className="w-full max-w-md bg-[#1c1f21] border border-white/10 rounded-2xl shadow-xl p-8 space-y-6">
-        <h1 className="text-3xl font-bold text-center text-blue-400">Nueva contrasena</h1>
+        <h1 className="text-3xl font-bold text-center text-blue-400">Nueva contraseña</h1>
 
         <p className="text-sm text-white/60 text-center">
-          Escribe la nueva contrasena que quieres usar para tu cuenta.
+          Escribe la nueva contraseña que quieres usar para tu cuenta.
         </p>
 
         <input
           type="password"
-          placeholder="Nueva contrasena"
+          placeholder="Nueva contraseña"
           className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
@@ -85,7 +85,7 @@ export default function ResetPasswordPage() {
             onClick={handleSubmit}
             className="w-full cursor-pointer bg-blue-600 hover:bg-blue-700 transition rounded-xl py-3 font-semibold"
           >
-            {cargando ? "Guardando..." : "Cambiar contrasena"}
+            {cargando ? "Guardando..." : "Cambiar contraseña"}
           </button>
         )}
 

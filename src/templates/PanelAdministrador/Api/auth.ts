@@ -39,7 +39,7 @@ export async function cambiarPasswordAsync(currentPassword: string, newPassword:
     const data = await res.json().catch(() => null)
 
     if (!res.ok) {
-        throw new Error(data?.message ?? 'No se pudo cambiar la contrasena.')
+        throw new Error(data?.message ?? 'No se pudo cambiar la contraseña.')
     }
 
     return data
