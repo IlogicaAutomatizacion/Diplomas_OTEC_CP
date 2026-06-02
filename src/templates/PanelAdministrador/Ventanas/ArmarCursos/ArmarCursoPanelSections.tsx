@@ -381,6 +381,7 @@ export function InicioCursoSection({
                             className={inputBase}
                         />
                     </label>
+
                 </div>
 
                 <Divider />
@@ -426,6 +427,7 @@ export function InscripcionesSection({
     onEliminarInscripcion,
     onActualizarInscripcion,
     onGuardarInscripciones,
+    setCursoArmadoLocal,
     hayCambiosInscripciones,
     guardandoInscripciones
 }: {
@@ -443,6 +445,7 @@ export function InscripcionesSection({
     onEliminarInscripcion: (idInscripcion: number) => Promise<void>,
     onActualizarInscripcion: (idInscripcion: number, propiedad: keyof inscripcion, nuevoValor: boolean | number | undefined) => void,
     onGuardarInscripciones: () => Promise<void>,
+    setCursoArmadoLocal: React.Dispatch<React.SetStateAction<cursoArmado>>,
     hayCambiosInscripciones: boolean,
     guardandoInscripciones: boolean
 }) {
@@ -469,6 +472,47 @@ export function InscripcionesSection({
                     }}
                     opciones={usuarios.map(usuario => ({ nombre: `${usuario.nombre} #${usuario.indice_suscriptor}`, opcion: usuario }))}
                 />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <label className="flex flex-col gap-1">
+                    <FieldLabel>Asistencias por defecto</FieldLabel>
+                    <input
+                        type="number"
+                        value={cursoArmadoLocal.asistencias_por_defecto ?? ''}
+                        onChange={(e) => setCursoArmadoLocal(prev => ({
+                            ...prev,
+                            asistencias_por_defecto: parseOptionalNumber(e.target.value) ?? 0
+                        }))}
+                        className={inputBase}
+                    />
+                </label>
+
+                <label className="flex flex-col gap-1">
+                    <FieldLabel>Nota práctica por defecto</FieldLabel>
+                    <input
+                        type="number"
+                        value={cursoArmadoLocal.calificacion_por_defecto ?? ''}
+                        onChange={(e) => setCursoArmadoLocal(prev => ({
+                            ...prev,
+                            calificacion_por_defecto: parseOptionalNumber(e.target.value) ?? 0
+                        }))}
+                        className={inputBase}
+                    />
+                </label>
+
+                <label className="flex flex-col gap-1">
+                    <FieldLabel>Nota teórica por defecto</FieldLabel>
+                    <input
+                        type="number"
+                        value={cursoArmadoLocal.teorica_por_defecto ?? ''}
+                        onChange={(e) => setCursoArmadoLocal(prev => ({
+                            ...prev,
+                            teorica_por_defecto: parseOptionalNumber(e.target.value) ?? 0
+                        }))}
+                        className={inputBase}
+                    />
+                </label>
             </div>
 
             {/* Mensajes / import / upload */}

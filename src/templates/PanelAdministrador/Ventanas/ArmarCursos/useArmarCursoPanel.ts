@@ -237,7 +237,12 @@ export function useArmarCursoPanel({
 
     const hayCambiosCotizacion = hayCambiosSeccion(COTIZACION_FIELDS)
     const hayCambiosInicio = hayCambiosSeccion(INICIO_FIELDS)
-    const hayCambiosInscripciones = cursoArmadoLocal.inscripciones.some((inscripcionLocal) => {
+    const hayCambiosDefaultsInscripciones =
+        cursoArmadoLocal.asistencias_por_defecto !== cursoArmadoGuardado.asistencias_por_defecto ||
+        cursoArmadoLocal.calificacion_por_defecto !== cursoArmadoGuardado.calificacion_por_defecto ||
+        cursoArmadoLocal.teorica_por_defecto !== cursoArmadoGuardado.teorica_por_defecto
+
+    const hayCambiosRegistrosInscripciones = cursoArmadoLocal.inscripciones.some((inscripcionLocal) => {
         const inscripcionGuardada = cursoArmadoGuardado.inscripciones.find(
             i => i.id_inscripcion === inscripcionLocal.id_inscripcion
         )
@@ -249,6 +254,7 @@ export function useArmarCursoPanel({
             inscripcionLocal.teorica !== inscripcionGuardada.teorica ||
             inscripcionLocal.notificar !== inscripcionGuardada.notificar
     })
+    const hayCambiosInscripciones = hayCambiosDefaultsInscripciones || hayCambiosRegistrosInscripciones
 
     const volverALaLista = () => {
         setCursoArmadoAVisualizar(null)
@@ -316,7 +322,24 @@ export function useArmarCursoPanel({
         setGuardandoInscripciones(true)
 
         try {
+            let cursoActualizado: cursoArmado = cursoArmadoLocal
             let inscripcionesActualizadas = cursoArmadoLocal.inscripciones
+
+            const defaultsInscripciones = [
+                'asistencias_por_defecto',
+                'calificacion_por_defecto',
+                'teorica_por_defecto',
+            ] as const satisfies readonly (keyof cursoArmado)[]
+
+            for (const campo of defaultsInscripciones) {
+                const valorLocal = cursoArmadoLocal[campo]
+
+                if (valorLocal === cursoArmadoGuardado[campo]) continue
+                if (valorLocal === undefined || valorLocal === null) continue
+
+                await guardarParametro(campo, valorLocal as number)
+                cursoActualizado = { ...cursoActualizado, [campo]: valorLocal }
+            }
 
             for (const inscripcionLocal of cursoArmadoLocal.inscripciones) {
                 const id = inscripcionLocal.id_inscripcion
@@ -358,7 +381,7 @@ export function useArmarCursoPanel({
             }
 
             reemplazarCursoArmado({
-                ...cursoArmadoLocal,
+                ...cursoActualizado,
                 inscripciones: inscripcionesActualizadas
             })
         } catch (e) {

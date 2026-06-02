@@ -36,6 +36,9 @@ export interface cursoArmado {
     en_clase?: boolean
     calificacion_aprobatoria?: number,
     teorica?: number,
+    asistencias_por_defecto?: number,
+    calificacion_por_defecto?: number,
+    teorica_por_defecto?: number,
     inscripciones: inscripcion[]
     token_curso: string
 }

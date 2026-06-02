@@ -90,6 +90,7 @@ export default function ArmarCursoPanel({
                 onEliminarInscripcion={panel.eliminarInscripcion}
                 onActualizarInscripcion={panel.actualizarInscripcion}
                 onGuardarInscripciones={panel.guardarInscripciones}
+                setCursoArmadoLocal={panel.setCursoArmadoLocal}
                 hayCambiosInscripciones={panel.hayCambiosInscripciones}
                 guardandoInscripciones={panel.guardandoInscripciones}
             />
