@@ -19,6 +19,57 @@ html {
     line-height: 1.2;
 }
 
+/* ------------------------------------------------------------------
+   Fachada de acceso (login / activacion / recuperacion)
+   Utilidades minimas para el fondo, las entradas animadas y el titulo
+   con degradado. Se mantienen fuera de Tailwind porque son gradientes y
+   keyframes reutilizados por las pantallas publicas.
+   ------------------------------------------------------------------ */
+.auth-aurora {
+  background:
+    radial-gradient(circle at 12% 18%, rgba(37, 99, 235, 0.26), transparent 55%),
+    radial-gradient(circle at 88% 82%, rgba(245, 158, 11, 0.14), transparent 52%),
+    radial-gradient(circle at 50% 120%, rgba(59, 130, 246, 0.12), transparent 60%);
+}
+
+.auth-grid {
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(circle at 50% 40%, black, transparent 78%);
+  -webkit-mask-image: radial-gradient(circle at 50% 40%, black, transparent 78%);
+}
+
+.auth-gradient-text {
+  background: linear-gradient(100deg, #ffffff 0%, #cbd5e1 48%, #60a5fa 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@keyframes auth-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.auth-rise {
+  animation: auth-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-rise {
+    animation: none;
+  }
+}
+
 @layer base {
   html {
     overflow: auto !important;

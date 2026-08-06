@@ -1,8 +1,23 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ComponentType, type SVGProps } from "react";
 import { Link, Navigate, Outlet, useLocation } from "react-router-dom";
+import {
+    AcademicCapIcon,
+    BuildingOffice2Icon,
+    DocumentCheckIcon,
+    PresentationChartBarIcon,
+    ShieldCheckIcon,
+    Squares2X2Icon,
+    UserCircleIcon,
+} from "@heroicons/react/24/outline";
+
 import { obtenerRolesDeUsuarioAsync, type rolEnum } from "../Api/roles";
 
 type RolesState = rolEnum[] | null
+
+// Cada entrada del menu se identifica con un icono de Heroicons en lugar de la
+// inicial de su nombre: el icono se lee de un vistazo y no colisiona cuando dos
+// secciones empiezan con la misma letra (Cursos empresa / Certificados).
+type SidebarIcon = ComponentType<SVGProps<SVGSVGElement>>
 
 function checarSiTieneRol(userRolList: rolEnum[], rolListToCompare: rolEnum[]) {
     if (userRolList.includes('ADMINISTRADOR')) {
@@ -14,12 +29,12 @@ function checarSiTieneRol(userRolList: rolEnum[], rolListToCompare: rolEnum[]) {
 
 const SidebarButton = ({
     to,
-    icon,
+    icon: Icono,
     label,
     onClick,
 }: {
     to: string,
-    icon: string,
+    icon: SidebarIcon,
     label: string,
     onClick: () => void
 }) => {
@@ -30,13 +45,18 @@ const SidebarButton = ({
         <Link
             to={to}
             onClick={onClick}
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition ${
+            className={`group flex items-center gap-3 px-4 py-3 rounded-xl transition ${
                 activo
                     ? "bg-blue-500/20 text-blue-400"
                     : "text-white/70 hover:bg-white/5 hover:text-white"
             }`}
         >
-            <span className="text-lg">{icon}</span>
+            <Icono
+                className={`size-5 shrink-0 transition ${
+                    activo ? "text-blue-400" : "text-white/50 group-hover:text-white"
+                }`}
+                aria-hidden="true"
+            />
             <span className="text-sm font-medium">{label}</span>
         </Link>
     )
@@ -85,7 +105,7 @@ function Sidebar({ roles }: { roles: RolesState }) {
                         {checarSiTieneRol(roles, ['ADMINISTRADOR']) ? (
                             <SidebarButton
                                 to="/panelAdministradores"
-                                icon="A"
+                                icon={ShieldCheckIcon}
                                 label="Administradores"
                                 onClick={() => setAbierta(false)}
                             />
@@ -94,7 +114,7 @@ function Sidebar({ roles }: { roles: RolesState }) {
                         {checarSiTieneRol(roles, ['EMPRESA', 'ADMINISTRADOREMPRESA']) ? (
                             <SidebarButton
                                 to="/cursosEmpresa"
-                                icon="E"
+                                icon={BuildingOffice2Icon}
                                 label="Cursos empresa"
                                 onClick={() => setAbierta(false)}
                             />
@@ -103,7 +123,7 @@ function Sidebar({ roles }: { roles: RolesState }) {
                         {checarSiTieneRol(roles, ['ADMINISTRADOREMPRESA']) ? (
                             <SidebarButton
                                 to="/panelAdminitradorCursos"
-                                icon="C"
+                                icon={Squares2X2Icon}
                                 label="Administración de OTEC"
                                 onClick={() => setAbierta(false)}
                             />
@@ -112,7 +132,7 @@ function Sidebar({ roles }: { roles: RolesState }) {
                         {checarSiTieneRol(roles, ['PROFESOR']) ? (
                             <SidebarButton
                                 to="/mis-cursos-profesor"
-                                icon="P"
+                                icon={PresentationChartBarIcon}
                                 label="Mis cursos (Profesor)"
                                 onClick={() => setAbierta(false)}
                             />
@@ -121,7 +141,7 @@ function Sidebar({ roles }: { roles: RolesState }) {
                         {checarSiTieneRol(roles, ['ALUMNO']) ? (
                             <SidebarButton
                                 to="/mis-cursos-alumno"
-                                icon="L"
+                                icon={AcademicCapIcon}
                                 label="Mis cursos (Alumno)"
                                 onClick={() => setAbierta(false)}
                             />
@@ -130,7 +150,7 @@ function Sidebar({ roles }: { roles: RolesState }) {
                         {checarSiTieneRol(roles, ['ALUMNO']) ? (
                             <SidebarButton
                                 to="/certificados"
-                                icon="T"
+                                icon={DocumentCheckIcon}
                                 label="Certificados"
                                 onClick={() => setAbierta(false)}
                             />
@@ -140,7 +160,7 @@ function Sidebar({ roles }: { roles: RolesState }) {
 
                     <SidebarButton
                         to="/perfil"
-                        icon="U"
+                        icon={UserCircleIcon}
                         label="Perfil"
                         onClick={() => setAbierta(false)}
                     />
